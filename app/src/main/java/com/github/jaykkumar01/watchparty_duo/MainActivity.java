@@ -181,6 +181,7 @@ public class MainActivity extends AppCompatActivity{
 
         // Add extras to the intent
         intent.putExtra(Constants.PEER, peer);
+        finish(); // Destroy the current activity before launching the new one
         startActivity(intent);
     }
 

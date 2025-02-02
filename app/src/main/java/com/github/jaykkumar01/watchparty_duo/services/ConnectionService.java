@@ -7,7 +7,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
-import android.webkit.WebView;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -87,7 +86,7 @@ public class ConnectionService extends Service{
     }
 
     public void startAudioTransfer() {
-        audioUtil.startAudioTransfer();
+        audioUtil.startRecording();
     }
 
     public void sendAudioFile(byte[] buffer, int read, long millis, float loudness) {
@@ -99,8 +98,8 @@ public class ConnectionService extends Service{
     }
 
 
-    public void loadWebView(String javascriptCommand) {
-
-//        webView.loadUrl(javascriptCommand);
+    public void stop() {
+        stopForeground(true); // Removes the notification
+        stopSelf(); // Stops the service
     }
 }

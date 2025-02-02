@@ -1,8 +1,10 @@
 package com.github.jaykkumar01.watchparty_duo.activities;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -13,6 +15,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.Surface;
@@ -38,6 +41,7 @@ import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
+import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.models.Peer;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
@@ -70,6 +74,7 @@ public class PlayerActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
 
 
         initViews();
@@ -151,6 +156,12 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void endCall(View view) {
+        if(ConnectionService.getInstance() != null){
+            ConnectionService.getInstance().stop();
+        }
+        finish();
+
+        startActivity(new Intent(this, MainActivity.class));
     }
 
     public void deafen(View view) {
@@ -158,4 +169,10 @@ public class PlayerActivity extends AppCompatActivity {
 
     public void sendMessage(View view) {
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
 }

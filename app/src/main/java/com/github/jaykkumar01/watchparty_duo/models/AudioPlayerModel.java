@@ -29,10 +29,10 @@ public class AudioPlayerModel implements AudioData{
 
     public void processFile(byte[] bytes, int read, long millis, String id, float loudness) {
 
-        long diff = System.currentTimeMillis() - millis - offset;
-        if (diff > 500){
-            return;
-        }
+//        long diff = System.currentTimeMillis() - millis - offset;
+//        if (diff > 500){
+//            return;
+//        }
         audioTrack.write(bytes, 0, read);
     }
 
