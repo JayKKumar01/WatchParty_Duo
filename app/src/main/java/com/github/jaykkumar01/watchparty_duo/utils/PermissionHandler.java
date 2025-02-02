@@ -21,6 +21,11 @@ public class PermissionHandler {
         }
         boolean hasCameraPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
         boolean hasMicPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        boolean hasBluetoothConnectPermission = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            hasBluetoothConnectPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+        }
+
 
         // If any of the permissions are not granted, request them
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
@@ -33,7 +38,10 @@ public class PermissionHandler {
         if (!hasMicPermission) {
             requestPermission(activity,Manifest.permission.RECORD_AUDIO, Constants.MIC_PERMISSION_CODE);
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !hasBluetoothConnectPermission) {
+            requestPermission(activity, Manifest.permission.BLUETOOTH_CONNECT, Constants.BLUETOOTH_CONNECT_PERMISSION_CODE);
+        }
 
-        return hasNotificationPermission && hasCameraPermission && hasMicPermission;
+        return hasNotificationPermission && hasCameraPermission && hasMicPermission && hasBluetoothConnectPermission;
     }
 }

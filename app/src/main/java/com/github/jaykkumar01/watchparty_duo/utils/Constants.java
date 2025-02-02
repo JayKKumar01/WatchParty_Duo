@@ -13,6 +13,7 @@ public class Constants {
     // Permission Codes
     public static final int MIC_PERMISSION_CODE = 200;
     public static final int CAMERA_PERMISSION_CODE = 300;
+    public static final int BLUETOOTH_CONNECT_PERMISSION_CODE = 400;
 
     // Extras
     public static final String NAME = "name";
@@ -21,4 +22,5 @@ public class Constants {
     public static final CharSequence NOTIFICATION_DESCRIPTION_NOT_CONNECTED = "Waiting for connection...";
     public static final CharSequence NOTIFICATION_DESCRIPTION_CONNECTED = "Connection Established";
     public static final String PEER = "peer";
+
 }

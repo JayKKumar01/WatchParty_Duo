@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity{
 
     public void connect(View view) {
         if (!PermissionHandler.hasPermission(this)){
-            Toast.makeText(instance, "Please enable Notification Permission!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(instance, "Please enable All Permissions!", Toast.LENGTH_SHORT).show();
             return;
         }
         // Change button text to "Connecting..." and disable it

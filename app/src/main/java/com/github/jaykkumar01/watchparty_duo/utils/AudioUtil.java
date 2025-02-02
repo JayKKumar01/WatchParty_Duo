@@ -1,8 +1,15 @@
 package com.github.jaykkumar01.watchparty_duo.utils;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Handler;
@@ -14,6 +21,7 @@ import androidx.core.app.ActivityCompat;
 import com.github.jaykkumar01.watchparty_duo.interfaces.AudioData;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,22 +31,12 @@ public class AudioUtil implements AudioData {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private volatile boolean isRecording = false;
 
-    private int fileSendCount = 0;
-    private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private final Runnable updateToastRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (fileSendCount > 0) {
-                Toast.makeText(context, "Files sent: " + fileSendCount + "/sec", Toast.LENGTH_SHORT).show();
-            }
-            fileSendCount = 0; // Reset count for the next second
-            handler.postDelayed(this, 1000); // Repeat every 1 second
-        }
-    };
+    private final AudioManager audioManager;
 
     public AudioUtil(Context context) {
         this.context = context;
+        this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
     public void stopRecording() {
@@ -49,7 +47,6 @@ public class AudioUtil implements AudioData {
         isRecording = false;
         audioRecord.stop();
         audioRecord.release(); // Properly release resources
-        handler.removeCallbacks(updateToastRunnable); // Stop toast updates
 
         //executorService.shutdown(); // Stop background tasks
     }
@@ -58,19 +55,26 @@ public class AudioUtil implements AudioData {
         if (isRecording) {
             return;
         }
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            audioRecord = new AudioRecord(
-                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                    SAMPLE_RATE,
-                    CHANNEL_CONFIG,
-                    AUDIO_FORMAT,
-                    BUFFER_SIZE_IN_BYTES);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
+        int audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
+        // Check for Bluetooth headset and enable SCO
+        if (isBluetoothHeadsetConnected()) {
+            audioManager.startBluetoothSco(); // Enable Bluetooth SCO audio
+            audioManager.setBluetoothScoOn(true);
+            audioSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
+        }
+
+        audioRecord = new AudioRecord(
+                audioSource,
+                SAMPLE_RATE,
+                CHANNEL_IN_CONFIG,
+                AUDIO_FORMAT,
+                BUFFER_SIZE_IN_BYTES
+        );
         audioRecord.startRecording();
         isRecording = true;
-
-        // Start the toast updater
-        handler.post(updateToastRunnable);
 
 
         executorService.execute(() -> {
@@ -85,15 +89,17 @@ public class AudioUtil implements AudioData {
             while (isRecording && audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
                 long millis = System.currentTimeMillis();
                 int read = audioRecord.read(buffer, 0, BUFFER_SIZE_IN_BYTES);
-                float loudness = -1f;
-//                float loudness = AudioCalculator.getLoudness(buffer);
+
+                if (read <= 0 ){
+                    continue;
+                }
+                float loudness = AudioCalculator.getLoudness(buffer);
 
                 if (!Base.isNetworkAvailable(context)) {
                     continue;
                 }
 
                 connectionService.sendAudioFile(buffer, read, millis, loudness);
-                fileSendCount++; // Increment count
             }
         });
     }
@@ -107,4 +113,23 @@ public class AudioUtil implements AudioData {
             startRecording();
         }
     }
+
+    private boolean isBluetoothHeadsetConnected() {
+        // Check for Bluetooth permissions
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ConnectionService.getInstance().showToast("No Bluetooth Permission");
+            return false;
+        }
+        // Retrieve connected audio devices
+        AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+        for (AudioDeviceInfo device : devices) {
+            if (device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO || device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
 }

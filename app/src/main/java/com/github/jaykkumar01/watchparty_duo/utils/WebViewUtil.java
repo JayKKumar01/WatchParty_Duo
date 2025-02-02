@@ -10,6 +10,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.interfaces.JavaScriptInterface;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
@@ -77,6 +78,17 @@ public class WebViewUtil {
             }
         }
         final String javascriptCommand = String.format("javascript:%s(%s)", func, argString.toString());
-        mainHandler.post(() -> webView.loadUrl(javascriptCommand));
+        if (webView != null) {
+            mainHandler.post(() -> webView.loadUrl(javascriptCommand));
+        }
+    }
+
+    public void stop() {
+        mainHandler.post(() -> {
+            if (webView != null) {
+                webView.loadUrl("");
+                webView = null;
+            }
+        });
     }
 }

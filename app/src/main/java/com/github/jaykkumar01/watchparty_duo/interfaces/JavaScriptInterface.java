@@ -1,6 +1,9 @@
 package com.github.jaykkumar01.watchparty_duo.interfaces;
 
 import android.content.Context;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
@@ -12,14 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class JavaScriptInterface {
-    private Context context;
+public class JavaScriptInterface implements AudioData{
+    private final Context context;
+    private AudioTrack audioTrack;
+    private long offset;
 
     public JavaScriptInterface(Context context){
         this.context = context;
     }
 
-    private final ConcurrentHashMap<String, AudioPlayerModel> playerMap = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @JavascriptInterface
@@ -45,12 +49,36 @@ public class JavaScriptInterface {
 
     @JavascriptInterface
     public void readAudioFile(String id, byte[] bytes, int read, long millis, float loudness){
+        if (audioTrack == null){
+            audioTrack = new AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    SAMPLE_RATE,
+                    CHANNEL_OUT_CONFIG,
+                    AUDIO_FORMAT,
+                    BUFFER_SIZE_IN_BYTES,
+                    AudioTrack.MODE_STREAM);
+            audioTrack.play();
+            offset = System.currentTimeMillis() - millis;
+        }
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
 
-        playerMap.putIfAbsent(id, new AudioPlayerModel(id, millis));
+                long diff = System.currentTimeMillis() - millis - offset;
+                if (diff < 0){
+                    audioTrack.write(bytes, 0, read);
+                }
 
-        AudioPlayerModel audioPlayerModel = playerMap.get(id);
+            }
+        });
 
-        executorService.execute(() -> audioPlayerModel.processFile(bytes,read,millis,id,loudness));
+
+
+//        playerMap.putIfAbsent(id, new AudioPlayerModel(id, millis));
+//
+//        AudioPlayerModel audioPlayerModel = playerMap.get(id);
+//
+//        executorService.execute(() -> audioPlayerModel.processFile(bytes,read,millis,id,loudness));
 
     }
 

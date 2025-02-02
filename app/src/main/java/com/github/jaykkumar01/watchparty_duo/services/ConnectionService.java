@@ -6,7 +6,10 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -24,6 +27,7 @@ public class ConnectionService extends Service{
     private static ConnectionService instance;
     private WebViewUtil webViewUtil;
     private AudioUtil audioUtil;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
 
     public static ConnectionService getInstance() {
@@ -99,7 +103,14 @@ public class ConnectionService extends Service{
 
 
     public void stop() {
+        webViewUtil.stop();
         stopForeground(true); // Removes the notification
         stopSelf(); // Stops the service
+    }
+
+    public void showToast(String toast) {
+        handler.post(() -> Toast.makeText(instance, toast, Toast.LENGTH_SHORT).show());
+
+
     }
 }
