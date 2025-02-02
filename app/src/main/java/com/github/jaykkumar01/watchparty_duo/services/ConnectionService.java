@@ -15,8 +15,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.AudioUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.WebViewUtil;
@@ -58,7 +58,7 @@ public class ConnectionService extends Service{
         return new NotificationCompat.Builder(this, Constants.CHANNEL_ID)
                 .setSmallIcon(R.drawable.mic_on)
                 .setContentTitle("WatchParty")
-                .setContentText(MainActivity.getConnectionStatus() ? Constants.NOTIFICATION_DESCRIPTION_CONNECTED :Constants.NOTIFICATION_DESCRIPTION_NOT_CONNECTED)
+                .setContentText(AppData.getInstance().isConnectionActive() ? Constants.NOTIFICATION_DESCRIPTION_CONNECTED :Constants.NOTIFICATION_DESCRIPTION_NOT_CONNECTED)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setOngoing(true)
                 .setAutoCancel(true)
@@ -81,7 +81,7 @@ public class ConnectionService extends Service{
     }
 
     public void connect(String remoteId) {
-        webViewUtil.callJavaScript("connect", remoteId);
+        webViewUtil.callJavaScript("connect", remoteId, true);
     }
 
     public void startAudioTransfer() {
@@ -95,8 +95,8 @@ public class ConnectionService extends Service{
         webViewUtil.callJavaScript("sendAudioFile",buffer,read,millis,loudness);
     }
 
-    public void toggleMic(boolean isMute) {
-        audioUtil.record(isMute);
+    public void toggleMic() {
+        audioUtil.record(AppData.getInstance().isMute());
     }
 
 

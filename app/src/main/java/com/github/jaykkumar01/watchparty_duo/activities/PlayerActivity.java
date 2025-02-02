@@ -1,43 +1,21 @@
 package com.github.jaykkumar01.watchparty_duo.activities;
 
-import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
-import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.view.Surface;
-import android.view.TextureView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
@@ -45,15 +23,16 @@ import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.models.Peer;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
-import com.github.jaykkumar01.watchparty_duo.utils.Base;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
-import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 
 public class PlayerActivity extends AppCompatActivity {
+
+    private static PlayerActivity instance;
+
+    public static PlayerActivity getInstance(){
+        return instance;
+    }
 
 
     private PlayerView playerView;
@@ -74,8 +53,7 @@ public class PlayerActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-
+        instance = this;
 
         initViews();
 
@@ -96,6 +74,21 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     }
+
+    public void updateLog(String message) {
+        runOnUiThread(() -> {
+            TextView logTextView = findViewById(R.id.logTextView);
+            ScrollView logScrollView = findViewById(R.id.logScrollView);
+
+            // Prepend new message at the top
+            String currentText = logTextView.getText().toString();
+            logTextView.setText(currentText + "\n" + message);
+
+            // Auto-scroll to top
+            logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
+        });
+    }
+
 
     private void initViews() {
         playerView = findViewById(R.id.player_view);
@@ -145,17 +138,18 @@ public class PlayerActivity extends AppCompatActivity {
 
     public void mic(View view) {
         ImageView imageView = (ImageView) view;
-        isMute = !isMute;
+        AppData.getInstance().setMute(!AppData.getInstance().isMute());
 
         if (ConnectionService.getInstance() != null) {
-            ConnectionService.getInstance().toggleMic(isMute);
+            ConnectionService.getInstance().toggleMic();
         }
 
-        imageView.setImageResource(isMute ? R.drawable.mic_off : R.drawable.mic_on);
+        imageView.setImageResource(AppData.getInstance().isMute() ? R.drawable.mic_off : R.drawable.mic_on);
     }
 
 
     public void endCall(View view) {
+        AppData.getInstance().reset();
         if(ConnectionService.getInstance() != null){
             ConnectionService.getInstance().stop();
         }

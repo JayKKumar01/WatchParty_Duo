@@ -20,7 +20,7 @@ function getRandomId() {
 // Generate peer connection ID using prefix and random ID
 const peerBranch = `${PREFIX}${getTodayDate()}-`;
 
-let peerId = null;
+let peerId = getRandomId();
 let peer = null;
 
 let remoteId = null;
@@ -28,11 +28,37 @@ let conn = null;
 
 let nextPeerId = null;
 let nextRemoteId = null;
+let isPeerOpen = false;
+let isConnectionOpen = false;
+
+let lastSeen; // now
 
 //initPeer
 
-function initPeer(){
-    peerId = getRandomId();
+
+function nextPeer() {
+    peerId = nextPeerId;
+    remoteId = nextRemoteId;
+    isPeerOpen = false;
+    isConnectionOpen = false;
+
+
+    let attemptCount = 0;
+    const checkInterval = setInterval(() => {
+        if (!isPeerOpen) {
+            initPeer();
+            Android.onRetryPeer(++attemptCount);
+        } else {
+            clearInterval(checkInterval);
+        }
+
+    }, 2000);
+
+
+    
+}
+
+function initPeer() {
     const id = `${peerBranch}${peerId}`;
     peer = new Peer(id);
 
@@ -42,7 +68,22 @@ function initPeer(){
 // Handle peer-related events like connection and disconnection
 function handlePeer(peer) {
     peer.on('open', () => {
+        isPeerOpen = true;
         Android.onPeerOpen(peerId);
+
+        if (nextPeerId !== null) {
+            Android.onPeerReopened(peerId);
+            let attemptCount = 0;
+            const checkInterval = setInterval(() => {
+                if (!isConnectionOpen) {
+                    connect(remoteId, false);
+                    Android.onRetryConnection(++attemptCount);
+                } else {
+                    clearInterval(checkInterval);
+                }
+
+            }, 2000);
+        }
     });
 
     peer.on('connection', (incomingConn) => {
@@ -65,12 +106,36 @@ function handlePeer(peer) {
 // Setup the connection to the other peer
 function setupConnection(connection) {
     conn = connection;
-    remoteId = conn.peer.split('-').pop();
 
     conn.on('open', () => {
+        isConnectionOpen = true;
+        remoteId = conn.peer.split('-').pop();
         nextPeerId = getRandomId();
         conn.send({ type: 'nextRemoteId', nextRemoteId: nextPeerId });
         Android.onConnectionOpen(remoteId);
+        lastSeen = Date.now();
+
+        // Start interval only after the connection is open
+        const checkInterval = setInterval(() => {
+
+            if (Date.now() - lastSeen > 5000) {
+                clearInterval(checkInterval);
+                Android.onConnectionAlive(false);
+                Android.onNextPeer(nextPeerId, nextRemoteId);
+                nextPeer();
+
+
+            } else {
+                Android.onConnectionAlive(true);
+            }
+
+            if (conn && conn.open) {
+                conn.send({ type: 'checkingConnection' });
+            }
+
+        }, 3000);
+
+        // start a timer each 3 seconds it should send type checkingConnection on handle data it should update the last seen before sending if the last seen is more than 5 seconds then Android.onConnectionAlive(false) should trigger
     });
 
     conn.on('data', handleData);
@@ -80,6 +145,7 @@ function setupConnection(connection) {
     });
 
     conn.on('error', (err) => {
+        Android.onConnectionError(err);
         console.error("Connection error:", err);
     });
 }
@@ -91,11 +157,14 @@ function handleData(data) {
         // Android.showMessage(data.id, data.name, data.message, data.millis);
     } else if (data.type === 'audioFile') {
         Android.readAudioFile(data.id, data.bytes, data.read, data.millis, data.loudness);
+    } else if (data.type === 'checkingConnection') {
+        lastSeen = Date.now();
     }
 }
 
-function connect(otherPeerId) {
-    const targetPeerId = byteArrayToString(otherPeerId);
+function connect(otherPeerId, isByteArray) {
+    const targetPeerId = isByteArray ? byteArrayToString(otherPeerId) : otherPeerId;
+
     if (targetPeerId !== '') {
         const connection = peer.connect(peerBranch + targetPeerId, { reliable: true });
         setupConnection(connection);

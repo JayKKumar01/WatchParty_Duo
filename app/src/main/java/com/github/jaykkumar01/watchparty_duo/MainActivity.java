@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.models.Peer;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.google.android.material.textfield.TextInputEditText;
@@ -35,16 +36,9 @@ public class MainActivity extends AppCompatActivity{
     private AppCompatButton btnJoin,btnConnect;
     
     private static MainActivity instance;
-    private static boolean connectionStatus;
+
     public static MainActivity getInstance() {
         return instance;
-    }
-    public static boolean getConnectionStatus(){
-        return connectionStatus;
-    }
-
-    public static void setConnectionStatus(boolean connectionStatus) {
-        MainActivity.connectionStatus = connectionStatus;
     }
 
     private Peer peer;
@@ -115,8 +109,10 @@ public class MainActivity extends AppCompatActivity{
     public void onConnectionOpen(String remoteId){
         Toast.makeText(this, "Connected with: "+remoteId, Toast.LENGTH_SHORT).show();
         runOnUiThread(() -> {
+            if (ConnectionService.getInstance() != null) {
+                ConnectionService.getInstance().startAudioTransfer();
+            }
             peer.setRemoteId(remoteId);
-            connectionStatus = true;
             btnJoin.setText("Join");
             btnJoin.setEnabled(true);
             launchPlayerActivity();
@@ -144,7 +140,7 @@ public class MainActivity extends AppCompatActivity{
             ConnectionService.getInstance().connect(remoteId);
             // Start a timer for 5 seconds to check connection status
             new android.os.Handler().postDelayed(() -> {
-                if (!connectionStatus) { // If not connected, reset join button
+                if (!AppData.getInstance().isConnectionEstablished()) { // If not connected, reset join button
                     btnJoin.setText("Join");
                     btnJoin.setEnabled(true);
                     Toast.makeText(this, "Connection failed. Try again.", Toast.LENGTH_SHORT).show();

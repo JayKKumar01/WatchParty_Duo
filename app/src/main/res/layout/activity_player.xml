@@ -647,6 +647,29 @@
             app:layout_constraintTop_toBottomOf="@id/livechat"
             app:layout_constraintBottom_toBottomOf="parent">
 
+
+            <!-- Log Area with Scrolling -->
+            <ScrollView
+                android:id="@+id/logScrollView"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:fillViewport="true"
+                android:padding="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/peer_bottom_bar">
+
+                <TextView
+                    android:id="@+id/logTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/theme_color"
+                    android:text="Logs:\n"
+                    android:typeface="monospace" />
+            </ScrollView>
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"

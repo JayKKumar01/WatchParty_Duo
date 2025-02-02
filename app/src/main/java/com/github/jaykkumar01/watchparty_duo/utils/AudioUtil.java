@@ -20,6 +20,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.interfaces.AudioData;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +53,7 @@ public class AudioUtil implements AudioData {
     }
 
     public void startRecording() {
-        if (isRecording) {
+        if (isRecording || AppData.getInstance().isMute()) {
             return;
         }
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
