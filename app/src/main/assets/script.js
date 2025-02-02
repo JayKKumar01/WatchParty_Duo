@@ -1,8 +1,6 @@
 const PREFIX = "JayKKumar01-WatchParty-Duo-";
-const RANDOM_ID = Math.floor(100000 + Math.random() * 900000);
 
-//utility functions
-
+// Utility functions
 function getTodayDate() {
     const today = new Date();
     const year = today.getFullYear();
@@ -13,69 +11,101 @@ function getTodayDate() {
 
 function byteArrayToString(byteArray) {
     const decoder = new TextDecoder('utf-8');
-    const utf8Text = decoder.decode(new Uint8Array(byteArray));
-    return utf8Text;
+    return decoder.decode(new Uint8Array(byteArray));
 }
 
+function getRandomId() {
+    return Math.floor(100000 + Math.random() * 900000);
+}
 // Generate peer connection ID using prefix and random ID
 const peerBranch = `${PREFIX}${getTodayDate()}-`;
-const peerId = `${peerBranch}${RANDOM_ID}`;
-const peer = new Peer(peerId);
 
-let remoteId;
+let peerId = null;
+let peer = null;
 
-let conn;
+let remoteId = null;
+let conn = null;
+
+let nextPeerId = null;
+let nextRemoteId = null;
+
+//initPeer
+
+function initPeer(){
+    peerId = getRandomId();
+    const id = `${peerBranch}${peerId}`;
+    peer = new Peer(id);
+
+    handlePeer(peer);
+}
 
 // Handle peer-related events like connection and disconnection
-function handlePeer() {
-
+function handlePeer(peer) {
     peer.on('open', () => {
-        Android.onPeer(RANDOM_ID);
+        Android.onPeerOpen(peerId);
     });
 
     peer.on('connection', (incomingConn) => {
         setupConnection(incomingConn);
     });
-    peer.on('disconnected', () => Android.onDisconnected(remoteId));
-    peer.on('close', () => Android.onClose(remoteId));
+
+    peer.on('disconnected', () => {
+        Android.onPeerDisconnected(peerId);
+    });
+
+    peer.on('close', () => {
+        Android.onPeerClose(peerId);
+    });
+
+    peer.on('error', (err) => {
+        console.error("Peer error:", err);
+    });
 }
 
 // Setup the connection to the other peer
 function setupConnection(connection) {
     conn = connection;
     remoteId = conn.peer.split('-').pop();
+
     conn.on('open', () => {
-        Android.onConnected(remoteId);
+        nextPeerId = getRandomId();
+        conn.send({ type: 'nextRemoteId', nextRemoteId: nextPeerId });
+        Android.onConnectionOpen(remoteId);
     });
 
-    // Handle data transfer
     conn.on('data', handleData);
-    // conn.on('close', () => appendLog("Data connection closed."));
-    // conn.on('error', (err) => appendLog("Data connection error: " + err));
+
+    conn.on('close', () => {
+        Android.onConnectionClose(remoteId);
+    });
+
+    conn.on('error', (err) => {
+        console.error("Connection error:", err);
+    });
 }
 
 function handleData(data) {
-    if (data.type === 'message') {
+    if (data.type === 'nextRemoteId') {
+        nextRemoteId = data.nextRemoteId;
+    } else if (data.type === 'message') {
         // Android.showMessage(data.id, data.name, data.message, data.millis);
-    }
-    else if (data.type === 'audioFile') {
+    } else if (data.type === 'audioFile') {
         Android.readAudioFile(data.id, data.bytes, data.read, data.millis, data.loudness);
     }
 }
 
-function connect(peerId) {
-    const targetPeerId = byteArrayToString(peerId);
+function connect(otherPeerId) {
+    const targetPeerId = byteArrayToString(otherPeerId);
     if (targetPeerId !== '') {
-        let connection = peer.connect(peerBranch + targetPeerId, { reliable: true });
+        const connection = peer.connect(peerBranch + targetPeerId, { reliable: true });
         setupConnection(connection);
     }
 }
 
-
-function sendAudioFile(bytes, read, millis, loudness){
-    var data = {
+function sendAudioFile(bytes, read, millis, loudness) {
+    const data = {
         type: 'audioFile',
-        id: RANDOM_ID,
+        id: peerId,
         bytes: bytes,
         read: read,
         millis: millis,
@@ -84,18 +114,7 @@ function sendAudioFile(bytes, read, millis, loudness){
 
     if (conn && conn.open) {
         conn.send(data);
-    }
-}
-
-
-
-const playerTypes = ["Exo Player", "YouTube Player"];
-let playerType = playerTypes[0]; // Default value is "Exo Player"
-
-function setPlayerType(index) {
-    if (index === 0 || index === 1) {
-        playerType = playerTypes[index];
     } else {
-        console.error("Invalid index. Please provide 0 for 'Exo Player' or 1 for 'YouTube Player'.");
+        console.warn("Connection is not open. Unable to send audio file.");
     }
 }

@@ -39,7 +39,7 @@ public class WebViewUtil {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                callJavaScript("handlePeer");
+                callJavaScript("initPeer");
             }
 
         });

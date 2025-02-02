@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
-    public void onPeer(String peerId){
+    public void onPeerOpen(String peerId){
         runOnUiThread(() -> {
             peer.setPeerId(peerId);
             tvName.setText("Welcome "+peer.getName()+ ", Your ID: "+ peerId);
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity{
         });
 
     }
-    public void onConnected(String remoteId){
+    public void onConnectionOpen(String remoteId){
         Toast.makeText(this, "Connected with: "+remoteId, Toast.LENGTH_SHORT).show();
         runOnUiThread(() -> {
             peer.setRemoteId(remoteId);

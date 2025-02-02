@@ -1,17 +1,14 @@
 package com.github.jaykkumar01.watchparty_duo.interfaces;
 
 import android.content.Context;
-import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.MainActivity;
-import com.github.jaykkumar01.watchparty_duo.models.AudioPlayerModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,19 +24,19 @@ public class JavaScriptInterface implements AudioData{
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @JavascriptInterface
-    public void onPeer(String peerId){
-        if (ConnectionService.getInstance() != null){
-            ConnectionService.getInstance().onPeer();
-        }
+    public void onPeerOpen(String peerId){
         if (MainActivity.getInstance() != null){
-            MainActivity.getInstance().onPeer(peerId);
+            MainActivity.getInstance().onPeerOpen(peerId);
+        }
+        if (ConnectionService.getInstance() != null){
+            ConnectionService.getInstance().onPeerOpen(peerId);
         }
 
     }
     @JavascriptInterface
-    public void onConnected(String remoteId){
+    public void onConnectionOpen(String remoteId){
         if (MainActivity.getInstance() != null){
-            MainActivity.getInstance().onConnected(remoteId);
+            MainActivity.getInstance().onConnectionOpen(remoteId);
         }
         if (ConnectionService.getInstance() != null){
             ConnectionService.getInstance().updateNotification();
@@ -71,26 +68,24 @@ public class JavaScriptInterface implements AudioData{
 
             }
         });
-
-
-
-//        playerMap.putIfAbsent(id, new AudioPlayerModel(id, millis));
-//
-//        AudioPlayerModel audioPlayerModel = playerMap.get(id);
-//
-//        executorService.execute(() -> audioPlayerModel.processFile(bytes,read,millis,id,loudness));
-
     }
 
     @JavascriptInterface
-    public void onDisconnected(String remoteId){
-        Toast.makeText(context, "Disconnected: "+remoteId, Toast.LENGTH_SHORT).show();
+    public void onPeerDisconnected(String peerId){
+
+        Toast.makeText(context, "onPeerDisconnected: "+peerId, Toast.LENGTH_SHORT).show();
 
     }
     @JavascriptInterface
-    public void onClose(String remoteId){
-        Toast.makeText(context, "Closed: "+ remoteId, Toast.LENGTH_SHORT).show();
+    public void onPeerClose(String peerId){
+        Toast.makeText(context, "onPeerClose: "+ peerId, Toast.LENGTH_SHORT).show();
     }
+
+    @JavascriptInterface
+    public void onConnectionClose(String remoteId){
+        Toast.makeText(context, "onConnectionClose: "+ remoteId, Toast.LENGTH_SHORT).show();
+    }
+
     @JavascriptInterface
     public void sendToast(String toast){
         Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();

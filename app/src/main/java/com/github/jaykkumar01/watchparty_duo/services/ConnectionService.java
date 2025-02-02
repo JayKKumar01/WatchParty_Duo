@@ -38,7 +38,6 @@ public class ConnectionService extends Service{
     public void onCreate() {
         super.onCreate();
         instance = this;
-
     }
 
     @Override
@@ -81,16 +80,15 @@ public class ConnectionService extends Service{
         return null;
     }
 
-    public void onPeer() {
-        startForeground(Constants.NOTIFICATION_ID, createNotification());
-    }
-
     public void connect(String remoteId) {
         webViewUtil.callJavaScript("connect", remoteId);
     }
 
     public void startAudioTransfer() {
         audioUtil.startRecording();
+    }
+    public void stopAudioTransfer() {
+        audioUtil.stopRecording();
     }
 
     public void sendAudioFile(byte[] buffer, int read, long millis, float loudness) {
@@ -112,5 +110,10 @@ public class ConnectionService extends Service{
         handler.post(() -> Toast.makeText(instance, toast, Toast.LENGTH_SHORT).show());
 
 
+    }
+
+
+    public void onPeerOpen(String peerId) {
+        startForeground(Constants.NOTIFICATION_ID, createNotification());
     }
 }

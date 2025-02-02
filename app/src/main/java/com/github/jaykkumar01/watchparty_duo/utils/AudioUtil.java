@@ -60,11 +60,11 @@ public class AudioUtil implements AudioData {
         }
         int audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
         // Check for Bluetooth headset and enable SCO
-        if (isBluetoothHeadsetConnected()) {
-            audioManager.startBluetoothSco(); // Enable Bluetooth SCO audio
-            audioManager.setBluetoothScoOn(true);
-            audioSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
-        }
+//        if (isBluetoothHeadsetConnected()) {
+//            audioManager.startBluetoothSco(); // Enable Bluetooth SCO audio
+//            audioManager.setBluetoothScoOn(true);
+//            audioSource = MediaRecorder.AudioSource.VOICE_COMMUNICATION;
+//        }
 
         audioRecord = new AudioRecord(
                 audioSource,
