@@ -18,6 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.github.jaykkumar01.watchparty_duo.activities.CameraActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.models.Peer;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
@@ -182,5 +183,9 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
-
+    public void openCameraActivity(View view) {
+        Intent intent = new Intent(this, CameraActivity.class);
+        finish(); // Destroy the current activity before launching the new one
+        startActivity(intent);
+    }
 }
