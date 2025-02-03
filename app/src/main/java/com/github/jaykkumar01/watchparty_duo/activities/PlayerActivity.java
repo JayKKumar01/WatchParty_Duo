@@ -5,8 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -70,12 +70,12 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         imageFeed = new ImageFeed(this,peerFeedImageView);
-        imageFeed.startCamera();
+        imageFeed.openCamera();
 
 
         setupPickVideoLauncher();
 
-
+        Toast.makeText(instance, "onCreate", Toast.LENGTH_SHORT).show();
 
     }
 
@@ -93,6 +93,19 @@ public class PlayerActivity extends AppCompatActivity {
 //        });
     }
 
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        imageFeed.openCamera();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        imageFeed.closeCamera();
+    }
 
     private void initViews() {
         playerView = findViewById(R.id.player_view);

@@ -25,11 +25,9 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.github.jaykkumar01.watchparty_duo.activities.CameraActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
-import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
 import java.nio.ByteBuffer;
@@ -52,7 +50,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
         this.context = context;
         this.imageView = imageView;
     }
-    public void startCamera() {
+    public void openCamera() {
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
         try {
             String cameraId = getFrontCameraId(manager);
@@ -201,6 +199,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
         if (cameraCaptureSession != null) cameraCaptureSession.close();
         if (cameraDevice != null) cameraDevice.close();
         if (imageReader != null) imageReader.close();
+        imageView.setImageBitmap(null);
     }
 
     @Override
