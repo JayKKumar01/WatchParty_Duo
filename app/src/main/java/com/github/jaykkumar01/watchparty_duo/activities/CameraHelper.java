@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
-import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
@@ -16,7 +15,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Size;
 import android.view.Surface;
-import android.view.TextureView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -26,20 +24,19 @@ import androidx.core.app.ActivityCompat;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.*;
 
 public class CameraHelper implements ImageReader.OnImageAvailableListener {
-
 
     private final Context context;
     private final ImageView imageView;
     private CameraDevice cameraDevice;
     private CameraCaptureSession cameraCaptureSession;
     private ImageReader imageReader;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for the main thread
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private static final Matrix rotationMatrix = new Matrix(); // Reuse Matrix for orientation fixes
 
     public CameraHelper(Context context, ImageView imageView) {
         this.context = context;
@@ -51,32 +48,32 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
         try {
             String cameraId = getFrontCameraId(manager);
             if (cameraId == null) {
-                Toast.makeText(context, "Front camera not found", Toast.LENGTH_SHORT).show();
+                showToast("Front camera not found");
                 return;
             }
 
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(context, "Camera permission not granted", Toast.LENGTH_SHORT).show();
+                showToast("Camera permission not granted");
                 return;
             }
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             if (configMap == null) {
-                Toast.makeText(context, "StreamConfigurationMap not found!", Toast.LENGTH_SHORT).show();
+                showToast("StreamConfigurationMap not found!");
                 return;
             }
 
-//            Size largestSize = getLargestJpegSize(configMap);
-            Size largestSize = new Size(480,360);
-
-            imageReader = ImageReader.newInstance(largestSize.getWidth(), largestSize.getHeight(), ImageFormat.JPEG, 60);
-            imageReader.setOnImageAvailableListener(this,null);
+            // Use fixed resolution for simplicity
+            Size previewSize = new Size(480, 360);
+            imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.JPEG, 10);
+            imageReader.setOnImageAvailableListener(this, mainHandler); // Using the mainHandler for the listener
 
             manager.openCamera(cameraId, stateCallback, null);
 
         } catch (CameraAccessException e) {
             e.printStackTrace();
+            showToast("Camera access failed");
         }
     }
 
@@ -91,51 +88,33 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
         return null;
     }
 
-    private Size getLargestJpegSize(StreamConfigurationMap configMap) {
-        Size[] jpegSizes = configMap.getOutputSizes(ImageFormat.JPEG);
-        if (jpegSizes != null && jpegSizes.length > 0) {
-            return jpegSizes[0]; // Highest available resolution
-        }
-        return new Size(480, 360); // Default fallback
-    }
-
     private void processImage(ImageReader reader) {
-        executorService.execute(() -> {
-            Image image = reader.acquireLatestImage();
+        try (Image image = reader.acquireLatestImage()) {
             if (image == null) return;
-
 
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            image.close();
 
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
 
-            ((CameraActivity) context).runOnUiThread(() -> imageView.setImageBitmap(finalBitmap));
-        });
+            // Posting to the main thread to update UI
+            mainHandler.post(() -> imageView.setImageBitmap(finalBitmap));
+        }
     }
 
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
-        Matrix matrix = new Matrix();
+        rotationMatrix.reset();
         int rotation = ((CameraActivity) context).getWindowManager().getDefaultDisplay().getRotation();
         switch (rotation) {
-            case Surface.ROTATION_0:
-                matrix.postRotate(270);
-                break;
-            case Surface.ROTATION_90:
-                matrix.postRotate(0);
-                break;
-            case Surface.ROTATION_180:
-                matrix.postRotate(90);
-                break;
-            case Surface.ROTATION_270:
-                matrix.postRotate(180);
-                break;
+            case Surface.ROTATION_0: rotationMatrix.postRotate(270); break;
+            case Surface.ROTATION_90: rotationMatrix.postRotate(0); break;
+            case Surface.ROTATION_180: rotationMatrix.postRotate(90); break;
+            case Surface.ROTATION_270: rotationMatrix.postRotate(180); break;
         }
-        matrix.postScale(-1, 1, bitmap.getWidth() / 2f, bitmap.getHeight() / 2f);
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        rotationMatrix.postScale(-1, 1, bitmap.getWidth() / 2f, bitmap.getHeight() / 2f);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), rotationMatrix, true);
     }
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
@@ -155,6 +134,7 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
         public void onError(@NonNull CameraDevice camera, int error) {
             camera.close();
             cameraDevice = null;
+            showToast("Camera error occurred");
         }
     };
 
@@ -164,25 +144,25 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     if (cameraDevice == null) return;
-                    cameraCaptureSession = session;
 
-                    scheduler.scheduleWithFixedDelay(() -> {
-                        takePicture();
-                    }, 300, 1000/ AppData.getInstance().getFPS(), TimeUnit.MILLISECONDS);
+                    cameraCaptureSession = session;
+                    scheduler.scheduleWithFixedDelay(CameraHelper.this::takePicture, 300, 1000 / AppData.getInstance().getFPS(), TimeUnit.MILLISECONDS);
                 }
 
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                    Toast.makeText(context, "Configuration failed", Toast.LENGTH_SHORT).show();
+                    showToast("Camera configuration failed");
                 }
             }, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
+            showToast("Camera preview setup failed");
         }
     }
 
-    public void takePicture() {
+    private void takePicture() {
         if (cameraDevice == null) return;
+
         try {
             CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureBuilder.addTarget(imageReader.getSurface());
@@ -190,6 +170,7 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
             cameraCaptureSession.capture(captureBuilder.build(), null, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
+            showToast("Capture failed");
         }
     }
 
@@ -198,11 +179,14 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
         if (cameraDevice != null) cameraDevice.close();
         if (imageReader != null) imageReader.close();
         scheduler.shutdown();
-        executorService.shutdown();
     }
 
     @Override
     public void onImageAvailable(ImageReader reader) {
         processImage(reader);
+    }
+
+    private void showToast(String message) {
+        mainHandler.post(() -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
     }
 }
