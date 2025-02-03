@@ -1,8 +1,11 @@
 package com.github.jaykkumar01.watchparty_duo.activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -45,6 +48,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private ImageFeed imageFeed;
     private ImageView peerFeedImageView,remoteFeedImageView;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for the main thread
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -113,12 +117,21 @@ public class PlayerActivity extends AppCompatActivity {
         peerFeedImageView = findViewById(R.id.peerFeedImageView);
         remoteFeedImageView = findViewById(R.id.remoteFeedImageView);
     }
-
     private void setupPickVideoLauncher() {
         pickVideoLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 this::initializePlayer
         );
+    }
+
+    public void updateRemoteImageFeed(Bitmap bitmap) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                remoteFeedImageView.setImageBitmap(bitmap);
+//            }
+//        });
+        mainHandler.post(() -> remoteFeedImageView.setImageBitmap(bitmap));
     }
 
     private void initializePlayer(Uri uri) {
@@ -187,5 +200,6 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
+
 
 }

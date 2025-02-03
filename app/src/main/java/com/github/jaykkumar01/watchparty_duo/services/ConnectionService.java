@@ -117,7 +117,7 @@ public class ConnectionService extends Service{
         startForeground(Constants.NOTIFICATION_ID, createNotification());
     }
 
-    public void sendImageFeed(byte[] imageFeedBytes) {
-
+    public void sendImageFeed(byte[] imageFeedBytes, long millis) {
+        webViewUtil.callJavaScript("sendImageFeed",imageFeedBytes, millis);
     }
 }

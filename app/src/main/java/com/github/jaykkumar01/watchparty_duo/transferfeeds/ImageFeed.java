@@ -176,7 +176,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
             mainHandler.post(() -> {
                 imageView.setImageBitmap(finalBitmap);
                 if (ConnectionService.getInstance() != null){
-                    ConnectionService.getInstance().sendImageFeed(imageFeedBytes);
+                    ConnectionService.getInstance().sendImageFeed(imageFeedBytes,System.currentTimeMillis());
                 }
             });
         }

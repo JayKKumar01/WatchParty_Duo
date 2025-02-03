@@ -1,6 +1,7 @@
 package com.github.jaykkumar01.watchparty_duo.interfaces;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.webkit.JavascriptInterface;
@@ -10,6 +11,7 @@ import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
+import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -78,6 +80,21 @@ public class JavaScriptInterface implements AudioData{
 
             }
         });
+    }
+
+    @JavascriptInterface
+    public void readImageFeed(String id, byte[] imageFeedBytes, long millis){
+
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                Bitmap bitmap = BitmapUtils.getBitmap(imageFeedBytes);
+                if (PlayerActivity.getInstance() != null){
+                    PlayerActivity.getInstance().updateRemoteImageFeed(bitmap);
+                }
+            }
+        });
+
     }
 
     @JavascriptInterface
