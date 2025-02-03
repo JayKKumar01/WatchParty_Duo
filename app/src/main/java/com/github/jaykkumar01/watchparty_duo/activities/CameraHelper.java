@@ -15,10 +15,12 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
@@ -29,9 +31,14 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class CameraHelper {
 
@@ -42,6 +49,7 @@ public class CameraHelper {
     private CameraCaptureSession cameraCaptureSession;
     private CaptureRequest.Builder captureRequestBuilder;
     private ImageReader imageReader;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public CameraHelper(Context context, ImageView imageView, TextureView textureView) {
         this.context = context;
@@ -93,34 +101,41 @@ public class CameraHelper {
             }
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-            Size[] jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                    .getOutputSizes(ImageFormat.JPEG);
+            StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
             // Select the largest resolution available for preview
             int width = 3060; // default, you can adjust it dynamically
             int height = 4080; // default, adjust dynamically
 
-            if (jpegSizes != null && jpegSizes.length > 0) {
-                // Choose the highest resolution available
-                width = jpegSizes[0].getWidth();
-                height = jpegSizes[0].getHeight();
+            if (configMap == null){
+                Toast.makeText(context, "StreamConfigurationMap not Found!", Toast.LENGTH_SHORT).show();
+            }else {
+                Size[] jpegSizes = configMap.getOutputSizes(ImageFormat.JPEG);
+                if (jpegSizes != null && jpegSizes.length > 0) {
+                    // Choose the highest resolution available
+                    width = jpegSizes[0].getWidth();
+                    height = jpegSizes[0].getHeight();
+                }
             }
 
-            imageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 2); // Increase the max images for buffer
+
+            imageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 5); // Increase the max images for buffer
             imageReader.setOnImageAvailableListener(reader -> {
-                Image image = reader.acquireLatestImage();
-                Toast.makeText(context, "W: "+image.getWidth()+", H: "+image.getHeight(), Toast.LENGTH_SHORT).show();
-                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                byte[] bytes = new byte[buffer.capacity()];
-                buffer.get(bytes);
-                image.close();
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.execute(() -> {
+                    Image image = reader.acquireLatestImage();
+                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                    byte[] bytes = new byte[buffer.capacity()];
+                    buffer.get(bytes);
+                    image.close();
 
-                // Fix orientation and mirroring for front camera
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                bitmap = fixFrontCameraOrientation(bitmap);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
 
-                Bitmap finalBitmap = bitmap;
-                ((CameraActivity) context).runOnUiThread(() -> imageView.setImageBitmap(finalBitmap));
+                    ((CameraActivity) context).runOnUiThread(() -> imageView.setImageBitmap(finalBitmap));
+                });
+
+
             }, null);
 
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -164,7 +179,13 @@ public class CameraHelper {
         public void onOpened(@NonNull CameraDevice camera) {
             cameraDevice = camera;
             createCameraPreview();
+
+            // Start the scheduler after the camera preview is set up
+            //scheduler.scheduleWithFixedDelay(() -> takePicture(), 5, 1, TimeUnit.SECONDS);
         }
+
+
+
 
         @Override
         public void onDisconnected(@NonNull CameraDevice camera) {
@@ -183,6 +204,9 @@ public class CameraHelper {
     private void createCameraPreview() {
         try {
             SurfaceTexture texture = textureView.getSurfaceTexture();
+            if (texture == null){
+                return;
+            }
             // Set the size for the texture view based on the camera resolution
             texture.setDefaultBufferSize(imageReader.getWidth(), imageReader.getHeight());
             Surface surface = new Surface(texture);
@@ -225,7 +249,6 @@ public class CameraHelper {
                 @Override
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(context, "Picture taken", Toast.LENGTH_SHORT).show();
                 }
             }, null);
         } catch (CameraAccessException e) {
