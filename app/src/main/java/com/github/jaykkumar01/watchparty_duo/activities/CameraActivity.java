@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.view.TextureView;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -21,12 +22,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.google.android.material.textfield.TextInputEditText;
 
 public class CameraActivity extends AppCompatActivity {
 
     private CameraHelper cameraHelper;
     ImageView imageView;
     ConstraintLayout imageViewLayout;
+    private TextInputEditText etFPS; // Reference to the EditText for FPS input
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +47,8 @@ public class CameraActivity extends AppCompatActivity {
         imageViewLayout = findViewById(R.id.imageViewLayout);
 
         cameraHelper = new CameraHelper(this, imageView);
+        etFPS = findViewById(R.id.etJoinName);
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
@@ -85,5 +91,22 @@ public class CameraActivity extends AppCompatActivity {
         imageViewLayoutParams.matchConstraintPercentHeight = 0.5f;
 
         imageViewLayout.setLayoutParams(imageViewLayoutParams);
+    }
+
+
+    // Method that is triggered when the user clicks "Set FPS"
+    public void changeFPS(View view) {
+        if (etFPS.getText() == null){
+            return;
+        }
+        String fpsText = etFPS.getText().toString();
+
+        // Validate the input
+        if (fpsText.isEmpty()) {
+            return;
+        }
+        int fps = Integer.parseInt(fpsText);
+        cameraHelper.setFPS(fps);
+        etFPS.setText("");
     }
 }

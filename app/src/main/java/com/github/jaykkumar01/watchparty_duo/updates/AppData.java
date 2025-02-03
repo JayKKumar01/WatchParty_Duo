@@ -6,7 +6,8 @@ public class AppData {
     private boolean connectionEstablished;
     private boolean connectionActive;
     private boolean mute;
-    private int FPS = 60;
+    private int FPS = 5;
+    private int imageHeight = 240;
 
 
 
@@ -51,6 +52,14 @@ public class AppData {
 
     public void setFPS(int FPS) {
         this.FPS = FPS;
+    }
+
+    public int getImageHeight() {
+        return imageHeight;
+    }
+
+    public void setImageHeight(int imageHeight) {
+        this.imageHeight = imageHeight;
     }
 }
 

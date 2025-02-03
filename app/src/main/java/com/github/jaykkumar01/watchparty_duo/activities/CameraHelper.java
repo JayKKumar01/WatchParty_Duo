@@ -35,8 +35,10 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
     private CameraCaptureSession cameraCaptureSession;
     private ImageReader imageReader;
     private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for the main thread
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static final Matrix rotationMatrix = new Matrix(); // Reuse Matrix for orientation fixes
+
+    private volatile int currentFPS = 30;  // Default FPS
 
     public CameraHelper(Context context, ImageView imageView) {
         this.context = context;
@@ -65,16 +67,21 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
             }
 
             // Use fixed resolution for simplicity
-            Size previewSize = new Size(480, 360);
+            Size previewSize = getPreviewSize(AppData.getInstance().getImageHeight());
             imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.JPEG, 10);
             imageReader.setOnImageAvailableListener(this, mainHandler); // Using the mainHandler for the listener
 
-            manager.openCamera(cameraId, stateCallback, null);
+            manager.openCamera(cameraId, stateCallback, mainHandler);
 
         } catch (CameraAccessException e) {
             e.printStackTrace();
             showToast("Camera access failed");
         }
+    }
+
+    private Size getPreviewSize(int height) {
+        int width = (int) (height * (4.0 / 3.0));
+        return new Size(width, height);
     }
 
     private String getFrontCameraId(CameraManager manager) throws CameraAccessException {
@@ -146,7 +153,13 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
                     if (cameraDevice == null) return;
 
                     cameraCaptureSession = session;
-                    scheduler.scheduleWithFixedDelay(CameraHelper.this::takePicture, 300, 1000 / AppData.getInstance().getFPS(), TimeUnit.MILLISECONDS);
+
+                    // If scheduler is already running, don't create a new one
+                    if (scheduler.isShutdown()) {
+                        scheduler = Executors.newSingleThreadScheduledExecutor();
+                    }
+
+                    scheduler.scheduleWithFixedDelay(CameraHelper.this::takePicture, 300, 1000 / currentFPS, TimeUnit.MILLISECONDS);
                 }
 
                 @Override
@@ -175,15 +188,37 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
     }
 
     public void closeCamera() {
+        // Close resources and avoid NullPointerExceptions
         if (cameraCaptureSession != null) cameraCaptureSession.close();
         if (cameraDevice != null) cameraDevice.close();
         if (imageReader != null) imageReader.close();
-        scheduler.shutdown();
+        // Don't shut down scheduler; allow reuse
+        if (!scheduler.isShutdown()) {
+            scheduler.shutdownNow(); // Shut down now and reset
+        }
+        currentFPS = 30;
     }
 
     @Override
     public void onImageAvailable(ImageReader reader) {
         processImage(reader);
+    }
+
+    // Method to change FPS dynamically during execution
+    public void setFPS(int fps) {
+        if (fps <= 0) {
+            showToast("FPS must be a positive number");
+            return;
+        }
+
+        // Close the camera and stop the scheduled task
+        closeCamera();
+
+        // Update the current FPS
+        this.currentFPS = fps;
+
+        // Delay the restart to avoid quick reopen issues
+        new Handler(Looper.getMainLooper()).postDelayed(this::startCamera, 500);
     }
 
     private void showToast(String message) {
