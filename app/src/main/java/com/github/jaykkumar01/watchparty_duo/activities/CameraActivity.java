@@ -25,8 +25,6 @@ import com.github.jaykkumar01.watchparty_duo.R;
 public class CameraActivity extends AppCompatActivity {
 
     private CameraHelper cameraHelper;
-    private HandlerThread handlerThread;
-    private Handler backgroundHandler;
 
     TextureView textureView;
     ImageView imageView;
@@ -62,41 +60,9 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        startBackgroundThread();
-        if (cameraHelper.getTextureView().isAvailable()) {
-            cameraHelper.startCamera();
-        } else {
-            cameraHelper.getTextureView().setSurfaceTextureListener(cameraHelper.getTextureListener());
-        }
-    }
 
-    @Override
-    protected void onPause() {
-        stopBackgroundThread();
-        super.onPause();
-    }
 
-    private void startBackgroundThread() {
-        handlerThread = new HandlerThread("CameraBackground");
-        handlerThread.start();
-        backgroundHandler = new Handler(handlerThread.getLooper());
-    }
 
-    private void stopBackgroundThread() {
-        if (handlerThread != null) {
-            handlerThread.quitSafely();
-            try {
-                handlerThread.join();
-                handlerThread = null;
-                backgroundHandler = null;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
