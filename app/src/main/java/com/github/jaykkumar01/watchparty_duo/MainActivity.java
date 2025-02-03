@@ -188,4 +188,9 @@ public class MainActivity extends AppCompatActivity{
         finish(); // Destroy the current activity before launching the new one
         startActivity(intent);
     }
+
+    public void openPlayerActivity(View view) {
+        Intent intent = new Intent(this, PlayerActivity.class);
+        startActivity(intent);
+    }
 }

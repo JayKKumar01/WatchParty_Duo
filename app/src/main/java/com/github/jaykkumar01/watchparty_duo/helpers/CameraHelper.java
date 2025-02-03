@@ -1,4 +1,4 @@
-package com.github.jaykkumar01.watchparty_duo.activities;
+package com.github.jaykkumar01.watchparty_duo.helpers;
 
 import android.Manifest;
 import android.content.Context;
@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.github.jaykkumar01.watchparty_duo.activities.CameraActivity;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 
 import java.nio.ByteBuffer;
@@ -151,15 +152,27 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     if (cameraDevice == null) return;
-
                     cameraCaptureSession = session;
 
-                    // If scheduler is already running, don't create a new one
-                    if (scheduler.isShutdown()) {
-                        scheduler = Executors.newSingleThreadScheduledExecutor();
-                    }
+                    try {
+                        CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                        captureBuilder.addTarget(imageReader.getSurface());
+                        captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
+                        CaptureRequest build = captureBuilder.build();
 
-                    scheduler.scheduleWithFixedDelay(CameraHelper.this::takePicture, 300, 1000 / currentFPS, TimeUnit.MILLISECONDS);
+                        if (scheduler.isShutdown()){
+                            scheduler = Executors.newSingleThreadScheduledExecutor();
+                        }
+                        scheduler.scheduleWithFixedDelay(
+                                () -> showPicture(build),
+                                300,
+                                1000/currentFPS,
+                                TimeUnit.MILLISECONDS
+                        );
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                        showToast("Capture failed");
+                    }
                 }
 
                 @Override
@@ -173,17 +186,11 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
         }
     }
 
-    private void takePicture() {
-        if (cameraDevice == null) return;
-
+    private void showPicture(CaptureRequest build) {
         try {
-            CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            captureBuilder.addTarget(imageReader.getSurface());
-            captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-            cameraCaptureSession.capture(captureBuilder.build(), null, null);
+            cameraCaptureSession.capture(build, null, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
-            showToast("Capture failed");
         }
     }
 

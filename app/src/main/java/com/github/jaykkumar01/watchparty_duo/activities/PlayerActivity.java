@@ -23,6 +23,7 @@ import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.models.Peer;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
+import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
@@ -41,7 +42,9 @@ public class PlayerActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> pickVideoLauncher;
 
     private Peer peer;
-    private boolean isMute;
+
+    private ImageFeed imageFeed;
+    private ImageView peerFeedImageView,remoteFeedImageView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,7 +69,8 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
 
-
+        imageFeed = new ImageFeed(this,peerFeedImageView);
+        imageFeed.startCamera();
 
 
         setupPickVideoLauncher();
@@ -76,23 +80,25 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void updateLog(String message) {
-        runOnUiThread(() -> {
-            TextView logTextView = findViewById(R.id.logTextView);
-            ScrollView logScrollView = findViewById(R.id.logScrollView);
-
-            // Prepend new message at the top
-            String currentText = logTextView.getText().toString();
-            logTextView.setText(currentText + "\n" + message);
-
-            // Auto-scroll to top
-            logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
-        });
+//        runOnUiThread(() -> {
+//            TextView logTextView = findViewById(R.id.logTextView);
+//            ScrollView logScrollView = findViewById(R.id.logScrollView);
+//
+//            // Prepend new message at the top
+//            String currentText = logTextView.getText().toString();
+//            logTextView.setText(currentText + "\n" + message);
+//
+//            // Auto-scroll to top
+//            logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
+//        });
     }
 
 
     private void initViews() {
         playerView = findViewById(R.id.player_view);
         userName = findViewById(R.id.userName);
+        peerFeedImageView = findViewById(R.id.peerFeedImageView);
+        remoteFeedImageView = findViewById(R.id.remoteFeedImageView);
     }
 
     private void setupPickVideoLauncher() {

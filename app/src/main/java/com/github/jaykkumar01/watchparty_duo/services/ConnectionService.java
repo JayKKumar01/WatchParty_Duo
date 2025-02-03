@@ -17,7 +17,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
-import com.github.jaykkumar01.watchparty_duo.utils.AudioUtil;
+import com.github.jaykkumar01.watchparty_duo.transferfeeds.AudioFeed;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.WebViewUtil;
 
@@ -26,7 +26,7 @@ public class ConnectionService extends Service{
 
     private static ConnectionService instance;
     private WebViewUtil webViewUtil;
-    private AudioUtil audioUtil;
+    private AudioFeed audioFeed;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
 
@@ -43,7 +43,7 @@ public class ConnectionService extends Service{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        audioUtil = new AudioUtil(this);
+        audioFeed = new AudioFeed(this);
         webViewUtil = new WebViewUtil(this);
 
         return START_NOT_STICKY;
@@ -85,10 +85,10 @@ public class ConnectionService extends Service{
     }
 
     public void startAudioTransfer() {
-        audioUtil.startRecording();
+        audioFeed.startRecording();
     }
     public void stopAudioTransfer() {
-        audioUtil.stopRecording();
+        audioFeed.stopRecording();
     }
 
     public void sendAudioFile(byte[] buffer, int read, long millis, float loudness) {
@@ -96,7 +96,7 @@ public class ConnectionService extends Service{
     }
 
     public void toggleMic() {
-        audioUtil.record(AppData.getInstance().isMute());
+        audioFeed.record(AppData.getInstance().isMute());
     }
 
 
@@ -115,5 +115,9 @@ public class ConnectionService extends Service{
 
     public void onPeerOpen(String peerId) {
         startForeground(Constants.NOTIFICATION_ID, createNotification());
+    }
+
+    public void sendImageFeed(byte[] imageFeedBytes) {
+
     }
 }

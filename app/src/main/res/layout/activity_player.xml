@@ -647,12 +647,48 @@
             app:layout_constraintTop_toBottomOf="@id/livechat"
             app:layout_constraintBottom_toBottomOf="parent">
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:id="@+id/imageFeedLayout"
+                app:layout_constraintDimensionRatio="1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/peer_bottom_bar"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:id="@+id/remoteFeedImageView"
+                    app:layout_constraintDimensionRatio="1"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"/>
+                <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:id="@+id/peerFeedImageView"
+                    app:layout_constraintDimensionRatio="1"
+                    app:layout_constraintVertical_bias="1"
+                    app:layout_constraintHorizontal_bias="1"
+                    app:layout_constraintWidth_percent=".4"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"/>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
 
             <!-- Log Area with Scrolling -->
             <ScrollView
                 android:id="@+id/logScrollView"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:visibility="gone"
                 android:fillViewport="true"
                 android:padding="10dp"
                 app:layout_constraintTop_toTopOf="parent"
@@ -686,7 +722,9 @@
                     android:id="@+id/micBtn"
                     android:onClick="mic"
                     android:elevation="4dp"
-                    android:layout_margin="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginEnd="20dp"
                     android:background="@drawable/bg_call"
                     android:padding="10dp"
                     android:src="@drawable/mic_on"
@@ -718,7 +756,9 @@
                     android:id="@+id/deafenBtn"
                     android:elevation="4dp"
                     android:onClick="deafen"
-                    android:layout_margin="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginStart="20dp"
                     android:background="@drawable/bg_call"
                     android:padding="10dp"
                     android:src="@drawable/deafen_off"

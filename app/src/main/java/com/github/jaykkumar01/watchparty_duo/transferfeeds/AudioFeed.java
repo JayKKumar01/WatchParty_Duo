@@ -1,32 +1,25 @@
-package com.github.jaykkumar01.watchparty_duo.utils;
+package com.github.jaykkumar01.watchparty_duo.transferfeeds;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.interfaces.AudioData;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
+import com.github.jaykkumar01.watchparty_duo.utils.AudioCalculator;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AudioUtil implements AudioData {
+public class AudioFeed implements AudioData {
     private final Context context;
     private AudioRecord audioRecord;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -35,7 +28,7 @@ public class AudioUtil implements AudioData {
 
     private final AudioManager audioManager;
 
-    public AudioUtil(Context context) {
+    public AudioFeed(Context context) {
         this.context = context;
         this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
