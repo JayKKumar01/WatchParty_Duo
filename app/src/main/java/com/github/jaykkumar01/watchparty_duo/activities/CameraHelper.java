@@ -12,6 +12,8 @@ import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
@@ -21,8 +23,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.*;
 
 public class CameraHelper implements ImageReader.OnImageAvailableListener {
@@ -30,18 +35,15 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
 
     private final Context context;
     private final ImageView imageView;
-    private final TextureView textureView;
     private CameraDevice cameraDevice;
     private CameraCaptureSession cameraCaptureSession;
-    private CaptureRequest.Builder captureRequestBuilder;
     private ImageReader imageReader;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    public CameraHelper(Context context, ImageView imageView, TextureView textureView) {
+    public CameraHelper(Context context, ImageView imageView) {
         this.context = context;
         this.imageView = imageView;
-        this.textureView = textureView;
     }
 
     public void startCamera() {
@@ -68,8 +70,7 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
 //            Size largestSize = getLargestJpegSize(configMap);
             Size largestSize = new Size(480,360);
 
-//            Toast.makeText(context, "Size: ("+largestSize.getWidth()+","+largestSize.getHeight()+")", Toast.LENGTH_SHORT).show();
-            imageReader = ImageReader.newInstance(largestSize.getWidth(), largestSize.getHeight(), ImageFormat.JPEG, 5);
+            imageReader = ImageReader.newInstance(largestSize.getWidth(), largestSize.getHeight(), ImageFormat.JPEG, 60);
             imageReader.setOnImageAvailableListener(this,null);
 
             manager.openCamera(cameraId, stateCallback, null);
@@ -99,10 +100,10 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
     }
 
     private void processImage(ImageReader reader) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(() -> {
             Image image = reader.acquireLatestImage();
             if (image == null) return;
+
 
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
@@ -159,31 +160,15 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
 
     private void createCameraPreview() {
         try {
-            SurfaceTexture texture = textureView.getSurfaceTexture();
-            if (texture == null) return;
-            texture.setDefaultBufferSize(imageReader.getWidth(), imageReader.getHeight());
-            Surface surface = new Surface(texture);
-
-            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            captureRequestBuilder.addTarget(surface);
-
-            cameraDevice.createCaptureSession(Arrays.asList(surface,imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(Collections.singletonList(imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     if (cameraDevice == null) return;
                     cameraCaptureSession = session;
 
-                    int fps = 5;
-
                     scheduler.scheduleWithFixedDelay(() -> {
-                        if (cameraDevice != null) takePicture();
-                    }, 1000, 1000/fps, TimeUnit.MILLISECONDS);
-//                    try {
-//                        captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-//                        cameraCaptureSession.setRepeatingRequest(captureRequestBuilder.build(), null, null);
-//                    } catch (CameraAccessException e) {
-//                        e.printStackTrace();
-//                    }
+                        takePicture();
+                    }, 300, 1000/ AppData.getInstance().getFPS(), TimeUnit.MILLISECONDS);
                 }
 
                 @Override

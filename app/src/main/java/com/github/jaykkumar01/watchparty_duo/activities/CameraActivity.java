@@ -25,13 +25,9 @@ import com.github.jaykkumar01.watchparty_duo.R;
 public class CameraActivity extends AppCompatActivity {
 
     private CameraHelper cameraHelper;
-
-    TextureView textureView;
     ImageView imageView;
-    Button btnCapture;
-    ConstraintLayout imageViewLayout,textureViewLayout;
+    ConstraintLayout imageViewLayout;
 
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,14 +40,9 @@ public class CameraActivity extends AppCompatActivity {
         });
 
         imageView = findViewById(R.id.imageView);
-        btnCapture = findViewById(R.id.btnCapture);
-        textureView = findViewById(R.id.textureView);
         imageViewLayout = findViewById(R.id.imageViewLayout);
-        textureViewLayout = findViewById(R.id.textureViewLayout);
 
-        cameraHelper = new CameraHelper(this, imageView, textureView);
-
-        btnCapture.setOnClickListener(v -> cameraHelper.takePicture());
+        cameraHelper = new CameraHelper(this, imageView);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
@@ -78,56 +69,21 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void adjustLayoutForLandscape() {
-        // Modify layout when in landscape mode
-        ConstraintLayout.LayoutParams textureViewLayoutParams = (ConstraintLayout.LayoutParams) textureViewLayout.getLayoutParams();
         ConstraintLayout.LayoutParams imageViewLayoutParams = (ConstraintLayout.LayoutParams) imageViewLayout.getLayoutParams();
 
-
-        textureViewLayoutParams.verticalBias = 0.5f;
-        textureViewLayoutParams.horizontalBias = 0;
-        textureViewLayoutParams.matchConstraintPercentWidth = 0.5f;
-        textureViewLayoutParams.matchConstraintPercentHeight = 1f;
-
-        imageViewLayoutParams.verticalBias = 0.5f;
-        imageViewLayoutParams.horizontalBias = 1f;
         imageViewLayoutParams.matchConstraintPercentWidth = 0.5f;
         imageViewLayoutParams.matchConstraintPercentHeight = 1f;
 
-
-
-
-        textureViewLayout.setLayoutParams(textureViewLayoutParams);
         imageViewLayout.setLayoutParams(imageViewLayoutParams);
     }
 
 
     private void adjustLayoutForPortrait() {
-        // Modify layout when in portrait mode (stack vertically)
-        ConstraintLayout.LayoutParams textureViewLayoutParams = (ConstraintLayout.LayoutParams) textureViewLayout.getLayoutParams();
         ConstraintLayout.LayoutParams imageViewLayoutParams = (ConstraintLayout.LayoutParams) imageViewLayout.getLayoutParams();
 
-
-        textureViewLayoutParams.verticalBias = 0;
-        textureViewLayoutParams.horizontalBias = 0.5f;
-        textureViewLayoutParams.matchConstraintPercentWidth = 1f;
-        textureViewLayoutParams.matchConstraintPercentHeight = 0.5f;
-
-        imageViewLayoutParams.verticalBias = 1;
-        imageViewLayoutParams.horizontalBias = 0.5f;
         imageViewLayoutParams.matchConstraintPercentWidth = 1f;
         imageViewLayoutParams.matchConstraintPercentHeight = 0.5f;
 
-
-
-
-        textureViewLayout.setLayoutParams(textureViewLayoutParams);
         imageViewLayout.setLayoutParams(imageViewLayoutParams);
-    }
-
-    private void setToParent(ConstraintLayout.LayoutParams iewParams) {
-        iewParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
-        iewParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
-        iewParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID;
-        iewParams.rightToRight = ConstraintLayout.LayoutParams.PARENT_ID;
     }
 }

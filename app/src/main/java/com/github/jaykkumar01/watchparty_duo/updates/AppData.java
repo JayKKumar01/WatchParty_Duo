@@ -6,6 +6,7 @@ public class AppData {
     private boolean connectionEstablished;
     private boolean connectionActive;
     private boolean mute;
+    private int FPS = 5;
 
 
 
@@ -42,6 +43,14 @@ public class AppData {
 
     public void setConnectionActive(boolean connectionActive) {
         this.connectionActive = connectionActive;
+    }
+
+    public int getFPS() {
+        return Math.max(1,FPS);
+    }
+
+    public void setFPS(int FPS) {
+        this.FPS = FPS;
     }
 }
 
