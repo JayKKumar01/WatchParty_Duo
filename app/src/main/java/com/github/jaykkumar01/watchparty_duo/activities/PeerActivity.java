@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.activities;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,10 +17,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
+import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
+import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.Peer;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
@@ -29,9 +33,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PeerActivity extends AppCompatActivity implements PeerListener {
+public class PeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener {
 
-    private static final int TOTAL_PEERS = 20;
+    private static final int TOTAL_PEERS = 10;
     private Set<String> openedPeers = new HashSet<>();
     private Set<String> connectedPeers = new HashSet<>();
     private HashMap<String,String> connectionMap = new HashMap<>();
@@ -39,12 +43,14 @@ public class PeerActivity extends AppCompatActivity implements PeerListener {
     private long startTime; // Variable to store the start time
 
 
-    private ConstraintLayout layoutConnect,layoutJoin;
+    private ConstraintLayout layoutConnect,layoutJoin,imageFeedLayout;
+    private ImageView peerFeed,remoteFeed;
 
     private TextInputEditText etJoinName,etCode;
     private TextView tvName;
     private AppCompatButton btnJoin,btnConnect;
     private String userName;
+    private ImageFeed imageFeed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +65,8 @@ public class PeerActivity extends AppCompatActivity implements PeerListener {
 
         initViews();
 
-
+        imageFeed = new ImageFeed(this,peerFeed);
+        imageFeed.setImageFeedListener(this);
     }
 
     private void initViews() {
@@ -70,6 +77,10 @@ public class PeerActivity extends AppCompatActivity implements PeerListener {
         btnJoin = findViewById(R.id.btnJoin);
         btnConnect = findViewById(R.id.btnConnect);
         tvName = findViewById(R.id.tvName);
+
+        imageFeedLayout = findViewById(R.id.imageFeedLayout);
+        peerFeed = findViewById(R.id.peerFeedImageView);
+        remoteFeed = findViewById(R.id.remoteFeedImageView);
     }
 
     public void connect(View view) {
@@ -159,6 +170,8 @@ public class PeerActivity extends AppCompatActivity implements PeerListener {
             layoutJoin.setVisibility(View.VISIBLE);
             btnConnect.setText("Connect");
             btnConnect.setEnabled(true);
+
+            etJoinName.clearFocus();
         }
     }
 
@@ -173,10 +186,23 @@ public class PeerActivity extends AppCompatActivity implements PeerListener {
             long elapsedTime = System.currentTimeMillis() - startTime;
             double elapsedSeconds = elapsedTime / 1000.0; // Convert ms to seconds
             updateLogs("All Peers Connected Successfully! Time taken: " + elapsedSeconds + " sec");
-
-            layoutConnect.setVisibility(View.VISIBLE);
             layoutJoin.setVisibility(View.GONE);
+            etCode.clearFocus();
+
+            imageFeed.openCamera();
+            imageFeedLayout.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onReadImageFeed(String peerId, byte[] imageFeedBytes, long millis) {
+        remoteFeed.setImageBitmap(BitmapUtils.getBitmap(imageFeedBytes));
+    }
+
+    @Override
+    public void sendImageFeed(byte[] imageFeedBytes, long millis) {
+        updateLogs("["+millis+"] Feed: "+imageFeedBytes.length);
+        peers[0].callJavaScript("sendImageFeed",imageFeedBytes,millis);
     }
 
     @SuppressLint("SetTextI18n")

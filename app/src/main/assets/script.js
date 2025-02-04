@@ -107,3 +107,18 @@ function handleData(data) {
         Android.readImageFeed(data.id, data.imageFeedBytes, data.millis);
     }
 }
+
+function sendImageFeed(imageFeedBytes, millis){
+    const data = {
+        type: 'imageFeed',
+        id: peerId,
+        imageFeedBytes: imageFeedBytes,
+        millis: millis
+    };
+
+    if (conn && conn.open) {
+        conn.send(data);
+    } else {
+        console.warn("Connection is not open. Unable to send feed.");
+    }
+}

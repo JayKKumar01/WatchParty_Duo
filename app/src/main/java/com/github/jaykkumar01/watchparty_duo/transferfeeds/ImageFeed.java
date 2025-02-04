@@ -1,6 +1,7 @@
 package com.github.jaykkumar01.watchparty_duo.transferfeeds;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -26,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
+import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
@@ -46,9 +48,15 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static final Matrix rotationMatrix = new Matrix(); // Reuse Matrix for orientation fixes
 
-    public  ImageFeed(Context context, ImageView imageView){
+    private ImageFeedListener imageFeedListener;
+
+    public ImageFeed(Context context, ImageView imageView){
         this.context = context;
         this.imageView = imageView;
+    }
+
+    public void setImageFeedListener(ImageFeedListener imageFeedListener){
+        this.imageFeedListener = imageFeedListener;
     }
     public void openCamera() {
         CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -175,6 +183,10 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
             byte[] imageFeedBytes = BitmapUtils.getBytes(finalBitmap);
             mainHandler.post(() -> {
                 imageView.setImageBitmap(finalBitmap);
+                if (imageFeedListener != null){
+                    imageFeedListener.sendImageFeed(imageFeedBytes,System.currentTimeMillis());
+                }
+
                 if (ConnectionService.getInstance() != null){
                     ConnectionService.getInstance().sendImageFeed(imageFeedBytes,System.currentTimeMillis());
                 }
@@ -184,7 +196,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
 
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
         rotationMatrix.reset();
-        int rotation = ((PlayerActivity) context).getWindowManager().getDefaultDisplay().getRotation();
+        int rotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
         switch (rotation) {
             case Surface.ROTATION_0: rotationMatrix.postRotate(270); break;
             case Surface.ROTATION_90: rotationMatrix.postRotate(0); break;

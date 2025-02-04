@@ -80,6 +80,9 @@ public class Peer {
     public void connect(String otherPeerId) {
         callJavaScript("connect", otherPeerId);
     }
+    public void sendImageFeed(){
+
+    }
 
     public void callJavaScript(String func, Object... args) {
         StringBuilder argString = new StringBuilder();

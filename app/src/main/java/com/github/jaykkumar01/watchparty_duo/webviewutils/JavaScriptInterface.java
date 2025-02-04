@@ -37,5 +37,9 @@ public class JavaScriptInterface {
         peer.setConnectionOpen(true);
         runOnMainThread(() -> peerListener.onConnectionOpen(peerId,remoteId));
     }
+    @JavascriptInterface
+    public void readImageFeed(String peerId, byte[] imageFeedBytes, long millis){
+        runOnMainThread(() -> peerListener.onReadImageFeed(peerId,imageFeedBytes,millis));
+    }
 
 }
