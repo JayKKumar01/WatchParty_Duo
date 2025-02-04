@@ -1,63 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/discord_bg"
-    tools:context=".MainActivity">
-    <androidx.constraintlayout.widget.ConstraintLayout
+    tools:context=".activities.PeerActivity">
+
+    <!-- Log Area with Scrolling -->
+    <ScrollView
+        android:id="@+id/logScrollView"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/topBar"
-        android:background="@color/theme_color"
-        android:paddingStart="5dp"
-        android:paddingEnd="5dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:padding="10dp"
+        android:background="@color/bg_color"
         app:layout_constraintVertical_bias="0"
+        app:layout_constraintHeight_percent=".3"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="0dp"
-            android:src="@drawable/sett"
-            android:padding="10dp"
-            android:id="@+id/menuImg"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintDimensionRatio="1"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:ignore="UsingOnClickInXml"
-            android:contentDescription="@string/todo" />
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textStyle="bold"
-            android:fontFamily="times"
-            android:textSize="15sp"
-            android:textColor="@color/white"
-            android:padding="10dp"
-            app:layout_constraintLeft_toRightOf="@id/menuImg"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="2dp"
-            android:background="@color/white"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/menuImg"
-            app:layout_constraintBottom_toBottomOf="parent"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/logTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/theme_color"
+            android:text="Logs:\n"
+            android:typeface="monospace" />
+    </ScrollView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutConnect"
@@ -188,27 +162,5 @@
             app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Open Peer Activity"
-        android:onClick="openActivity"
-        app:layout_constraintVertical_bias=".85"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Open Camera Activity"
-        android:onClick="openCameraActivity"
-        app:layout_constraintVertical_bias=".95"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

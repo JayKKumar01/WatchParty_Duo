@@ -2,15 +2,15 @@ package com.github.jaykkumar01.watchparty_duo.models;
 
 import java.io.Serializable;
 
-public class Peer implements Serializable {
+public class PeerModel implements Serializable {
     private String name;
     private String peerId;
     private String remoteId;
 
-    public Peer(String name){
+    public PeerModel(String name){
         this.name = name;
     }
-    public Peer(String name, String peerId, String remoteId){
+    public PeerModel(String name, String peerId, String remoteId){
         this.name = name;
         this.peerId = peerId;
         this.remoteId = remoteId;

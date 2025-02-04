@@ -19,8 +19,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.activities.CameraActivity;
+import com.github.jaykkumar01.watchparty_duo.activities.PeerActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
-import com.github.jaykkumar01.watchparty_duo.models.Peer;
+import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity{
         return instance;
     }
 
-    private Peer peer;
+    private PeerModel peerModel;
 
     
 
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity{
             btnConnect.setEnabled(true);
             return; // Exit the method if the name is empty
         }
-        peer = new Peer(name);
+        peerModel = new PeerModel(name);
         // Proceed with the connection process if the name is valid
         startForegroundService();
     }
@@ -98,8 +99,8 @@ public class MainActivity extends AppCompatActivity{
 
     public void onPeerOpen(String peerId){
         runOnUiThread(() -> {
-            peer.setPeerId(peerId);
-            tvName.setText("Welcome "+peer.getName()+ ", Your ID: "+ peerId);
+            peerModel.setPeerId(peerId);
+            tvName.setText("Welcome "+ peerModel.getName()+ ", Your ID: "+ peerId);
             layoutConnect.setVisibility(View.GONE);
             layoutJoin.setVisibility(View.VISIBLE);
             btnConnect.setText("Connect");
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity{
             if (ConnectionService.getInstance() != null) {
                 ConnectionService.getInstance().startAudioTransfer();
             }
-            peer.setRemoteId(remoteId);
+            peerModel.setRemoteId(remoteId);
             btnJoin.setText("Join");
             btnJoin.setEnabled(true);
             launchPlayerActivity();
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity{
 
     private void startForegroundService() {
         Intent serviceIntent = new Intent(this, ConnectionService.class);
-        serviceIntent.putExtra(Constants.PEER,peer);
+        serviceIntent.putExtra(Constants.PEER, peerModel);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         } else {
@@ -177,7 +178,7 @@ public class MainActivity extends AppCompatActivity{
         Intent intent = new Intent(this, PlayerActivity.class);
 
         // Add extras to the intent
-        intent.putExtra(Constants.PEER, peer);
+        intent.putExtra(Constants.PEER, peerModel);
         finish(); // Destroy the current activity before launching the new one
         startActivity(intent);
     }
@@ -191,6 +192,11 @@ public class MainActivity extends AppCompatActivity{
 
     public void openPlayerActivity(View view) {
         Intent intent = new Intent(this, PlayerActivity.class);
+        startActivity(intent);
+    }
+
+    public void openActivity(View view) {
+        Intent intent = new Intent(this, PeerActivity.class);
         startActivity(intent);
     }
 }

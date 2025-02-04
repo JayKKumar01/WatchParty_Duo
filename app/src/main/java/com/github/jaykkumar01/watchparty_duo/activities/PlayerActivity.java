@@ -24,7 +24,7 @@ import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.models.Peer;
+import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
@@ -44,7 +44,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ExoPlayer player;
     private ActivityResultLauncher<String> pickVideoLauncher;
 
-    private Peer peer;
+    private PeerModel peerModel;
 
     private ImageFeed imageFeed;
     private ImageView peerFeedImageView,remoteFeedImageView;
@@ -67,9 +67,9 @@ public class PlayerActivity extends AppCompatActivity {
         // Retrieve extras from the intent
         Intent intent = getIntent();
         if (intent != null) {
-            peer = (Peer) intent.getSerializableExtra(Constants.PEER);
-            if (peer != null) {
-                userName.setText(peer.getName());
+            peerModel = (PeerModel) intent.getSerializableExtra(Constants.PEER);
+            if (peerModel != null) {
+                userName.setText(peerModel.getName());
             }
         }
 
@@ -84,7 +84,7 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void updateLog(String message) {
-//        runOnUiThread(() -> {
+        runOnUiThread(() -> {
 //            TextView logTextView = findViewById(R.id.logTextView);
 //            ScrollView logScrollView = findViewById(R.id.logScrollView);
 //
@@ -94,7 +94,7 @@ public class PlayerActivity extends AppCompatActivity {
 //
 //            // Auto-scroll to top
 //            logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
-//        });
+        });
     }
 
 

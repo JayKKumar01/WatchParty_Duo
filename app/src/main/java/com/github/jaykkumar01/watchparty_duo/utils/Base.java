@@ -35,5 +35,19 @@ public class Base {
         }
     }
 
+    // Method to generate a random 6-digit code
+    public static int generateRandomCode(int digits) {
+        if (digits < 1) {
+            throw new IllegalArgumentException("Digits must be at least 1");
+        }
+
+        Random random = new Random();
+        int min = (int) Math.pow(10, digits - 1);
+        int max = (int) Math.pow(10, digits) - 1;
+
+        return random.nextInt(max - min + 1) + min;
+    }
+
+
 
 }

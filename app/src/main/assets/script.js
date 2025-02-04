@@ -1,4 +1,4 @@
-const PREFIX = "JayKKumar01-WatchParty-Duo-";
+const PREFIX = "JayKKumar01-WatchParty-Duo-Multiple-PeerIds-";
 
 // Utility functions
 function getTodayDate() {
@@ -24,6 +24,7 @@ function getFileTransferId() {
 // Generate peer connection ID using prefix and random ID
 const peerBranch = `${PREFIX}${getTodayDate()}-`;
 
+
 let peerId = getRandomId();
 let peer = null;
 
@@ -36,10 +37,9 @@ let isConnectionOpen = false;
 
 //initPeer
 
-function initPeer() {
-    const id = `${peerBranch}${peerId}`;
+function initPeer(receivedPeerId) {
+    const id = receivedPeerId ? `${peerBranch}${byteArrayToString(receivedPeerId)}` : `${peerBranch}${peerId}`;
     peer = new Peer(id);
-
     handlePeer(peer);
 }
 
@@ -47,6 +47,7 @@ function initPeer() {
 function handlePeer(peer) {
     peer.on('open', () => {
         isPeerOpen = true;
+        peerId = peer.id.replace(peerBranch, ""); // Remove the prefix
         Android.onPeerOpen(peerId);
     });
 
@@ -73,14 +74,12 @@ function setupConnection(connection) {
 
     conn.on('open', () => {
         isConnectionOpen = true;
-        remoteId = conn.peer.split('-').pop();
-        Android.onConnectionOpen(remoteId);
+        remoteId = conn.peer.replace(peerBranch, ""); // Remove the prefix
+        Android.onConnectionOpen(peerId,remoteId);
     });
 
     conn.on('data', (data) => {
-        setTimeout(() => {
-            handleData(data);  // Call the handleData function asynchronously
-        }, 0);
+        handleData(data);
     });
 
     conn.on('close', () => {
@@ -93,56 +92,18 @@ function setupConnection(connection) {
     });
 }
 
-function handleData(data) {
-    if (data.type === 'audioFeed') {
-        Android.readAudioFile(data.id, data.bytes, data.read, data.millis, data.loudness);
-    } else if (data.type === 'imageFeed') {
-        Android.readImageFeed(data.id, data.imageFeedBytes, data.millis);
-    }
-}
-
-function connect(otherPeerId, isByteArray) {
-    const targetPeerId = isByteArray ? byteArrayToString(otherPeerId) : otherPeerId;
-
+function connect(otherPeerId) {
+    const targetPeerId = byteArrayToString(otherPeerId);
     if (targetPeerId !== '') {
         const connection = peer.connect(peerBranch + targetPeerId, { reliable: true });
         setupConnection(connection);
     }
 }
 
-async function sendAudioFile(bytes, read, millis, loudness) {
-    const data = {
-        type: 'audioFeed',
-        id: peerId,
-        bytes: bytes,
-        read: read,
-        millis: millis,
-        loudness: loudness
-    };
-
-    setTimeout(() => {
-        if (conn && conn.open) {
-            conn.send(data);
-        } else {
-            console.warn("Connection is not open. Unable to send audio file.");
-        }
-    }, 0);
-}
-
-async function sendImageFeed(imageFeedBytes, millis) {
-    const data = {
-        type: 'imageFeed',
-        id: peerId,
-        imageFeedBytes: imageFeedBytes,
-        millis: millis
-    };
-
-    setTimeout(() => {
-        if (conn && conn.open) {
-            conn.send(data);
-        } else {
-            console.warn("Connection is not open. Unable to send audio file.");
-        }
-    }, 0);
-
+function handleData(data) {
+    if (data.type === 'audioFeed') {
+        Android.readAudioFile(data.id, data.bytes, data.read, data.millis, data.loudness);
+    } else if (data.type === 'imageFeed') {
+        Android.readImageFeed(data.id, data.imageFeedBytes, data.millis);
+    }
 }
