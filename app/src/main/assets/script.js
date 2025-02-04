@@ -17,6 +17,10 @@ function byteArrayToString(byteArray) {
 function getRandomId() {
     return Math.floor(100000 + Math.random() * 900000);
 }
+
+function getFileTransferId() {
+    return String(Math.floor(10_000_000_000_000 + Math.random() * 9_000_000_000_000_000)); // 15-digit ID
+}
 // Generate peer connection ID using prefix and random ID
 const peerBranch = `${PREFIX}${getTodayDate()}-`;
 
@@ -25,6 +29,9 @@ let peer = null;
 
 let remoteId = null;
 let conn = null;
+
+let isPeerOpen = false;
+let isConnectionOpen = false;
 
 
 //initPeer
@@ -68,10 +75,13 @@ function setupConnection(connection) {
         isConnectionOpen = true;
         remoteId = conn.peer.split('-').pop();
         Android.onConnectionOpen(remoteId);
-
     });
 
-    conn.on('data', handleData);
+    conn.on('data', (data) => {
+        setTimeout(() => {
+            handleData(data);  // Call the handleData function asynchronously
+        }, 0);
+    });
 
     conn.on('close', () => {
         Android.onConnectionClose(remoteId);
@@ -84,11 +94,9 @@ function setupConnection(connection) {
 }
 
 function handleData(data) {
-    if (data.type === 'information') {
-        // will user later
-    } else if (data.type === 'audioFeed') {
+    if (data.type === 'audioFeed') {
         Android.readAudioFile(data.id, data.bytes, data.read, data.millis, data.loudness);
-    } else if(data.type === 'imageFeed') {
+    } else if (data.type === 'imageFeed') {
         Android.readImageFeed(data.id, data.imageFeedBytes, data.millis);
     }
 }
@@ -102,7 +110,7 @@ function connect(otherPeerId, isByteArray) {
     }
 }
 
-function sendAudioFile(bytes, read, millis, loudness) {
+async function sendAudioFile(bytes, read, millis, loudness) {
     const data = {
         type: 'audioFeed',
         id: peerId,
@@ -112,14 +120,16 @@ function sendAudioFile(bytes, read, millis, loudness) {
         loudness: loudness
     };
 
-    if (conn && conn.open) {
-        conn.send(data);
-    } else {
-        console.warn("Connection is not open. Unable to send audio file.");
-    }
+    setTimeout(() => {
+        if (conn && conn.open) {
+            conn.send(data);
+        } else {
+            console.warn("Connection is not open. Unable to send audio file.");
+        }
+    }, 0);
 }
 
-function sendImageFeed(imageFeedBytes, millis){
+async function sendImageFeed(imageFeedBytes, millis) {
     const data = {
         type: 'imageFeed',
         id: peerId,
@@ -127,9 +137,12 @@ function sendImageFeed(imageFeedBytes, millis){
         millis: millis
     };
 
-    if (conn && conn.open) {
-        conn.send(data);
-    } else {
-        console.warn("Connection is not open. Unable to send audio file.");
-    }
+    setTimeout(() => {
+        if (conn && conn.open) {
+            conn.send(data);
+        } else {
+            console.warn("Connection is not open. Unable to send audio file.");
+        }
+    }, 0);
+
 }

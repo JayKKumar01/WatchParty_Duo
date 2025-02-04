@@ -181,9 +181,11 @@ public class JavaScriptInterface implements AudioData{
 
 
     @JavascriptInterface
-    public void sendToast(String toast){
+    public void onInfo(String toast){
         Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
     }
+
+
 
 
 

@@ -93,7 +93,7 @@ public class AudioFeed implements AudioData {
                     continue;
                 }
 
-                //connectionService.sendAudioFile(buffer, read, millis, loudness);
+                connectionService.sendAudioFile(buffer, read, millis, loudness);
             }
         });
     }
