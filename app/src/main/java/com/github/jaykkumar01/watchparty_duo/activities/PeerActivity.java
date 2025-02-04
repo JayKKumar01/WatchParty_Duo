@@ -2,6 +2,8 @@ package com.github.jaykkumar01.watchparty_duo.activities;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -18,12 +20,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
-import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
-import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
-import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
-import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.Peer;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
@@ -31,11 +29,12 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 public class PeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener {
 
-    private static final int TOTAL_PEERS = 10;
+    private static final int TOTAL_PEERS = 1;
     private Set<String> openedPeers = new HashSet<>();
     private Set<String> connectedPeers = new HashSet<>();
     private HashMap<String,String> connectionMap = new HashMap<>();
@@ -51,6 +50,11 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Ima
     private AppCompatButton btnJoin,btnConnect;
     private String userName;
     private ImageFeed imageFeed;
+    private final Random random = new Random();
+
+    private int sentCount = 0;
+    private int receivedCount = 0;
+    private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,19 +195,47 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Ima
 
             imageFeed.openCamera();
             imageFeedLayout.setVisibility(View.VISIBLE);
+            // Start logging updates per second
+            startLoggingImageUpdates();
         }
+    }
+
+    private void startLoggingImageUpdates() {
+        updateLogHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                updateLogs("Updates: [" + sentCount+","+receivedCount+"]");
+                receivedCount = 0; // Reset count after logging
+                sentCount = 0;
+                updateLogHandler.postDelayed(this, 1000); // Schedule next log after 1 second
+            }
+        }, 1000);
     }
 
     @Override
     public void onReadImageFeed(String peerId, byte[] imageFeedBytes, long millis) {
-        remoteFeed.setImageBitmap(BitmapUtils.getBitmap(imageFeedBytes));
+        receivedCount++; // Increment update count on each image received
+        //remoteFeed.setImageBitmap(BitmapUtils.getBitmap(imageFeedBytes));
     }
+
+
 
     @Override
     public void sendImageFeed(byte[] imageFeedBytes, long millis) {
-        updateLogs("["+millis+"] Feed: "+imageFeedBytes.length);
-        peers[0].callJavaScript("sendImageFeed",imageFeedBytes,millis);
+//        updateLogs("["+millis+"] Feed: "+imageFeedBytes.length);
+
+        // Choose a random peer index
+        int randomIndex = random.nextInt(TOTAL_PEERS);
+
+        // Ensure the selected peer is not null before calling the method
+        if (peers[randomIndex] != null) {
+            peers[randomIndex].callJavaScript("sendImageFeed", imageFeedBytes, millis);
+            sentCount++;
+        } else {
+            updateLogs("Selected Peer is null, retrying...");
+        }
     }
+
 
     @SuppressLint("SetTextI18n")
     private void updateLogs(String message){

@@ -5,11 +5,15 @@ import android.os.Handler;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class JavaScriptInterface {
     private final Peer peer;
     private final PeerListener peerListener;
     private final Handler mainHandler;
     private final Context context;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public JavaScriptInterface(Context context, Peer peer, PeerListener peerListener, Handler mainHandler) {
         this.context = context;
@@ -39,7 +43,12 @@ public class JavaScriptInterface {
     }
     @JavascriptInterface
     public void readImageFeed(String peerId, byte[] imageFeedBytes, long millis){
-        runOnMainThread(() -> peerListener.onReadImageFeed(peerId,imageFeedBytes,millis));
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                peerListener.onReadImageFeed(peerId,imageFeedBytes,millis);
+            }
+        });
     }
 
 }

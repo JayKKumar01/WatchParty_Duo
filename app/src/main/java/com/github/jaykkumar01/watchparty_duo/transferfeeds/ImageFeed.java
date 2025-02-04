@@ -34,6 +34,7 @@ import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +45,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private CameraDevice cameraDevice;
     private CameraCaptureSession cameraCaptureSession;
     private ImageReader imageReader;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for the main thread
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static final Matrix rotationMatrix = new Matrix(); // Reuse Matrix for orientation fixes
@@ -171,27 +173,47 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
     }
 
     private void processImage(ImageReader reader) {
-        try (Image image = reader.acquireLatestImage()) {
-            if (image == null) return;
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                try (Image image = reader.acquireLatestImage()) {
+                    if (image == null) return;
 
-            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-            Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
-            byte[] imageFeedBytes = BitmapUtils.getBytes(finalBitmap);
-            mainHandler.post(() -> {
-                imageView.setImageBitmap(finalBitmap);
-                if (imageFeedListener != null){
-                    imageFeedListener.sendImageFeed(imageFeedBytes,System.currentTimeMillis());
+                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                    byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    if (imageFeedListener != null) {
+                        imageFeedListener.sendImageFeed(bytes, System.currentTimeMillis());
+                    }
                 }
+            }
+        });
 
-                if (ConnectionService.getInstance() != null){
-                    ConnectionService.getInstance().sendImageFeed(imageFeedBytes,System.currentTimeMillis());
-                }
-            });
-        }
+
+
+
+
+//            if (image == null) return;
+//
+//            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+//            byte[] bytes = new byte[buffer.remaining()];
+//            buffer.get(bytes);
+//
+//            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+//            Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
+//            byte[] imageFeedBytes = BitmapUtils.getBytes(finalBitmap);
+//
+//            mainHandler.post(() -> {
+//                imageView.setImageBitmap(finalBitmap);
+//                if (imageFeedListener != null){
+//                    imageFeedListener.sendImageFeed(imageFeedBytes,System.currentTimeMillis());
+//                }
+//
+//                if (ConnectionService.getInstance() != null){
+//                    ConnectionService.getInstance().sendImageFeed(imageFeedBytes,System.currentTimeMillis());
+//                }
+//            });
+
     }
 
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
