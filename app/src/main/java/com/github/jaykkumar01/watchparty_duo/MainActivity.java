@@ -59,7 +59,8 @@ public class MainActivity extends AppCompatActivity{
         });
         instance = this;
         initViews();
-        createNotificationChannel();
+//        createNotificationChannel();
+        openActivity();
     }
 
     private void initViews() {
@@ -196,6 +197,9 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public void openActivity(View view) {
+        openActivity();
+    }
+    public void openActivity(){
         Intent intent = new Intent(this, PeerActivity.class);
         startActivity(intent);
     }

@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">WatchParty - Duo</string>
     <string name="todo">TODO</string>
+    <string name="connecting">Connecting...</string>
+    <string name="joining">Joining...</string>
+    <string name="connect">Connect</string>
+    <string name="join">Join</string>
 </resources>

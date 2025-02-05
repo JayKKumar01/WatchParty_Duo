@@ -43,12 +43,7 @@ public class JavaScriptInterface {
     }
     @JavascriptInterface
     public void readImageFeed(String peerId, byte[] imageFeedBytes, long millis){
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                peerListener.onReadImageFeed(peerId,imageFeedBytes,millis);
-            }
-        });
+        peerListener.onReadImageFeed(peerId,imageFeedBytes,millis);
     }
 
 }
