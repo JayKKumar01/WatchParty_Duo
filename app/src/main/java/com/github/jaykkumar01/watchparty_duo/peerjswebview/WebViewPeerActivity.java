@@ -32,6 +32,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
+import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
@@ -67,11 +68,10 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
     private ImageFeed imageFeed;
     private WebSocketSender socketSender;
-    private ImageView imageFeedView;
 
 
-    private final StringBuilder jsonBuffer = new StringBuilder();
-    private static final int MAX_JSON_DEPTH = 10;
+    private ConstraintLayout imageFeedLayout;
+    private ImageView remoteFeedImageView, peerFeedImageView;
 
 
     @Override
@@ -89,7 +89,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initViews();
         initWebView();
 
-        imageFeed = new ImageFeed(this,imageFeedView);
+        imageFeed = new ImageFeed(this,peerFeedImageView);
         imageFeed.setImageFeedListener(this);
 
         socketSender = new WebSocketSender(this);
@@ -109,7 +109,9 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         btnConnect.setEnabled(false);
         btnJoin = findViewById(R.id.btnJoin);
         tvName = findViewById(R.id.tvName);
-        imageFeedView = findViewById(R.id.imageFeedView);
+        imageFeedLayout = findViewById(R.id.imageFeedLayout);
+        remoteFeedImageView = findViewById(R.id.remoteFeedImageView);
+        peerFeedImageView = findViewById(R.id.peerFeedImageView);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -223,6 +225,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 resetJoinButton();
                 socketSender.initializeSender(webView);
                 imageFeed.openCamera();
+                imageFeedLayout.setVisibility(View.VISIBLE);
                 startLoggingImageUpdates();
             }
         });
@@ -258,6 +261,12 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                     byte[] imageBytes = Base64.decode(base64, Base64.NO_WRAP);
                     receivedCount++;
                     totalBytesPerSecond += imageBytes.length;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            remoteFeedImageView.setImageBitmap(BitmapUtils.getBitmap(imageBytes));
+                        }
+                    });
 //                    imageBytes = null;
                     // Process your image bytes here
                 }
