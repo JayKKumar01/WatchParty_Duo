@@ -199,8 +199,14 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Ima
     }
 
     @Override
-    public void sendImageFeed(byte[] imageFeedBytes, long millis) {
-        peers[0].callJavaScript("sendImageFeed", imageFeedBytes, millis);
+    public void onBatchReceived(String jsonDataBytes) {
+
+    }
+
+
+    @Override
+    public void onImageFeed(byte[] imageFeedBytes, long millis) {
+        peers[0].callJavaScript("onImageFeed", imageFeedBytes, millis);
         sentCount++;
     }
 

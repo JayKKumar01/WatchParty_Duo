@@ -26,9 +26,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
-import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
@@ -182,8 +180,16 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                     ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                     byte[] bytes = new byte[buffer.remaining()];
                     buffer.get(bytes);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
+                    bytes = BitmapUtils.getBytes(finalBitmap);
                     if (imageFeedListener != null) {
-                        imageFeedListener.sendImageFeed(bytes, System.currentTimeMillis());
+                        imageFeedListener.onImageFeed(bytes, System.currentTimeMillis());
+                    }
+                    if (imageView != null){
+                        mainHandler.post(() -> {
+                            imageView.setImageBitmap(finalBitmap);
+                        });
                     }
                 }
             }
@@ -206,11 +212,11 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
 //            mainHandler.post(() -> {
 //                imageView.setImageBitmap(finalBitmap);
 //                if (imageFeedListener != null){
-//                    imageFeedListener.sendImageFeed(imageFeedBytes,System.currentTimeMillis());
+//                    imageFeedListener.onImageFeed(imageFeedBytes,System.currentTimeMillis());
 //                }
 //
 //                if (ConnectionService.getInstance() != null){
-//                    ConnectionService.getInstance().sendImageFeed(imageFeedBytes,System.currentTimeMillis());
+//                    ConnectionService.getInstance().onImageFeed(imageFeedBytes,System.currentTimeMillis());
 //                }
 //            });
 

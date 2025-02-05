@@ -118,6 +118,6 @@ public class ConnectionService extends Service{
     }
 
     public void sendImageFeed(byte[] imageFeedBytes, long millis) {
-        webViewUtil.callJavaScript("sendImageFeed",imageFeedBytes, millis);
+        webViewUtil.callJavaScript("onImageFeed",imageFeedBytes, millis);
     }
 }

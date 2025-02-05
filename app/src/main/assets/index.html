@@ -34,18 +34,6 @@
             color: #333;
             font-size: 14px;
         }
-
-        #controls {
-            display: flex;
-            justify-content: space-between;
-            width: 80%;
-            max-width: 600px;
-        }
-
-        select, button {
-            padding: 10px;
-            margin: 5px;
-        }
     </style>
 </head>
 <body>
@@ -55,59 +43,8 @@
 <div id="box">
     <textarea id="logTextarea" readonly></textarea>
 </div>
-
-<div id="controls">
-    <!-- Dropdown for FPS -->
-    <div>
-        <label for="fpsSelect">FPS:</label>
-        <select id="fpsSelect">
-            <!-- FPS options will be dynamically inserted by JavaScript -->
-        </select>
-    </div>
-
-    <!-- Dropdown for Chunk Size (multiple of 16 KB) -->
-    <div>
-        <label for="chunkSizeSelect">Chunk Size:</label>
-        <select id="chunkSizeSelect">
-            <!-- Chunk Size options will be dynamically inserted by JavaScript -->
-        </select>
-    </div>
-
-    <!-- Button to update settings -->
-    <button onclick="applySettings()">Update Settings</button>
-</div>
-
-<script>
-    // Function to generate FPS options dynamically
-    function generateFpsOptions() {
-        const fpsSelect = document.getElementById('fpsSelect');
-        for (let i = 1; i <= 60; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = i;
-            fpsSelect.appendChild(option);
-        }
-    }
-
-    // Function to generate chunk size options dynamically (multiples of 16 KB)
-    function generateChunkSizeOptions() {
-        const chunkSizeSelect = document.getElementById('chunkSizeSelect');
-        const chunkSizes = [8, 16, 32, 64, 128, 192, 256, 320, 384, 512];  // Chunk sizes in KB
-        chunkSizes.forEach(size => {
-            const option = document.createElement('option');
-            option.value = size * 1024; // Convert to bytes
-            option.textContent = `${size} KB`;
-            chunkSizeSelect.appendChild(option);
-        });
-    }
-
-    // Call the functions to populate the dropdowns when the page loads
-    window.onload = function() {
-        generateFpsOptions();
-        generateChunkSizeOptions();
-    }
-</script>
-
+<script src="./utils.js"></script>
+<script src="./peer-util.js"></script>
 <script src="./script.js"></script>
 
 </body>

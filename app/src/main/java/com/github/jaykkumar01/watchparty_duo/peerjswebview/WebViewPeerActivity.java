@@ -2,11 +2,11 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.KeyEvent;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
@@ -14,8 +14,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.ScrollView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,15 +28,23 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.peerjswebview.JavaScriptInterface;
+import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
+import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
+import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+
+import java.util.List;
+import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
-public class WebViewPeerActivity extends AppCompatActivity implements PeerListener {
+public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener, UpdateListener {
 
     private ScrollView logScrollView;
     private TextView logTextView;
@@ -57,6 +65,14 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private int receivedCount = 0;
     private int totalBytesPerSecond = 0;
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
+    private ImageFeed imageFeed;
+    private WebSocketSender socketSender;
+    private ImageView imageFeedView;
+
+
+    private final StringBuilder jsonBuffer = new StringBuilder();
+    private static final int MAX_JSON_DEPTH = 10;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -72,6 +88,12 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
         initViews();
         initWebView();
+
+        imageFeed = new ImageFeed(this,imageFeedView);
+        imageFeed.setImageFeedListener(this);
+
+        socketSender = new WebSocketSender(this);
+        socketSender.setUpdateListener(this);
     }
 
     private void initViews() {
@@ -87,11 +109,9 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         btnConnect.setEnabled(false);
         btnJoin = findViewById(R.id.btnJoin);
         tvName = findViewById(R.id.tvName);
+        imageFeedView = findViewById(R.id.imageFeedView);
     }
 
-    public void updateSettings(int newFps, int newChunkSize){
-        callJavaScript("updateSettings",newFps, newChunkSize);
-    }
     @SuppressLint("SetJavaScriptEnabled")
     private void initWebView() {
         WebSettings settings = webView.getSettings();
@@ -195,12 +215,14 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                logElapsedTime("All Peers Connected Successfully!");
+                logElapsedTime("Peer Connected Successfully!");
                 updateLogs("Peer: " + peerId + ", Remote: " + remoteId);
                 hideKeyboard();
                 layoutJoin.setVisibility(View.GONE);
                 webView.setVisibility(View.VISIBLE);
                 resetJoinButton();
+                socketSender.initializeSender(webView);
+                imageFeed.openCamera();
                 startLoggingImageUpdates();
             }
         });
@@ -213,6 +235,36 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         }
         receivedCount++;
         totalBytesPerSecond += imageFeedBytes.length;
+
+    }
+
+    @Override
+    public void onBatchReceived(String jsonData) {
+//        receivedCount++;
+//        if (jsonData != null){
+//            totalBytesPerSecond +=  jsonData.length();
+//        }else {
+//            updateLogs("Null json Data Received!");
+//        }
+
+        Executors.newCachedThreadPool().execute(() -> {
+            try {
+                List<String> batch = new Gson().fromJson(
+                        jsonData,
+                        new TypeToken<List<String>>(){}.getType()
+                );
+
+                for (String base64 : batch) {
+                    byte[] imageBytes = Base64.decode(base64, Base64.NO_WRAP);
+                    receivedCount++;
+                    totalBytesPerSecond += imageBytes.length;
+//                    imageBytes = null;
+                    // Process your image bytes here
+                }
+            } catch (Exception e) {
+                Log.e("WebSocketReceiver", "Error processing batch", e);
+            }
+        });
 
     }
 
@@ -293,5 +345,16 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+    }
+
+    @Override
+    public void onImageFeed(byte[] imageFeedBytes, long millis) {
+        socketSender.addImageData(imageFeedBytes);
+        sentCount++;
+    }
+
+    @Override
+    public void onUpdate(String updateMessage) {
+        runOnUiThread(() -> updateLogs(updateMessage));
     }
 }

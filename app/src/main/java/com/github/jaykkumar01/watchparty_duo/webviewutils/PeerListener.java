@@ -4,4 +4,6 @@ public interface PeerListener {
     void onPeerOpen(String peerId);
     void onConnectionOpen(String peerId, String remoteId);
     void onReadImageFeed(String peerId, byte[] imageFeedBytes, long millis);
+
+    void onBatchReceived(String jsonDataBytes);
 }

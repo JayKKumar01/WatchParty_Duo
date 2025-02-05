@@ -14,6 +14,10 @@ import android.widget.ImageView;
 
 import androidx.core.content.ContextCompat;
 
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+
 import java.util.Random;
 
 public class Base {
@@ -48,6 +52,15 @@ public class Base {
         return random.nextInt(max - min + 1) + min;
     }
 
+
+    public static boolean isValidJson(String json) {
+        try {
+            JsonParser.parseString(json);
+            return true;
+        } catch (JsonSyntaxException e) {
+            return false;
+        }
+    }
 
 
 }
