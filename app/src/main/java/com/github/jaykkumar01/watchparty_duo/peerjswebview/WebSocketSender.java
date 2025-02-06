@@ -1,14 +1,17 @@
 package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Base64;
 import android.webkit.WebView;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -16,6 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.ConsoleHandler;
 
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -24,6 +28,8 @@ public class WebSocketSender {
 
     private UpdateListener updateListener;
     private final Gson gson = new Gson();
+
+    private final Handler handler = new Handler();
 
     public WebSocketSender(Context context) {
         this.context = context;
@@ -58,19 +64,38 @@ public class WebSocketSender {
                     }
                 },
                 0,
-                333,
+                AppData.LATENCY_DELAY,
                 TimeUnit.MILLISECONDS
         );
     }
 
     // Add image data with background conversion
+
+    int minSize = Integer.MAX_VALUE;
+    int maxSize = Integer.MIN_VALUE;
     public void addImageData(byte[] imageBytes, long timestamp) {
         Executors.newCachedThreadPool().execute(() -> {
-            String base64ImageBytes = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
 
+            int len = imageBytes.length;
+            if (len < minSize || len > maxSize){
+                if (len < minSize){
+                    minSize = len;
+                }
+                if (len > maxSize){
+                    maxSize = len;
+                }
+                if (updateListener != null) {
+                    updateListener.onUpdate("");
+                    updateListener.onUpdate("Max Size: "+maxSize / 1024 + " KB");
+                    updateListener.onUpdate("Min Size: "+minSize / 1024 + " KB");
+                }
+            }
+
+            String base64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
             synchronized (base64Queue) {
-                base64Queue.add(new ImageFeedModel(base64ImageBytes,timestamp));
+                base64Queue.add(new ImageFeedModel(base64, timestamp));
             }
         });
     }
+
 }

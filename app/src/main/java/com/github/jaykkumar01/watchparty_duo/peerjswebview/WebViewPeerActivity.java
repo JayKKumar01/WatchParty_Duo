@@ -34,15 +34,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.Target;
-import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
@@ -94,7 +85,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     private ConstraintLayout imageFeedLayout;
     private TextureView peerFeedTextureView,remoteFeedTextureView;
-    private final int sleepTime = (int) (1000.0 / AppData.getInstance().getFPS());
     private final Gson gson = new Gson();
 
 
@@ -113,11 +103,15 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initViews();
         initWebView();
 
-        imageFeed = new ImageFeed(this,peerFeedTextureView);
+        imageFeed = new ImageFeed(this,remoteFeedTextureView);
         imageFeed.setImageFeedListener(this);
+        imageFeed.setUpdateListener(this);
+
+        imageFeed.openCamera();
 
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
+        socketSender.initializeSender(webView);
     }
 
     private void initViews() {
@@ -161,20 +155,20 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
-                logTextView.append("Loading page...\n");
+                updateLogs("Loading page...");
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                logTextView.append("Page loaded: " + url + "\n");
+                updateLogs("Page loaded: " + url);
                 btnConnect.setEnabled(true);
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                logTextView.append("Page error: " + error.getDescription() + "\n");
+                updateLogs("Page error: " + error.getDescription());
             }
         });
 
@@ -270,7 +264,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         Executors.newCachedThreadPool().execute(() -> {
             try {
 
-                List<ImageFeedModel> batch = new Gson().fromJson(
+                List<ImageFeedModel> batch = gson.fromJson(
                         jsonData,
                         new TypeToken<List<ImageFeedModel>>(){}.getType()
                 );
@@ -300,21 +294,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                     prevTimestamp = timestamp; // Update for next iteration
 
                     TextureRenderer.updateTexture(remoteFeedTextureView,imageBytes);
-
-//                    runOnUiThread(() -> {
-//                        remoteFeedImageView.setImageBitmap(bitmap);
-//
-////                        Glide.with(remoteFeedImageView.getContext())
-////                                .load(imageBytes)
-////                                .skipMemoryCache(true) // Disable memory caching
-////                                .diskCacheStrategy(DiskCacheStrategy.NONE) // Disable disk caching
-////                                .into(remoteFeedImageView);
-//
-//
-//
-//                    });
-
-
                 }
             } catch (Exception e) {
                 Log.e("WebSocketReceiver", "Error processing batch", e);
@@ -368,10 +347,15 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     @SuppressLint("SetTextI18n")
     private void updateLogs(String message) {
-        TextView logTextView = findViewById(R.id.logTextView);
-        ScrollView logScrollView = findViewById(R.id.logScrollView);
-        logTextView.append("\n" + message);
-        logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView logTextView = findViewById(R.id.logTextView);
+                ScrollView logScrollView = findViewById(R.id.logScrollView);
+                logTextView.append("\n" + message);
+                logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
+            }
+        });
     }
 
 
@@ -411,6 +395,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     @Override
     public void onUpdate(String updateMessage) {
-        runOnUiThread(() -> updateLogs(updateMessage));
+        updateLogs(updateMessage);
     }
 }

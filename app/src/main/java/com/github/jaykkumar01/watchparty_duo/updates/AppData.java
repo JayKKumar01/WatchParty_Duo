@@ -1,15 +1,14 @@
 package com.github.jaykkumar01.watchparty_duo.updates;
 
 public class AppData {
-    private static final AppData instance = new AppData();
+    private static final AppData instance = new AppData(); // packet loss, texture load issue
+    public static final int FPS = 24;
+    public static final int IMAGE_HEIGHT = 320;
+    public static final int LATENCY_DELAY = 300; // in ms
 
     private boolean connectionEstablished;
     private boolean connectionActive;
     private boolean mute;
-    private int FPS = 15;
-    private int imageHeight = 240;
-
-
 
     private AppData() {} // Private constructor to prevent instantiation
 
@@ -46,20 +45,6 @@ public class AppData {
         this.connectionActive = connectionActive;
     }
 
-    public int getFPS() {
-        return Math.max(1,FPS);
-    }
 
-    public void setFPS(int FPS) {
-        this.FPS = FPS;
-    }
-
-    public int getImageHeight() {
-        return imageHeight;
-    }
-
-    public void setImageHeight(int imageHeight) {
-        this.imageHeight = imageHeight;
-    }
 }
 

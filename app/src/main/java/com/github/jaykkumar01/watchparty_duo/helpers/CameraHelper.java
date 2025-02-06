@@ -68,7 +68,7 @@ public class CameraHelper implements ImageReader.OnImageAvailableListener {
             }
 
             // Use fixed resolution for simplicity
-            Size previewSize = getPreviewSize(AppData.getInstance().getImageHeight());
+            Size previewSize = getPreviewSize(Math.max(144,AppData.IMAGE_HEIGHT));
             imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.JPEG, 10);
             imageReader.setOnImageAvailableListener(this, mainHandler); // Using the mainHandler for the listener
 

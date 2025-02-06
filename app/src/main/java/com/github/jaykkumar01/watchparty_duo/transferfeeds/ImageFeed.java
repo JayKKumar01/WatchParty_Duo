@@ -19,20 +19,26 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
+import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
+import com.github.jaykkumar01.watchparty_duo.utils.CameraUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.TextureRenderer;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,10 +57,15 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private static final Matrix rotationMatrix = new Matrix(); // Reuse Matrix for orientation fixes
 
     private ImageFeedListener imageFeedListener;
+    private UpdateListener updateListener;
 
     public ImageFeed(Context context, TextureView textureView){
         this.context = context;
         this.textureView = textureView;
+    }
+
+    public void setUpdateListener(UpdateListener updateListener) {
+        this.updateListener = updateListener;
     }
 
     public void setImageFeedListener(ImageFeedListener imageFeedListener){
@@ -78,10 +89,14 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                 return;
             }
 
-            // Use fixed resolution for simplicity
-            Size previewSize = getPreviewSize(AppData.getInstance().getImageHeight());
-            imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.JPEG, 10);
-            imageReader.setOnImageAvailableListener(this, mainHandler); // Using the mainHandler for the listener
+            Size[] outputSizes = configMap.getOutputSizes(ImageFormat.JPEG);
+            if (outputSizes == null || outputSizes.length == 0) return;
+
+            updateListener.onUpdate(Arrays.toString(outputSizes));
+
+            Size previewSize = CameraUtil.chooseOptimalSize(outputSizes, AppData.IMAGE_HEIGHT,textureView,updateListener);
+            imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.JPEG, 2);
+            imageReader.setOnImageAvailableListener(this, mainHandler);
 
             manager.openCamera(cameraId, stateCallback, mainHandler);
 
@@ -89,6 +104,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
             e.printStackTrace();
         }
     }
+
 
     private String getFrontCameraId(CameraManager manager) throws CameraAccessException {
         for (String id : manager.getCameraIdList()) {
@@ -101,10 +117,6 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
         return null;
     }
 
-    private Size getPreviewSize(int height) {
-        int width = (int) (height * (4.0 / 3.0));
-        return new Size(width, height);
-    }
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -121,11 +133,11 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
 
         @Override
         public void onError(@NonNull CameraDevice camera, int error) {
+            Log.e("ImageFeed", "Camera error: " + error);
             camera.close();
             cameraDevice = null;
         }
     };
-
     private void createCaptureSession() {
         try {
             cameraDevice.createCaptureSession(Collections.singletonList(imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
@@ -139,19 +151,14 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                         CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                         captureBuilder.addTarget(imageReader.getSurface());
                         captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
-                        CaptureRequest build = captureBuilder.build();
 
-                        if (scheduler.isShutdown()){
-                            scheduler = Executors.newSingleThreadScheduledExecutor();
-                        }
-                        scheduler.scheduleWithFixedDelay(
-                                () -> showPicture(build),
-                                300,
-                                1000/AppData.getInstance().getFPS(),
-                                TimeUnit.MILLISECONDS
-                        );
+                        // Set FPS range
+                        Range<Integer> fpsRange = new Range<>(AppData.FPS, AppData.FPS);
+                        captureBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
+
+                        session.setRepeatingRequest(captureBuilder.build(), null, mainHandler);
                     } catch (CameraAccessException e) {
-                        e.printStackTrace();
+                        Log.e("ImageFeed", "Capture session setup failed", e);
                     }
                 }
 
@@ -164,63 +171,9 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
         }
     }
 
-    private void showPicture(CaptureRequest build) {
-        try {
-            cameraCaptureSession.capture(build, null, null);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void processImage(ImageReader reader) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                try (Image image = reader.acquireLatestImage()) {
-                    if (image == null) return;
-
-                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                    byte[] bytes = new byte[buffer.remaining()];
-                    buffer.get(bytes);
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                    Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
-                    byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
-                    if (imageFeedListener != null) {
-                        imageFeedListener.onImageFeed(finalBytes, System.currentTimeMillis());
-                    }
-                    if (textureView != null){
-                        TextureRenderer.updateTexture(textureView,finalBytes);
-                    }
-                }
-            }
-        });
 
 
 
-
-
-//            if (image == null) return;
-//
-//            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-//            byte[] bytes = new byte[buffer.remaining()];
-//            buffer.get(bytes);
-//
-//            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-//            Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
-//            byte[] imageFeedBytes = BitmapUtils.getBytes(finalBitmap);
-//
-//            mainHandler.post(() -> {
-//                imageView.setImageBitmap(finalBitmap);
-//                if (imageFeedListener != null){
-//                    imageFeedListener.onImageFeed(imageFeedBytes,System.currentTimeMillis());
-//                }
-//
-//                if (ConnectionService.getInstance() != null){
-//                    ConnectionService.getInstance().onImageFeed(imageFeedBytes,System.currentTimeMillis());
-//                }
-//            });
-
-    }
 
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
         rotationMatrix.reset();
@@ -243,6 +196,41 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
 
     @Override
     public void onImageAvailable(ImageReader reader) {
-        processImage(reader);
+        executorService.execute(() -> {
+            try (Image image = reader.acquireLatestImage()) {
+                if (image == null) return;
+
+                Image.Plane[] planes = image.getPlanes();
+
+                ByteBuffer buffer = planes[0].getBuffer();
+
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPreferredConfig = Bitmap.Config.RGB_565; // Reduces memory usage
+                options.inMutable = false; // Avoid unnecessary allocations
+
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                if (bitmap == null) return;
+
+                Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
+                if (finalBitmap != bitmap) {
+                    bitmap.recycle(); // Recycle unused bitmap
+                }
+
+                byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
+                finalBitmap.recycle(); // Recycle final bitmap after use
+
+                if (imageFeedListener != null) {
+                    imageFeedListener.onImageFeed(finalBytes, System.currentTimeMillis());
+                }
+                if (textureView != null) {
+                    TextureRenderer.updateTexture(textureView, finalBytes);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
