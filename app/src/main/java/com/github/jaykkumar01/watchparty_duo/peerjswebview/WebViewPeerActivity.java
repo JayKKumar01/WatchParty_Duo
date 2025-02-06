@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
@@ -37,6 +38,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
@@ -51,6 +53,7 @@ import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
+import com.github.jaykkumar01.watchparty_duo.utils.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
@@ -90,10 +93,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
 
     private ConstraintLayout imageFeedLayout;
-    private ImageView remoteFeedImageView, peerFeedImageView;
-    private boolean isLoaded;
-    private Bitmap bitmap;
-    private Context context;
+    private TextureView peerFeedTextureView,remoteFeedTextureView;
     private final int sleepTime = (int) (1000.0 / AppData.getInstance().getFPS());
     private final Gson gson = new Gson();
 
@@ -110,12 +110,10 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
             return insets;
         });
 
-        context = this;
-
         initViews();
         initWebView();
 
-        imageFeed = new ImageFeed(this,peerFeedImageView);
+        imageFeed = new ImageFeed(this,peerFeedTextureView);
         imageFeed.setImageFeedListener(this);
 
         socketSender = new WebSocketSender(this);
@@ -136,8 +134,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         btnJoin = findViewById(R.id.btnJoin);
         tvName = findViewById(R.id.tvName);
         imageFeedLayout = findViewById(R.id.imageFeedLayout);
-        remoteFeedImageView = findViewById(R.id.remoteFeedImageView);
-        peerFeedImageView = findViewById(R.id.peerFeedImageView);
+        peerFeedTextureView = findViewById(R.id.peerFeed);
+        remoteFeedTextureView = findViewById(R.id.remoteFeed);
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -291,7 +289,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                     receivedCount++;
                     totalBytesPerSecond += imageBytes.length;
 
-                    bitmap = BitmapUtils.getBitmap(imageBytes);
+                    //bitmap = BitmapUtils.getBitmap(imageBytes);
 
                     // Calculate delay based on timestamp difference
                     if (prevTimestamp != 0) {
@@ -301,9 +299,20 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
                     prevTimestamp = timestamp; // Update for next iteration
 
-                    runOnUiThread(() -> {
-                        remoteFeedImageView.setImageBitmap(bitmap);
-                    });
+                    TextureRenderer.updateTexture(remoteFeedTextureView,imageBytes);
+
+//                    runOnUiThread(() -> {
+//                        remoteFeedImageView.setImageBitmap(bitmap);
+//
+////                        Glide.with(remoteFeedImageView.getContext())
+////                                .load(imageBytes)
+////                                .skipMemoryCache(true) // Disable memory caching
+////                                .diskCacheStrategy(DiskCacheStrategy.NONE) // Disable disk caching
+////                                .into(remoteFeedImageView);
+//
+//
+//
+//                    });
 
 
                 }

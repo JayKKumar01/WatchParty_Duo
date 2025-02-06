@@ -73,7 +73,7 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
 
-        imageFeed = new ImageFeed(this,peerFeedImageView);
+        imageFeed = new ImageFeed(this,null);
         imageFeed.openCamera();
 
 

@@ -21,15 +21,16 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Size;
 import android.view.Surface;
+import android.view.TextureView;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
-import com.bumptech.glide.Glide;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
+import com.github.jaykkumar01.watchparty_duo.utils.TextureRenderer;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -40,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private final Context context;
-    private final ImageView imageView;
+    private final TextureView textureView;
     private CameraDevice cameraDevice;
     private CameraCaptureSession cameraCaptureSession;
     private ImageReader imageReader;
@@ -51,9 +52,9 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
 
     private ImageFeedListener imageFeedListener;
 
-    public ImageFeed(Context context, ImageView imageView){
+    public ImageFeed(Context context, TextureView textureView){
         this.context = context;
-        this.imageView = imageView;
+        this.textureView = textureView;
     }
 
     public void setImageFeedListener(ImageFeedListener imageFeedListener){
@@ -187,14 +188,8 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                     if (imageFeedListener != null) {
                         imageFeedListener.onImageFeed(finalBytes, System.currentTimeMillis());
                     }
-                    if (imageView != null){
-                        mainHandler.post(() -> {
-                            imageView.setImageBitmap(finalBitmap);
-                            // Inside your activity or fragment
-//                            Glide.with(context)
-//                                    .load(finalBitmap)
-//                                    .into(imageView);
-                        });
+                    if (textureView != null){
+                        TextureRenderer.updateTexture(textureView,finalBytes);
                     }
                 }
             }
@@ -244,7 +239,6 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
         if (cameraCaptureSession != null) cameraCaptureSession.close();
         if (cameraDevice != null) cameraDevice.close();
         if (imageReader != null) imageReader.close();
-        imageView.setImageBitmap(null);
     }
 
     @Override
