@@ -2,6 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,6 +23,8 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.collection.ArrayMap;
+import androidx.collection.ArraySet;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -31,6 +34,7 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
@@ -41,7 +45,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
@@ -72,6 +78,9 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     private ConstraintLayout imageFeedLayout;
     private ImageView remoteFeedImageView, peerFeedImageView;
+    private boolean isLoaded;
+    private Bitmap bitmap;
+    private final int sleepTime = (int) (1000.0 / AppData.getInstance().getFPS());
 
 
     @Override
@@ -243,13 +252,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     @Override
     public void onBatchReceived(String jsonData) {
-//        receivedCount++;
-//        if (jsonData != null){
-//            totalBytesPerSecond +=  jsonData.length();
-//        }else {
-//            updateLogs("Null json Data Received!");
-//        }
-
         Executors.newCachedThreadPool().execute(() -> {
             try {
                 List<String> batch = new Gson().fromJson(
@@ -261,14 +263,14 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                     byte[] imageBytes = Base64.decode(base64, Base64.NO_WRAP);
                     receivedCount++;
                     totalBytesPerSecond += imageBytes.length;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            remoteFeedImageView.setImageBitmap(BitmapUtils.getBitmap(imageBytes));
-                        }
+
+                    bitmap = BitmapUtils.getBitmap(imageBytes);
+                    runOnUiThread(() -> {
+                        remoteFeedImageView.setImageBitmap(bitmap);
                     });
-//                    imageBytes = null;
-                    // Process your image bytes here
+
+                    Base.sleep(sleepTime);
+
                 }
             } catch (Exception e) {
                 Log.e("WebSocketReceiver", "Error processing batch", e);
@@ -276,6 +278,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         });
 
     }
+
 
     private void startLoggingImageUpdates() {
         updateLogHandler.postDelayed(new Runnable() {
