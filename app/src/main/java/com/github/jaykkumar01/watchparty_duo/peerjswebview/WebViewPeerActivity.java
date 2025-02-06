@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +22,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.collection.ArrayMap;
@@ -31,11 +34,17 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
+import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
@@ -263,42 +272,39 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         Executors.newCachedThreadPool().execute(() -> {
             try {
 
-                List<Map<String, String>> batch = new Gson().fromJson(
+                List<ImageFeedModel> batch = new Gson().fromJson(
                         jsonData,
-                        new TypeToken<List<Map<String, String>>>(){}.getType()
+                        new TypeToken<List<ImageFeedModel>>(){}.getType()
                 );
 
-                for (Map<String, String> imageData : batch) {
-                    if (!imageData.containsKey(getString(R.string.image)) || !imageData.containsKey(getString(R.string.timestamp))) {
+
+                long prevTimestamp = 0;
+
+                for (ImageFeedModel model : batch) {
+                    byte[] imageBytes = model.getBytes();
+                    long timestamp = model.getTimestamp();
+
+                    if (imageBytes == null || imageBytes.length == 0){
                         continue;
                     }
-                    String base64ImageBytes = imageData.get(getString(R.string.image));
-                    long timestamp = Long.parseLong(imageData.get(getString(R.string.timestamp)));
-                    if (base64ImageBytes == null){
-                        continue;
-                    }
-                    byte[] imageBytes = Base64.decode(base64ImageBytes,Base64.NO_WRAP);
-                    //long timestamp = ((Number)data2).longValue();
 
                     receivedCount++;
                     totalBytesPerSecond += imageBytes.length;
 
                     bitmap = BitmapUtils.getBitmap(imageBytes);
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            remoteFeedImageView.setImageBitmap(bitmap);
-//                            // Inside your activity or fragment
-//                            Glide.with(WebViewPeerActivity.this)
-//                                    .load(imageBytes)
-//                                    .into(remoteFeedImageView);
-                        }
+                    // Calculate delay based on timestamp difference
+                    if (prevTimestamp != 0) {
+                        int delay = (int) Math.max(0, timestamp - prevTimestamp); // Ensure non-negative delay
+                        Thread.sleep(delay);
+                    }
+
+                    prevTimestamp = timestamp; // Update for next iteration
+
+                    runOnUiThread(() -> {
+                        remoteFeedImageView.setImageBitmap(bitmap);
                     });
 
-
-                    // Optional: Sleep to control the rate of image display
-                    Thread.sleep(sleepTime);
 
                 }
             } catch (Exception e) {

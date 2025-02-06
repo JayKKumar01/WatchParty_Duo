@@ -4,12 +4,11 @@ import android.content.Context;
 import android.util.Base64;
 import android.webkit.WebView;
 
-import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
+import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -20,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
-    private final Queue<Map<String, String>> base64Queue = new ConcurrentLinkedQueue<Map<String, String>>();
+    private final Queue<ImageFeedModel> base64Queue = new ConcurrentLinkedQueue<ImageFeedModel>();
     private Context context;
 
     private UpdateListener updateListener;
@@ -45,7 +44,7 @@ public class WebSocketSender {
                 () -> {
                     synchronized (base64Queue) {
                         if (!base64Queue.isEmpty()) {
-                            List<Map<String, String>> batch = new ArrayList<>(base64Queue);
+                            List<ImageFeedModel> batch = new ArrayList<>(base64Queue);
                             base64Queue.clear();
                             String json = gson.toJson(batch);
 
@@ -69,13 +68,8 @@ public class WebSocketSender {
         Executors.newCachedThreadPool().execute(() -> {
             String base64ImageBytes = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
 
-            // Create a JSON object with image data and timestamp
-            Map<String, String> imageData = new HashMap<>();
-            imageData.put(context.getString(R.string.image), base64ImageBytes);
-            imageData.put(context.getString(R.string.timestamp), String.valueOf(timestamp));
-
             synchronized (base64Queue) {
-                base64Queue.add(imageData);
+                base64Queue.add(new ImageFeedModel(base64ImageBytes,timestamp));
             }
         });
     }
