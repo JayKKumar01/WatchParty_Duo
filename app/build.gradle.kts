@@ -43,5 +43,9 @@ dependencies {
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
     implementation(libs.gson)
+    implementation("com.github.bumptech.glide:glide:4.16.0") // Replace with the latest version
+
+
+
 
 }

@@ -3,16 +3,16 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 import android.content.Context;
 import android.util.Base64;
 import android.webkit.WebView;
-import android.widget.Toast;
 
+import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
-import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
-import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,10 +20,11 @@ import java.util.concurrent.TimeUnit;
 
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
-    private final Queue<String> base64Queue = new ConcurrentLinkedQueue<>();
+    private final Queue<Map<String, String>> base64Queue = new ConcurrentLinkedQueue<Map<String, String>>();
     private Context context;
 
     private UpdateListener updateListener;
+    private final Gson gson = new Gson();
 
     public WebSocketSender(Context context) {
         this.context = context;
@@ -39,16 +40,14 @@ public class WebSocketSender {
             senderExecutor = Executors.newSingleThreadScheduledExecutor();
         }
 
-        Random random = new Random();
-
         // Schedule batch sender every 333ms
         senderExecutor.scheduleWithFixedDelay(
                 () -> {
                     synchronized (base64Queue) {
                         if (!base64Queue.isEmpty()) {
-                            List<String> batch = new ArrayList<>(base64Queue);
+                            List<Map<String, String>> batch = new ArrayList<>(base64Queue);
                             base64Queue.clear();
-                            String json = new Gson().toJson(batch);
+                            String json = gson.toJson(batch);
 
                             webView.post(() -> {
                                 webView.evaluateJavascript(
@@ -66,11 +65,17 @@ public class WebSocketSender {
     }
 
     // Add image data with background conversion
-    public void addImageData(byte[] imageBytes) {
+    public void addImageData(byte[] imageBytes, long timestamp) {
         Executors.newCachedThreadPool().execute(() -> {
-            String base64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+            String base64ImageBytes = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+
+            // Create a JSON object with image data and timestamp
+            Map<String, String> imageData = new HashMap<>();
+            imageData.put(context.getString(R.string.image), base64ImageBytes);
+            imageData.put(context.getString(R.string.timestamp), String.valueOf(timestamp));
+
             synchronized (base64Queue) {
-                base64Queue.add(base64);
+                base64Queue.add(imageData);
             }
         });
     }

@@ -6,8 +6,8 @@ public class AppData {
     private boolean connectionEstablished;
     private boolean connectionActive;
     private boolean mute;
-    private int FPS = 7;
-    private int imageHeight = 360;
+    private int FPS = 10;
+    private int imageHeight = 240;
 
 
 

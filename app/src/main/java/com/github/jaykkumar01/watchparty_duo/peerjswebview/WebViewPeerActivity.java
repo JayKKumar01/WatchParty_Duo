@@ -30,6 +30,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
@@ -47,6 +50,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -80,7 +84,9 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private ImageView remoteFeedImageView, peerFeedImageView;
     private boolean isLoaded;
     private Bitmap bitmap;
+    private Context context;
     private final int sleepTime = (int) (1000.0 / AppData.getInstance().getFPS());
+    private final Gson gson = new Gson();
 
 
     @Override
@@ -94,6 +100,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        context = this;
 
         initViews();
         initWebView();
@@ -254,22 +262,43 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     public void onBatchReceived(String jsonData) {
         Executors.newCachedThreadPool().execute(() -> {
             try {
-                List<String> batch = new Gson().fromJson(
+
+                List<Map<String, String>> batch = new Gson().fromJson(
                         jsonData,
-                        new TypeToken<List<String>>(){}.getType()
+                        new TypeToken<List<Map<String, String>>>(){}.getType()
                 );
 
-                for (String base64 : batch) {
-                    byte[] imageBytes = Base64.decode(base64, Base64.NO_WRAP);
+                for (Map<String, String> imageData : batch) {
+                    if (!imageData.containsKey(getString(R.string.image)) || !imageData.containsKey(getString(R.string.timestamp))) {
+                        continue;
+                    }
+                    String base64ImageBytes = imageData.get(getString(R.string.image));
+                    long timestamp = Long.parseLong(imageData.get(getString(R.string.timestamp)));
+                    if (base64ImageBytes == null){
+                        continue;
+                    }
+                    byte[] imageBytes = Base64.decode(base64ImageBytes,Base64.NO_WRAP);
+                    //long timestamp = ((Number)data2).longValue();
+
                     receivedCount++;
                     totalBytesPerSecond += imageBytes.length;
 
                     bitmap = BitmapUtils.getBitmap(imageBytes);
-                    runOnUiThread(() -> {
-                        remoteFeedImageView.setImageBitmap(bitmap);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            remoteFeedImageView.setImageBitmap(bitmap);
+//                            // Inside your activity or fragment
+//                            Glide.with(WebViewPeerActivity.this)
+//                                    .load(imageBytes)
+//                                    .into(remoteFeedImageView);
+                        }
                     });
 
-                    Base.sleep(sleepTime);
+
+                    // Optional: Sleep to control the rate of image display
+                    Thread.sleep(sleepTime);
 
                 }
             } catch (Exception e) {
@@ -361,7 +390,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     @Override
     public void onImageFeed(byte[] imageFeedBytes, long millis) {
-        socketSender.addImageData(imageFeedBytes);
+        socketSender.addImageData(imageFeedBytes,millis);
         sentCount++;
     }
 

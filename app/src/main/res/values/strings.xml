@@ -5,4 +5,6 @@
     <string name="joining">Joining...</string>
     <string name="connect">Connect</string>
     <string name="join">Join</string>
+    <string name="image">image</string>
+    <string name="timestamp">timestamp</string>
 </resources>

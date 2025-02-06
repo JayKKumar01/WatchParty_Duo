@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.bumptech.glide.Glide;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
@@ -182,13 +183,17 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                     buffer.get(bytes);
                     Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                     Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
-                    bytes = BitmapUtils.getBytes(finalBitmap);
+                    byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
                     if (imageFeedListener != null) {
-                        imageFeedListener.onImageFeed(bytes, System.currentTimeMillis());
+                        imageFeedListener.onImageFeed(finalBytes, System.currentTimeMillis());
                     }
                     if (imageView != null){
                         mainHandler.post(() -> {
                             imageView.setImageBitmap(finalBitmap);
+                            // Inside your activity or fragment
+//                            Glide.with(context)
+//                                    .load(finalBitmap)
+//                                    .into(imageView);
                         });
                     }
                 }
