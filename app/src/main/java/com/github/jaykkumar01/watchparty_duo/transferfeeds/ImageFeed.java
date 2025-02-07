@@ -24,18 +24,17 @@ import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.github.jaykkumar01.watchparty_duo.converters.YUVConverter;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.CameraUtil;
-import com.github.jaykkumar01.watchparty_duo.utils.TextureRenderer;
+import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -43,7 +42,6 @@ import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private final Context context;
@@ -56,8 +54,11 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private static final Matrix rotationMatrix = new Matrix(); // Reuse Matrix for orientation fixes
 
+    private Range<Integer> fpsRange = null;
+
     private ImageFeedListener imageFeedListener;
     private UpdateListener updateListener;
+
 
     public ImageFeed(Context context, TextureView textureView){
         this.context = context;
@@ -78,6 +79,11 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
             if (cameraId == null) {
                 return;
             }
+            fpsRange = getMaxFpsRange(manager,cameraId);
+
+            if (fpsRange == null){
+                return;
+            }
 
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 return;
@@ -89,13 +95,13 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                 return;
             }
 
-            Size[] outputSizes = configMap.getOutputSizes(ImageFormat.JPEG);
+            Size[] outputSizes = configMap.getOutputSizes(ImageFormat.YUV_420_888);
             if (outputSizes == null || outputSizes.length == 0) return;
 
             updateListener.onUpdate(Arrays.toString(outputSizes));
 
-            Size previewSize = CameraUtil.chooseOptimalSize(outputSizes, AppData.IMAGE_HEIGHT,textureView,updateListener);
-            imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.JPEG, 2);
+            Size previewSize = CameraUtil.chooseOptimalSize(outputSizes, AppData.IMAGE_HEIGHT,updateListener);
+            imageReader = ImageReader.newInstance(previewSize.getWidth(), previewSize.getHeight(), ImageFormat.YUV_420_888, 2);
             imageReader.setOnImageAvailableListener(this, mainHandler);
 
             manager.openCamera(cameraId, stateCallback, mainHandler);
@@ -138,6 +144,54 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
             cameraDevice = null;
         }
     };
+
+    private Range<Integer> getMaxFpsRange(CameraManager cameraManager, String cameraId) {
+
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            Range<Integer>[] fpsRanges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+
+            if (fpsRanges != null && fpsRanges.length > 0) {
+                if (updateListener != null){
+                    updateListener.onUpdate(Arrays.toString(fpsRanges));
+                }
+
+                Range<Integer> maxFpsRange = fpsRanges[0]; // Initialize with first range
+                Range<Integer> minFpsRange = fpsRanges[0]; // Initialize with first range
+
+                // Find the maximum FPS range
+                for (Range<Integer> range : fpsRanges) {
+
+                    if (range.getUpper() > maxFpsRange.getUpper()) {
+                        maxFpsRange = range;
+                    }
+                    if (range.getLower() < minFpsRange.getLower()) {
+                        minFpsRange = range;
+                    }
+                }
+                for (Range<Integer> range : fpsRanges) {
+
+                    if (range.getUpper().equals(maxFpsRange.getUpper()) && range.getLower() > maxFpsRange.getLower()){
+                        maxFpsRange = range;
+                    }
+                    if (range.getLower().equals(minFpsRange.getLower()) && range.getUpper() < minFpsRange.getUpper()) {
+                        minFpsRange = range;
+                    }
+                }
+                if (updateListener != null){
+                    updateListener.onUpdate("maxFpsRange: ["+maxFpsRange.getLower()+","+maxFpsRange.getUpper()+"]");
+                    updateListener.onUpdate("minFpsRange: ["+minFpsRange.getLower()+","+minFpsRange.getUpper()+"]");
+                }
+                return new Range<>(minFpsRange.getLower(),maxFpsRange.getUpper());
+            } else {
+                Log.e("ImageFeed", "No FPS range available");
+            }
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private void createCaptureSession() {
         try {
             cameraDevice.createCaptureSession(Collections.singletonList(imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
@@ -152,9 +206,16 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
                         captureBuilder.addTarget(imageReader.getSurface());
                         captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
 
+                        int lower = Math.max(fpsRange.getLower(),Math.min(fpsRange.getUpper(),AppData.FPS));
+                        int upper = Math.min(fpsRange.getUpper(),Math.max(fpsRange.getLower(),AppData.FPS));
+
+                        if (updateListener != null){
+                            updateListener.onUpdate("Range: ["+lower+","+upper+"]");
+                        }
+
                         // Set FPS range
-                        Range<Integer> fpsRange = new Range<>(AppData.FPS, AppData.FPS);
-                        captureBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
+                        Range<Integer> range = new Range<>(lower, upper);
+                        captureBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, range);
 
                         session.setRepeatingRequest(captureBuilder.build(), null, mainHandler);
                     } catch (CameraAccessException e) {
@@ -200,28 +261,17 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
             try (Image image = reader.acquireLatestImage()) {
                 if (image == null) return;
 
-                Image.Plane[] planes = image.getPlanes();
+                byte[] bytes = YUVConverter.toJpegImage(image,80);
 
-                ByteBuffer buffer = planes[0].getBuffer();
-
-                byte[] bytes = new byte[buffer.remaining()];
-                buffer.get(bytes);
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inPreferredConfig = Bitmap.Config.RGB_565; // Reduces memory usage
-                options.inMutable = false; // Avoid unnecessary allocations
-
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
-                if (bitmap == null) return;
-
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
                 if (finalBitmap != bitmap) {
                     bitmap.recycle(); // Recycle unused bitmap
                 }
-
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
                 finalBitmap.recycle(); // Recycle final bitmap after use
 
+                //  end
                 if (imageFeedListener != null) {
                     imageFeedListener.onImageFeed(finalBytes, System.currentTimeMillis());
                 }

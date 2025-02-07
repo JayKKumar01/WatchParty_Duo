@@ -1,4 +1,4 @@
-package com.github.jaykkumar01.watchparty_duo.utils;
+package com.github.jaykkumar01.watchparty_duo.renderers;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

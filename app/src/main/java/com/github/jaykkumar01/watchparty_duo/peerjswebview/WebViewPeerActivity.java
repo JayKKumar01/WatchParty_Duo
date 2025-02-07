@@ -2,12 +2,9 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Base64;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
@@ -17,18 +14,13 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.collection.ArrayMap;
-import androidx.collection.ArraySet;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -39,22 +31,16 @@ import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
-import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
-import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
-import com.github.jaykkumar01.watchparty_duo.utils.TextureRenderer;
+import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
@@ -103,15 +89,18 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initViews();
         initWebView();
 
-        imageFeed = new ImageFeed(this,remoteFeedTextureView);
+        imageFeed = new ImageFeed(this,peerFeedTextureView);
         imageFeed.setImageFeedListener(this);
         imageFeed.setUpdateListener(this);
 
-        imageFeed.openCamera();
+//        imageFeed = new ImageFeed(this,peerFeedTextureView);
+//        imageFeed.setImageFeedListener(this);
+//        imageFeed.setUpdateListener(this);
+//        imageFeed.openCamera();
 
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
-        socketSender.initializeSender(webView);
+//        socketSender.initializeSender(webView);
     }
 
     private void initViews() {

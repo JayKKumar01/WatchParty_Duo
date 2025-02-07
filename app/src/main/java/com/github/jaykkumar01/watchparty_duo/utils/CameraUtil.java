@@ -10,7 +10,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 
 public class CameraUtil {
     @SuppressLint("DefaultLocale")
-    public static Size chooseOptimalSize(Size[] sizes, int targetHeight, TextureView textureView, UpdateListener updateListener) {
+    public static Size chooseOptimalSize(Size[] sizes, int targetHeight, UpdateListener updateListener) {
         Size optimalSize = sizes[0];
         int minDiff = Integer.MAX_VALUE;
 
@@ -47,10 +47,6 @@ public class CameraUtil {
         if (updateListener != null) {
             updateListener.onUpdate(String.format("Optimal Size: [%d x %d], Ratio: %.2f", optimalSize.getWidth(), optimalSize.getHeight(), ratio));
         }
-
-        // Set the TextureView's aspect ratio
-        setTextureViewAspectRatio(textureView, ratio <= 1 ? ratio : 1 / ratio);
-
         return optimalSize;
     }
 
@@ -61,7 +57,7 @@ public class CameraUtil {
         if (textureView.getParent() instanceof ConstraintLayout) {
             ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) textureView.getLayoutParams();
             // Set the dimension ratio in the format "W,ratio:1"
-            params.dimensionRatio = "W," + ratio + ":1";
+            params.dimensionRatio = String.valueOf(ratio);
             textureView.setLayoutParams(params);
         } else {
             throw new IllegalArgumentException("TextureView must be inside a ConstraintLayout.");
