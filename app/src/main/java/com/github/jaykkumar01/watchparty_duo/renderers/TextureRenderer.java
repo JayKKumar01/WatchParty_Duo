@@ -4,12 +4,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.view.TextureView;
 
 public class TextureRenderer {
     private static Bitmap reusableBitmap = null;
     private static final Object lock = new Object();
     private static boolean isDrawing = false;
+
+    private static boolean isCrop;
 
     public static void updateTexture(TextureView textureView, byte[] imageData) {
         if (textureView == null || imageData == null || !textureView.isAvailable()) return;
@@ -35,11 +38,24 @@ public class TextureRenderer {
                 int viewWidth = textureView.getWidth();
                 int viewHeight = textureView.getHeight();
 
-                float scaleX = (float) viewWidth / bitmapWidth;
-                float scaleY = (float) viewHeight / bitmapHeight;
+                int left = 0;
+                int top = 0;
+
+                if (bitmapWidth > bitmapHeight){
+                    left = (bitmapWidth - bitmapHeight) / 2;
+                    bitmapWidth = bitmapHeight;
+                }else{
+                    top = (bitmapHeight - bitmapWidth) / 2;
+                    bitmapHeight = bitmapWidth;
+                }
+
+
 
                 Matrix matrix = new Matrix();
-                matrix.setScale(scaleX, scaleY);
+                RectF srcRect = new RectF(left, top, bitmapWidth, bitmapHeight);
+                RectF dstRect = new RectF(0, 0, viewWidth, viewHeight);
+
+                matrix.setRectToRect(srcRect, dstRect, Matrix.ScaleToFit.CENTER);
 
                 Canvas canvas = textureView.lockCanvas();
                 if (canvas != null) {
