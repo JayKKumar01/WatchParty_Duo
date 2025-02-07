@@ -2,6 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -89,18 +91,18 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initViews();
         initWebView();
 
-        imageFeed = new ImageFeed(this,peerFeedTextureView);
-        imageFeed.setImageFeedListener(this);
-        imageFeed.setUpdateListener(this);
-
 //        imageFeed = new ImageFeed(this,peerFeedTextureView);
 //        imageFeed.setImageFeedListener(this);
 //        imageFeed.setUpdateListener(this);
-//        imageFeed.openCamera();
+
+        imageFeed = new ImageFeed(this,remoteFeedTextureView);
+        imageFeed.setImageFeedListener(this);
+        imageFeed.setUpdateListener(this);
+        imageFeed.openCamera();
 
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
-//        socketSender.initializeSender(webView);
+        socketSender.initializeSender(webView);
     }
 
     private void initViews() {
@@ -342,7 +344,19 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 TextView logTextView = findViewById(R.id.logTextView);
                 ScrollView logScrollView = findViewById(R.id.logScrollView);
                 logTextView.append("\n" + message);
-                logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
+
+                logScrollView.post(() -> {
+                    int scrollY = logScrollView.getScrollY();
+                    int bottomY = logTextView.getHeight() - logScrollView.getHeight();
+
+                    // Force scroll only if user hasn't scrolled manually
+                    if (scrollY >= bottomY - logTextView.getLineHeight()) {
+                        logScrollView.fullScroll(View.FOCUS_DOWN);
+                    }
+                });
+
+
+
             }
         });
     }
@@ -385,5 +399,30 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     @Override
     public void onUpdate(String updateMessage) {
         updateLogs(updateMessage);
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // Handle layout change for landscape orientation
+//            adjustLayoutForLandscape();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            // Handle layout change for portrait orientation
+//            adjustLayoutForPortrait();
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        //imageFeed.openCamera();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        imageFeed.closeCamera();
     }
 }

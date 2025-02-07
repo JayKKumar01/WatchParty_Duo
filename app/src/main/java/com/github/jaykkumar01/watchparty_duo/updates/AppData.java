@@ -2,7 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.updates;
 
 public class AppData {
     private static final AppData instance = new AppData(); // packet loss, texture load issue
-    public static final int FPS = 15;
+    public static final int FPS = 11;
     public static final int IMAGE_HEIGHT = 144;
     public static final int LATENCY_DELAY = 333; // in ms
 

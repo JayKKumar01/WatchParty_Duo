@@ -11,15 +11,12 @@ import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.ConsoleHandler;
 
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -76,18 +73,18 @@ public class WebSocketSender {
     public void addImageData(byte[] imageBytes, long timestamp) {
         Executors.newCachedThreadPool().execute(() -> {
 
-            int len = imageBytes.length;
-            if (len < minSize || len > maxSize){
-                if (len < minSize){
-                    minSize = len;
+            int lenKB = imageBytes.length/1024;
+            if (lenKB < minSize || lenKB > maxSize){
+                if (lenKB < minSize){
+                    minSize = lenKB;
                 }
-                if (len > maxSize){
-                    maxSize = len;
+                if (lenKB > maxSize){
+                    maxSize = lenKB;
                 }
                 if (updateListener != null) {
                     updateListener.onUpdate("");
-                    updateListener.onUpdate("Max Size: "+maxSize / 1024 + " KB");
-                    updateListener.onUpdate("Min Size: "+minSize / 1024 + " KB");
+                    updateListener.onUpdate("Max Size: "+maxSize + " KB");
+                    updateListener.onUpdate("Min Size: "+minSize + " KB");
                 }
             }
 

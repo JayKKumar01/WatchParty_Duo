@@ -1,6 +1,11 @@
 package com.github.jaykkumar01.watchparty_duo.utils;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SearchRecentSuggestionsProvider;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
 import android.util.Size;
 import android.view.TextureView;
 
@@ -10,7 +15,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 
 public class CameraUtil {
     @SuppressLint("DefaultLocale")
-    public static Size chooseOptimalSize(Size[] sizes, int targetHeight, UpdateListener updateListener) {
+    public static Size chooseOptimalSize(Size[] sizes, int targetHeight) {
         Size optimalSize = sizes[0];
         int minDiff = Integer.MAX_VALUE;
 
@@ -42,13 +47,10 @@ public class CameraUtil {
                 optimalSize = size;
             }
         }
-
-        // Update the listener with the chosen optimal size and its ratio
-        if (updateListener != null) {
-            updateListener.onUpdate(String.format("Optimal Size: [%d x %d], Ratio: %.2f", optimalSize.getWidth(), optimalSize.getHeight(), ratio));
-        }
         return optimalSize;
     }
+
+
 
 
 
