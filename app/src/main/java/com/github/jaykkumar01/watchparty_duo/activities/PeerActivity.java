@@ -210,6 +210,16 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Ima
         sentCount++;
     }
 
+    @Override
+    public void onError(String err) {
+
+    }
+
+    @Override
+    public void onUpdate(String logMessage) {
+
+    }
+
     @SuppressLint("SetTextI18n")
     private void updateLogs(String message) {
         TextView logTextView = findViewById(R.id.logTextView);

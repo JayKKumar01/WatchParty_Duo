@@ -20,10 +20,15 @@ public class YUVConverter {
         int width = image.getWidth();
         int height = image.getHeight();
 
+        int cropLength = Math.min(width,height);
+
+        int cropX = (width - cropLength) / 2;
+        int cropY = (height - cropLength) / 2;
+
         // Convert to jpeg
         byte[] jpegImage = null;
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            yuvImage.compressToJpeg(new Rect(0, 0, width, height), imageQuality, out);
+            yuvImage.compressToJpeg(new Rect(cropX, cropY, cropX+cropLength, cropY+cropLength), imageQuality, out);
             jpegImage = out.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);

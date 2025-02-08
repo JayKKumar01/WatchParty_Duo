@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.hardware.camera2.CameraAccessException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,7 +33,8 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
-import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
+import com.github.jaykkumar01.watchparty_duo.organized.ImageFeed;
+//import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
@@ -46,7 +48,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
-public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener, UpdateListener {
+public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener, UpdateListener{
 
     private ScrollView logScrollView;
     private TextView logTextView;
@@ -67,7 +69,9 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private int receivedCount = 0;
     private int totalBytesPerSecond = 0;
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
+//    private ImageFeed1 imageFeed1;
     private ImageFeed imageFeed;
+
     private WebSocketSender socketSender;
 
 
@@ -77,7 +81,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_webview_peer);
@@ -95,15 +99,20 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 //        imageFeed.setImageFeedListener(this);
 //        imageFeed.setUpdateListener(this);
 
-        imageFeed = new ImageFeed(this,remoteFeedTextureView);
-        imageFeed.setImageFeedListener(this);
-        imageFeed.setUpdateListener(this);
-        imageFeed.openCamera();
+
+        imageFeed = new ImageFeed(this,this,peerFeedTextureView);
+//        imageFeed.initializeCamera();
+
+
+//        imageFeed1 = new ImageFeed1(this,remoteFeedTextureView);
+//        imageFeed1.setImageFeedListener(this);
+//        imageFeed1.setUpdateListener(this);
+//        imageFeed1.openCamera();
 
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
 
-        socketSender.initializeSender(webView);
+//        socketSender.initializeSender(webView);
     }
 
     private void initViews() {
@@ -234,7 +243,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 webView.setVisibility(View.VISIBLE);
                 resetJoinButton();
                 socketSender.initializeSender(webView);
-                imageFeed.openCamera();
+//                imageFeed1.openCamera();
+                imageFeed.initializeCamera();
                 imageFeedLayout.setVisibility(View.VISIBLE);
                 startLoggingImageUpdates();
             }
@@ -398,6 +408,11 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     }
 
     @Override
+    public void onError(String err) {
+
+    }
+
+    @Override
     public void onUpdate(String updateMessage) {
         updateLogs(updateMessage);
     }
@@ -424,6 +439,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     @Override
     protected void onStop() {
         super.onStop();
-        imageFeed.closeCamera();
+//        imageFeed1.closeCamera();
+        imageFeed.releaseResources();
     }
 }

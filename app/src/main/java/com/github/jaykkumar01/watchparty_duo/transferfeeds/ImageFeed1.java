@@ -1,36 +1,27 @@
 package com.github.jaykkumar01.watchparty_duo.transferfeeds;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.util.Range;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.converters.YUVConverter;
-import com.github.jaykkumar01.watchparty_duo.helpers.RangeCalculator;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.CameraModel;
@@ -40,13 +31,12 @@ import com.github.jaykkumar01.watchparty_duo.utils.CameraUtil;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @SuppressLint("DefaultLocale")
-public class ImageFeed implements ImageReader.OnImageAvailableListener{
+public class ImageFeed1 implements ImageReader.OnImageAvailableListener{
     private final Context context;
     private final TextureView textureView;
     private CameraCaptureSession cameraCaptureSession;
@@ -61,7 +51,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener{
     private CameraModel cameraModel;
 
 
-    public ImageFeed(Context context, TextureView textureView){
+    public ImageFeed1(Context context, TextureView textureView){
         this.context = context;
         this.textureView = textureView;
     }

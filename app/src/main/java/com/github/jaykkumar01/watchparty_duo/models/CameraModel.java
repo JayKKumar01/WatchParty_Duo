@@ -21,7 +21,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.helpers.RangeCalculator;
-import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 
 import java.util.Collections;
@@ -118,6 +117,8 @@ public class CameraModel {
     }
 
     public void createCaptureSession(CameraDevice cameraDevice, ImageReader imageReader, Handler mainHandler) {
+        
+        
         try {
             cameraDevice.createCaptureSession(Collections.singletonList(imageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                 @Override
