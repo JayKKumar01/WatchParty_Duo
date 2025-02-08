@@ -32,6 +32,7 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
@@ -85,10 +86,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private TextureView peerFeedTextureView,remoteFeedTextureView;
     private final Gson gson = new Gson();
 
-
-    // Flag to check if user has manually scrolled
-    boolean isUserScrolling = false;
     private ProcessFeed processFeed;
+    private LogUpdater logUpdater;
 
 
     @Override
@@ -105,6 +104,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
         initViews();
         initWebView();
+        logUpdater = new LogUpdater(logTextView,logScrollView);
 
         processFeed = new ProcessFeed(remoteFeedTextureView);
 
@@ -128,7 +128,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         logScrollView = findViewById(R.id.logScrollView);
         // Listener to detect user scroll events
         logScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
-            isUserScrolling = logScrollView.getScrollY() < logTextView.getHeight() - logScrollView.getHeight();
+            boolean isUserScrolling = logScrollView.getScrollY() < logTextView.getHeight() - logScrollView.getHeight();
+            logUpdater.setUserScrolling(isUserScrolling);
         });
         logTextView = findViewById(R.id.logTextView);
 
@@ -346,15 +347,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                TextView logTextView = findViewById(R.id.logTextView);
-                ScrollView logScrollView = findViewById(R.id.logScrollView);
-                logTextView.append("\n" + message);
-
-                // Auto-scroll only if user hasn't manually scrolled up
-                if (!isUserScrolling) {
-                    logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
-                }
-
+                logUpdater.addLogMessage(message);
             }
         });
     }

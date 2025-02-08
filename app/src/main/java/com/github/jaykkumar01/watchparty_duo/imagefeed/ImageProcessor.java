@@ -38,7 +38,6 @@ public class ImageProcessor {
     private final Matrix rotationMatrix = new Matrix();
     private ScheduledExecutorService scheduler;
     private List<FeedModel> imageQueue;
-    private volatile int lastQueueSize = -1;
 
     public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener, TextureView textureView) {
         this.context = context;
@@ -66,7 +65,6 @@ public class ImageProcessor {
                     bitmap.recycle();
                 }
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
-//                updateListener("Time Taken: "+ (System.currentTimeMillis()-timestamp) +" ms");
                 imageQueue.add(new FeedModel(finalBytes,timestamp));
                 finalBitmap.recycle();
 
@@ -93,12 +91,6 @@ public class ImageProcessor {
         if (imageQueue == null || imageQueue.isEmpty()) {
             return;
         }
-
-        if (imageQueue.size() != lastQueueSize){
-            updateListener("Queue Size: "+imageQueue.size());
-            lastQueueSize = imageQueue.size();
-        }
-
 
         FeedModel model = imageQueue.get(imageQueue.size()/2);
 
