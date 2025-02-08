@@ -21,7 +21,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.Peer;
@@ -35,7 +35,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-public class PeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener {
+public class PeerActivity extends AppCompatActivity implements PeerListener, FeedListener {
 
     private static final int TOTAL_PEERS = 1;
     private final Set<String> openedPeers = new HashSet<>();
@@ -205,8 +205,8 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Ima
 
 
     @Override
-    public void onImageFeed(byte[] imageFeedBytes, long millis) {
-        peers[0].callJavaScript("onImageFeed", imageFeedBytes, millis);
+    public void onFeed(byte[] bytes, long millis, int feedType) {
+        peers[0].callJavaScript("onFeed", bytes, millis);
         sentCount++;
     }
 

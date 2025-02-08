@@ -5,8 +5,9 @@ import android.os.Handler;
 import android.util.Base64;
 import android.webkit.WebView;
 
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
-import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
+import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.google.gson.Gson;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
-    private final Queue<ImageFeedModel> base64Queue = new ConcurrentLinkedQueue<ImageFeedModel>();
+    private final Queue<FeedModel> base64Queue = new ConcurrentLinkedQueue<FeedModel>();
     private Context context;
 
     private UpdateListener updateListener;
@@ -47,7 +48,7 @@ public class WebSocketSender {
                 () -> {
                     synchronized (base64Queue) {
                         if (!base64Queue.isEmpty()) {
-                            List<ImageFeedModel> batch = new ArrayList<>(base64Queue);
+                            List<FeedModel> batch = new ArrayList<>(base64Queue);
                             base64Queue.clear();
                             String json = gson.toJson(batch);
 
@@ -61,7 +62,7 @@ public class WebSocketSender {
                     }
                 },
                 0,
-                AppData.LATENCY_DELAY,
+                Feed.LATENCY_DELAY,
                 TimeUnit.MILLISECONDS
         );
     }
@@ -70,10 +71,10 @@ public class WebSocketSender {
 
     int minSize = Integer.MAX_VALUE;
     int maxSize = Integer.MIN_VALUE;
-    public void addImageData(byte[] imageBytes, long timestamp) {
+    public void addData(byte[] bytes, long timestamp, int feedType) {
         Executors.newCachedThreadPool().execute(() -> {
 
-            int lenKB = imageBytes.length/1024;
+            int lenKB = bytes.length/1024;
             if (lenKB < minSize || lenKB > maxSize){
                 if (lenKB < minSize){
                     minSize = lenKB;
@@ -88,9 +89,11 @@ public class WebSocketSender {
                 }
             }
 
-            String base64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+            String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
             synchronized (base64Queue) {
-                base64Queue.add(new ImageFeedModel(base64, timestamp));
+                FeedModel feedModel = new FeedModel(base64, timestamp);
+                feedModel.setFeedType(feedType);
+                base64Queue.add(feedModel);
             }
         });
     }

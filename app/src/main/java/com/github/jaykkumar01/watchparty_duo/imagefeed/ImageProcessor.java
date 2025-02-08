@@ -10,9 +10,11 @@ import android.media.ImageReader;
 import android.view.Surface;
 import android.view.TextureView;
 
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
+import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.converters.YUVConverter;
-import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
-import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
+import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
@@ -27,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class ImageProcessor {
     private final Context context;
     private final CameraModel cameraModel;
-    private final ImageFeedListener imageFeedListener;
+    private final FeedListener feedListener;
     private final long frameIntervalMs;
     private final TextureView textureView;
     private static final ExecutorService onProcessExecutor = Executors.newSingleThreadExecutor();
@@ -35,16 +37,16 @@ public class ImageProcessor {
     private int displayRotation = -1;
     private final Matrix rotationMatrix = new Matrix();
     private ScheduledExecutorService scheduler;
-    private List<ImageFeedModel> imageQueue;
+    private List<FeedModel> imageQueue;
     private volatile int lastQueueSize = -1;
 
-    public ImageProcessor(Context context, CameraModel cameraModel, ImageFeedListener imageFeedListener, TextureView textureView) {
+    public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener, TextureView textureView) {
         this.context = context;
         this.cameraModel = cameraModel;
-        this.imageFeedListener = imageFeedListener;
+        this.feedListener = feedListener;
         this.textureView = textureView;
-        this.frameIntervalMs = (long) (1000.0 / AppData.FPS);
-        updateListener("FPS: "+AppData.FPS +", Frame Interval : "+this.frameIntervalMs);
+        this.frameIntervalMs = (long) (1000.0 / Feed.FPS);
+        updateListener("FPS: "+Feed.FPS +", Frame Interval : "+this.frameIntervalMs);
     }
 
     public void onProcessImage(ImageReader reader) {
@@ -65,7 +67,7 @@ public class ImageProcessor {
                 }
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
 //                updateListener("Time Taken: "+ (System.currentTimeMillis()-timestamp) +" ms");
-                imageQueue.add(new ImageFeedModel(finalBytes,timestamp));
+                imageQueue.add(new FeedModel(finalBytes,timestamp));
                 finalBitmap.recycle();
 
             } catch (Exception e) {
@@ -98,10 +100,10 @@ public class ImageProcessor {
         }
 
 
-        ImageFeedModel model = imageQueue.get(imageQueue.size()/2);
+        FeedModel model = imageQueue.get(imageQueue.size()/2);
 
-        if (imageFeedListener != null) {
-            imageFeedListener.onImageFeed(model.getBytes(), model.getTimestamp());
+        if (feedListener != null) {
+            feedListener.onFeed(model.getBytes(), model.getTimestamp(), FeedType.IMAGE_FEED);
         }
         if (textureView != null) {
             TextureRenderer.updateTexture(textureView, model.getBytes());
@@ -149,8 +151,8 @@ public class ImageProcessor {
     }
 
     private void updateListener(String logMessage) {
-        if (imageFeedListener != null) {
-            imageFeedListener.onUpdate(logMessage);
+        if (feedListener != null) {
+            feedListener.onUpdate(logMessage);
         }
     }
 }

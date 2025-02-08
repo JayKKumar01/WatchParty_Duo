@@ -5,6 +5,8 @@ import android.graphics.ImageFormat;
 import android.hardware.camera2.*;
 import android.util.Range;
 import android.util.Size;
+
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 
 public class CameraModel {
@@ -26,7 +28,7 @@ public class CameraModel {
         }
         this.sensorOrientation = CameraConfigHelper.getSensorOrientation(characteristics);
         this.fpsRanges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
-        this.optimalFpsRange = CameraConfigHelper.getOptimalFpsRange(fpsRanges, AppData.FPS);
+        this.optimalFpsRange = CameraConfigHelper.getOptimalFpsRange(fpsRanges, Feed.FPS);
         this.outputSizes = CameraConfigHelper.getOutputSizes(characteristics,ImageFormat.YUV_420_888);
     }
 

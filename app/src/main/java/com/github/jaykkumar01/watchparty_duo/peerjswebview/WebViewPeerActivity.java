@@ -29,11 +29,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
+import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
+import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
-import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
+import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 //import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
@@ -47,7 +50,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
-public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, ImageFeedListener, UpdateListener{
+public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, FeedListener, UpdateListener{
 
     private ScrollView logScrollView;
     private TextView logTextView;
@@ -69,6 +72,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private int totalBytesPerSecond = 0;
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
     private ImageFeed imageFeed;
+    private AudioFeed audioFeed;
 
     private WebSocketSender socketSender;
 
@@ -98,13 +102,19 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initWebView();
 
 
-        imageFeed = new ImageFeed(this,this,peerFeedTextureView);
+        boolean isTesting = false;
+
+
+        imageFeed = new ImageFeed(this,this,isTesting ? remoteFeedTextureView: peerFeedTextureView);
+        audioFeed = new AudioFeed(this,this);
 
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
 
-//        imageFeed.initializeCamera();
-//        socketSender.initializeSender(webView);
+        if (isTesting){
+            imageFeed.initializeCamera();
+            socketSender.initializeSender(webView);
+        }
     }
 
     private void initViews() {
@@ -262,15 +272,15 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         Executors.newCachedThreadPool().execute(() -> {
             try {
 
-                List<ImageFeedModel> batch = gson.fromJson(
+                List<FeedModel> batch = gson.fromJson(
                         jsonData,
-                        new TypeToken<List<ImageFeedModel>>(){}.getType()
+                        new TypeToken<List<FeedModel>>(){}.getType()
                 );
 
 
                 long prevTimestamp = 0;
 
-                for (ImageFeedModel model : batch) {
+                for (FeedModel model : batch) {
                     byte[] imageBytes = model.getBase64Bytes();
                     long timestamp = model.getTimestamp();
 
@@ -391,9 +401,11 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     }
 
     @Override
-    public void onImageFeed(byte[] imageFeedBytes, long millis) {
-        socketSender.addImageData(imageFeedBytes,millis);
-        sentCount++;
+    public void onFeed(byte[] bytes, long millis,int feedType) {
+        socketSender.addData(bytes,millis,feedType);
+        if (feedType == FeedType.IMAGE_FEED) {
+            sentCount++;
+        }
     }
 
     @Override

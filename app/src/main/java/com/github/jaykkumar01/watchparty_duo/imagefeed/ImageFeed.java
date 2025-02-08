@@ -6,71 +6,48 @@ import android.graphics.ImageFormat;
 import android.hardware.camera2.*;
 import android.media.ImageReader;
 import android.util.Size;
+import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
 
-import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
-import com.github.jaykkumar01.watchparty_duo.updates.AppData;
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.utils.CameraUtil;
 
 import java.util.Arrays;
 
-public class ImageFeed implements ImageReader.OnImageAvailableListener {
+public class ImageFeed{
     private final Context context;
-    private final TextureView textureView;
-    private final ImageFeedListener imageFeedListener;
+    private final FeedListener feedListener;
     private final CameraModel cameraModel;
     private final CameraSessionManager sessionManager;
-    private ImageReader imageReader;
-    private final ImageProcessor imageProcessor;
 
 
-    public ImageFeed(Context context, ImageFeedListener listener, TextureView textureView){
+
+    public ImageFeed(Context context, FeedListener feedListener, TextureView textureView){
         this.context = context;
-        this.textureView = textureView;
-        this.imageFeedListener = listener;
+        this.feedListener = feedListener;
         this.cameraModel = new CameraModel(context);
 
-        updateListener("Output Sizes: "+Arrays.toString(cameraModel.getOutputSizes()));
-
-        Size previewSize = CameraUtil.chooseOptimalSize(
-                cameraModel.getOutputSizes(),
-                AppData.IMAGE_HEIGHT
-        );
-        @SuppressLint("DefaultLocale")
-        String format = String.format("Optimal Size: %s, Ratio: %.2f", previewSize.toString(), (float) previewSize.getWidth() / previewSize.getHeight());
-        updateListener(format);
-
-        setupImageReader(previewSize);
-
         // Handler for the main thread
-        this.sessionManager = new CameraSessionManager(context, cameraModel,imageReader);
-        this.imageProcessor = new ImageProcessor(context,cameraModel,listener,textureView);
+        this.sessionManager = new CameraSessionManager(context, cameraModel,feedListener,textureView);
     }
 
     public void initializeCamera(){
         updateListener("Ranges: "+ Arrays.toString(cameraModel.getFpsRanges()));
-        updateListener("Optimal Range: "+ cameraModel.getOptimalFpsRange() + ", FPS: "+AppData.FPS);
+        updateListener("Optimal Range: "+ cameraModel.getOptimalFpsRange() + ", FPS: "+ Feed.FPS);
 
         sessionManager.openCamera(this::handleCameraSession);
     }
 
-    private void setupImageReader(Size previewSize) {
-        imageReader = ImageReader.newInstance(
-                previewSize.getWidth(),
-                previewSize.getHeight(),
-                ImageFormat.YUV_420_888,
-                2
-        );
-        imageReader.setOnImageAvailableListener(this, null);
-    }
 
-    private void handleCameraSession(CameraCaptureSession session) {
+
+    private void handleCameraSession(CameraCaptureSession session, Surface surface) {
 
         try {
             CaptureRequest request = CameraSessionHelper.createCaptureRequest(
                     session.getDevice(),
-                    imageReader.getSurface(),
+                    surface,
                     cameraModel.getOptimalFpsRange()
             );
             if (request == null){
@@ -78,30 +55,18 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener {
                 return;
             }
             session.setRepeatingRequest(request, null, null);
-            // start thread for image process
-//            imageProcessor.start();
         } catch (CameraAccessException e) {
-            imageFeedListener.onError("Session configuration failed: " + e.getMessage());
+            feedListener.onError("Session configuration failed: " + e.getMessage());
         }
-    }
-
-    @Override
-    public void onImageAvailable(ImageReader reader) {
-        imageProcessor.onProcessImage(reader);
     }
 
     public void releaseResources() {
         sessionManager.closeSession();
-        if (imageReader != null) {
-            imageReader.close();
-            imageReader = null;
-        }
-        imageProcessor.stop();
     }
 
     private void updateListener(String logMessage) {
-        if (imageFeedListener != null){
-            imageFeedListener.onUpdate(logMessage);
+        if (feedListener != null){
+            feedListener.onUpdate(logMessage);
         }
     }
 }
