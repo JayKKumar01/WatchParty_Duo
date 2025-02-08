@@ -38,21 +38,9 @@ public class TextureRenderer {
                 int viewWidth = textureView.getWidth();
                 int viewHeight = textureView.getHeight();
 
-                int left = 0;
-                int top = 0;
-
-                if (bitmapWidth > bitmapHeight){
-                    left = (bitmapWidth - bitmapHeight) / 2;
-                    bitmapWidth = bitmapHeight;
-                }else{
-                    top = (bitmapHeight - bitmapWidth) / 2;
-                    bitmapHeight = bitmapWidth;
-                }
-
-
 
                 Matrix matrix = new Matrix();
-                RectF srcRect = new RectF(left, top, bitmapWidth, bitmapHeight);
+                RectF srcRect = new RectF(0, 0, bitmapWidth, bitmapHeight);
                 RectF dstRect = new RectF(0, 0, viewWidth, viewHeight);
 
                 matrix.setRectToRect(srcRect, dstRect, Matrix.ScaleToFit.CENTER);

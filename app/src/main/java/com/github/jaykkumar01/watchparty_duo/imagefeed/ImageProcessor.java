@@ -12,52 +12,101 @@ import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.converters.YUVConverter;
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
+import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
+import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ImageProcessor {
     private final Context context;
     private final CameraModel cameraModel;
     private final ImageFeedListener imageFeedListener;
-    private final static ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final long frameIntervalMs;
+    private final TextureView textureView;
+    private static final ExecutorService onProcessExecutor = Executors.newSingleThreadExecutor();
+
     private int displayRotation = -1;
     private final Matrix rotationMatrix = new Matrix();
+    private ScheduledExecutorService scheduler;
+    private List<ImageFeedModel> imageQueue;
+    private volatile int lastQueueSize = -1;
 
-    public ImageProcessor(Context context,CameraModel cameraModel, ImageFeedListener imageFeedListener) {
+    public ImageProcessor(Context context, CameraModel cameraModel, ImageFeedListener imageFeedListener, TextureView textureView) {
         this.context = context;
         this.cameraModel = cameraModel;
         this.imageFeedListener = imageFeedListener;
+        this.textureView = textureView;
+        this.frameIntervalMs = (long) (1000.0 / AppData.FPS);
+        updateListener("FPS: "+AppData.FPS +", Frame Interval : "+this.frameIntervalMs);
     }
 
-    public void processImage(ImageReader reader, TextureView textureView) {
-        executorService.execute(() -> {
+    public void onProcessImage(ImageReader reader) {
+        onProcessExecutor.execute(() -> {
+            if (imageQueue == null){
+                imageQueue = new ArrayList<>();
+                start();
+            }
             try (Image image = reader.acquireLatestImage()) {
                 if (image == null) return;
+                long timestamp = System.currentTimeMillis();
 
-
-                byte[] bytes = YUVConverter.toJpegImage(image,80);
-
+                byte[] bytes = YUVConverter.toJpegImage(image, 80);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
                 if (finalBitmap != bitmap) {
-                    bitmap.recycle(); // Recycle unused bitmap
+                    bitmap.recycle();
                 }
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
-                finalBitmap.recycle(); // Recycle final bitmap after use
+//                updateListener("Time Taken: "+ (System.currentTimeMillis()-timestamp) +" ms");
+                imageQueue.add(new ImageFeedModel(finalBytes,timestamp));
+                finalBitmap.recycle();
 
-                if (imageFeedListener != null) {
-                    imageFeedListener.onImageFeed(finalBytes, System.currentTimeMillis());
-                }
-                if (textureView != null) {
-                    TextureRenderer.updateTexture(textureView, finalBytes);
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    public void start() {
+        if (scheduler == null || scheduler.isShutdown()) {
+            scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler.scheduleWithFixedDelay(() -> {
+                try {
+                    processImage();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, 0, frameIntervalMs, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void processImage() {
+        if (imageQueue == null || imageQueue.isEmpty()) {
+            return;
+        }
+
+        if (imageQueue.size() != lastQueueSize){
+            updateListener("Queue Size: "+imageQueue.size());
+            lastQueueSize = imageQueue.size();
+        }
+
+
+        ImageFeedModel model = imageQueue.get(imageQueue.size()/2);
+
+        if (imageFeedListener != null) {
+            imageFeedListener.onImageFeed(model.getBytes(), model.getTimestamp());
+        }
+        if (textureView != null) {
+            TextureRenderer.updateTexture(textureView, model.getBytes());
+        }
+        imageQueue.clear();
     }
 
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
@@ -92,8 +141,15 @@ public class ImageProcessor {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), tempMatrix, true);
     }
 
+    public void stop() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+        }
+        onProcessExecutor.shutdownNow();
+    }
+
     private void updateListener(String logMessage) {
-        if (imageFeedListener != null){
+        if (imageFeedListener != null) {
             imageFeedListener.onUpdate(logMessage);
         }
     }

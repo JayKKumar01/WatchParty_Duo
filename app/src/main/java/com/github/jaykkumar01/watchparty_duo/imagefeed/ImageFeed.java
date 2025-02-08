@@ -45,7 +45,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener {
 
         // Handler for the main thread
         this.sessionManager = new CameraSessionManager(context, cameraModel,imageReader);
-        this.imageProcessor = new ImageProcessor(context,cameraModel,listener);
+        this.imageProcessor = new ImageProcessor(context,cameraModel,listener,textureView);
     }
 
     public void initializeCamera(){
@@ -78,6 +78,8 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener {
                 return;
             }
             session.setRepeatingRequest(request, null, null);
+            // start thread for image process
+//            imageProcessor.start();
         } catch (CameraAccessException e) {
             imageFeedListener.onError("Session configuration failed: " + e.getMessage());
         }
@@ -85,7 +87,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener {
 
     @Override
     public void onImageAvailable(ImageReader reader) {
-        imageProcessor.processImage(reader, textureView);
+        imageProcessor.onProcessImage(reader);
     }
 
     public void releaseResources() {
@@ -94,6 +96,7 @@ public class ImageFeed implements ImageReader.OnImageAvailableListener {
             imageReader.close();
             imageReader = null;
         }
+        imageProcessor.stop();
     }
 
     private void updateListener(String logMessage) {

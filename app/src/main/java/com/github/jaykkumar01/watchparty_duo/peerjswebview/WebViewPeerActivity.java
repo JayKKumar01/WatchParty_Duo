@@ -68,7 +68,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private int receivedCount = 0;
     private int totalBytesPerSecond = 0;
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
-//    private ImageFeed1 imageFeed1;
     private ImageFeed imageFeed;
 
     private WebSocketSender socketSender;
@@ -77,6 +76,10 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private ConstraintLayout imageFeedLayout;
     private TextureView peerFeedTextureView,remoteFeedTextureView;
     private final Gson gson = new Gson();
+
+
+    // Flag to check if user has manually scrolled
+    boolean isUserScrolling = false;
 
 
     @Override
@@ -94,29 +97,24 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initViews();
         initWebView();
 
-//        imageFeed = new ImageFeed(this,peerFeedTextureView);
-//        imageFeed.setImageFeedListener(this);
-//        imageFeed.setUpdateListener(this);
-
 
         imageFeed = new ImageFeed(this,this,peerFeedTextureView);
-//        imageFeed.initializeCamera();
-
-
-//        imageFeed1 = new ImageFeed1(this,remoteFeedTextureView);
-//        imageFeed1.setImageFeedListener(this);
-//        imageFeed1.setUpdateListener(this);
-//        imageFeed1.openCamera();
 
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
 
+//        imageFeed.initializeCamera();
 //        socketSender.initializeSender(webView);
     }
 
     private void initViews() {
         logScrollView = findViewById(R.id.logScrollView);
+        // Listener to detect user scroll events
+        logScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            isUserScrolling = logScrollView.getScrollY() < logTextView.getHeight() - logScrollView.getHeight();
+        });
         logTextView = findViewById(R.id.logTextView);
+
         webView = findViewById(R.id.webView);
         layoutConnection = findViewById(R.id.layoutConnection);
         layoutConnect = findViewById(R.id.layoutConnect);
@@ -242,7 +240,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 webView.setVisibility(View.VISIBLE);
                 resetJoinButton();
                 socketSender.initializeSender(webView);
-//                imageFeed1.openCamera();
                 imageFeed.initializeCamera();
                 imageFeedLayout.setVisibility(View.VISIBLE);
                 startLoggingImageUpdates();
@@ -274,7 +271,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 long prevTimestamp = 0;
 
                 for (ImageFeedModel model : batch) {
-                    byte[] imageBytes = model.getBytes();
+                    byte[] imageBytes = model.getBase64Bytes();
                     long timestamp = model.getTimestamp();
 
                     if (imageBytes == null || imageBytes.length == 0){
@@ -355,17 +352,10 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 ScrollView logScrollView = findViewById(R.id.logScrollView);
                 logTextView.append("\n" + message);
 
-                logScrollView.post(() -> {
-                    int scrollY = logScrollView.getScrollY();
-                    int bottomY = logTextView.getHeight() - logScrollView.getHeight();
-
-                    // Force scroll only if user hasn't scrolled manually
-                    if (scrollY >= bottomY - logTextView.getLineHeight()) {
-                        logScrollView.fullScroll(View.FOCUS_DOWN);
-                    }
-                });
-
-
+                // Auto-scroll only if user hasn't manually scrolled up
+                if (!isUserScrolling) {
+                    logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
+                }
 
             }
         });
@@ -432,13 +422,12 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     @Override
     protected void onRestart() {
         super.onRestart();
-        //imageFeed.openCamera();
+        imageFeed.initializeCamera();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        imageFeed1.closeCamera();
         imageFeed.releaseResources();
     }
 }
