@@ -26,7 +26,6 @@ import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
-import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
@@ -45,8 +44,6 @@ public class PlayerActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> pickVideoLauncher;
 
     private PeerModel peerModel;
-
-    private ImageFeed1 imageFeed1;
     private ImageView peerFeedImageView,remoteFeedImageView;
     private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for the main thread
 
@@ -73,8 +70,6 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
 
-        imageFeed1 = new ImageFeed1(this,null);
-        imageFeed1.openCamera();
 
 
         setupPickVideoLauncher();
@@ -102,13 +97,11 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
-        imageFeed1.openCamera();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        imageFeed1.closeCamera();
     }
 
     private void initViews() {

@@ -1,18 +1,13 @@
-package com.github.jaykkumar01.watchparty_duo.organized;
+package com.github.jaykkumar01.watchparty_duo.imagefeed;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.*;
 import android.media.ImageReader;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.util.Size;
 import android.view.TextureView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.ImageFeedListener;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;

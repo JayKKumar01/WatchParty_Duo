@@ -17,12 +17,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.helpers.CameraHelper;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class CameraActivity extends AppCompatActivity {
-
-    private CameraHelper cameraHelper;
     ImageView imageView;
     ConstraintLayout imageViewLayout;
     private TextInputEditText etFPS; // Reference to the EditText for FPS input
@@ -42,14 +39,12 @@ public class CameraActivity extends AppCompatActivity {
         imageView = findViewById(R.id.imageView);
         imageViewLayout = findViewById(R.id.imageViewLayout);
 
-        cameraHelper = new CameraHelper(this, imageView);
         etFPS = findViewById(R.id.etJoinName);
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
         } else {
-            cameraHelper.startCamera();
         }
     }
 
@@ -102,7 +97,6 @@ public class CameraActivity extends AppCompatActivity {
             return;
         }
         int fps = Integer.parseInt(fpsText);
-        cameraHelper.setFPS(fps);
         etFPS.setText("");
     }
 }

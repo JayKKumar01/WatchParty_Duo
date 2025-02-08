@@ -1,4 +1,4 @@
-package com.github.jaykkumar01.watchparty_duo.organized;
+package com.github.jaykkumar01.watchparty_duo.imagefeed;
 
 import android.app.Activity;
 import android.content.Context;

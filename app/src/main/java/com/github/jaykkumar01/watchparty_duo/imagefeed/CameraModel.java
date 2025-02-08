@@ -1,9 +1,8 @@
-package com.github.jaykkumar01.watchparty_duo.organized;
+package com.github.jaykkumar01.watchparty_duo.imagefeed;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.*;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.util.Range;
 import android.util.Size;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
