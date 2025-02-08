@@ -9,12 +9,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class JavaScriptInterface {
-    private final Context context;
     private final PeerListener peerListener;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public JavaScriptInterface(Context context, PeerListener peerListener) {
-        this.context = context;
         this.peerListener = peerListener;
     }
 
@@ -30,13 +28,6 @@ public class JavaScriptInterface {
     @JavascriptInterface
     public void onBatchReceived(String jsonData) {
         peerListener.onBatchReceived(jsonData);
-    }
-
-
-
-    @JavascriptInterface
-    public void readImageFeed(String peerId, byte[] imageFeedBytes, long millis){
-        peerListener.onReadImageFeed(peerId,imageFeedBytes,millis);
     }
 
 }

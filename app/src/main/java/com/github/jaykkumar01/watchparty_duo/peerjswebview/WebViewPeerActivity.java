@@ -30,7 +30,9 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
@@ -42,10 +44,12 @@ import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
+import com.google.android.material.shape.OffsetEdgeTreatment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -84,6 +88,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     // Flag to check if user has manually scrolled
     boolean isUserScrolling = false;
+    private ProcessFeed processFeed;
 
 
     @Override
@@ -100,6 +105,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
         initViews();
         initWebView();
+
+        processFeed = new ProcessFeed(remoteFeedTextureView);
 
 
         boolean isTesting = false;
@@ -258,16 +265,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     }
 
     @Override
-    public void onReadImageFeed(String peerId, byte[] imageFeedBytes, long millis) {
-        if (imageFeedBytes == null || imageFeedBytes.length == 0){
-            return;
-        }
-        receivedCount++;
-        totalBytesPerSecond += imageFeedBytes.length;
-
-    }
-
-    @Override
     public void onBatchReceived(String jsonData) {
         Executors.newCachedThreadPool().execute(() -> {
             try {
@@ -277,32 +274,23 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                         new TypeToken<List<FeedModel>>(){}.getType()
                 );
 
+                List<FeedModel> imageFeeds = new ArrayList<>();
+                List<FeedModel> audioFeeds = new ArrayList<>();
 
-                long prevTimestamp = 0;
-
-                for (FeedModel model : batch) {
-                    byte[] imageBytes = model.getBase64Bytes();
-                    long timestamp = model.getTimestamp();
-
-                    if (imageBytes == null || imageBytes.length == 0){
-                        continue;
+                for (FeedModel model: batch){
+                    switch (model.getFeedType()){
+                        case FeedType.IMAGE_FEED:
+                            imageFeeds.add(model);
+                            receivedCount++;
+                        break;
+                        case FeedType.AUDIO_FEED:
+                            audioFeeds.add(model);
+                        break;
                     }
-
-                    receivedCount++;
-                    totalBytesPerSecond += imageBytes.length;
-
-                    //bitmap = BitmapUtils.getBitmap(imageBytes);
-
-                    // Calculate delay based on timestamp difference
-                    if (prevTimestamp != 0) {
-                        int delay = (int) Math.max(0, timestamp - prevTimestamp); // Ensure non-negative delay
-                        Thread.sleep(delay);
-                    }
-
-                    prevTimestamp = timestamp; // Update for next iteration
-
-                    TextureRenderer.updateTexture(remoteFeedTextureView,imageBytes);
                 }
+                Executors.newCachedThreadPool().execute(() -> processFeed.process(imageFeeds, FeedType.IMAGE_FEED));
+                Executors.newCachedThreadPool().execute(() -> processFeed.process(audioFeeds, FeedType.AUDIO_FEED));
+
             } catch (Exception e) {
                 Log.e("WebSocketReceiver", "Error processing batch", e);
             }

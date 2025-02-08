@@ -190,15 +190,6 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Fee
     }
 
     @Override
-    public void onReadImageFeed(String peerId, byte[] imageFeedBytes, long millis) {
-        if (imageFeedBytes == null || imageFeedBytes.length == 0){
-            return;
-        }
-        receivedCount++;
-        totalBytesPerSecond += imageFeedBytes.length;
-    }
-
-    @Override
     public void onBatchReceived(String jsonDataBytes) {
 
     }
