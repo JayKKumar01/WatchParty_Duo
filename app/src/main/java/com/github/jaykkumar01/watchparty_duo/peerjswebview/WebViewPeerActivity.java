@@ -50,6 +50,8 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
@@ -87,6 +89,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private boolean isMute = true;
     private boolean isRunning = true;
     private boolean isConnectionOpen = false;
+    private ExecutorService packetExecutor = Executors.newCachedThreadPool();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -271,7 +274,10 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     @Override
     public void onBatchReceived(String jsonData) {
-        Executors.newCachedThreadPool().execute(() -> {
+        if (packetExecutor.isShutdown()){
+            packetExecutor = Executors.newCachedThreadPool();
+        }
+        packetExecutor.execute(() -> {
             try {
 
                 List<FeedModel> batch = gson.fromJson(

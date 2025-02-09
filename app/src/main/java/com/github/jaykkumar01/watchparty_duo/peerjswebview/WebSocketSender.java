@@ -17,8 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class WebSocketSender {
@@ -29,6 +32,7 @@ public class WebSocketSender {
     private UpdateListener updateListener;
     private final Gson gson = new Gson();
     private final FeedSizeTracker feedSizeTracker = new FeedSizeTracker(); // Instance of tracker
+    private ExecutorService dataExecutor = Executors.newCachedThreadPool();
 
     public WebSocketSender(Context context) {
         this.context = context;
@@ -68,7 +72,10 @@ public class WebSocketSender {
 
     // Add data with background conversion
     public void addData(byte[] bytes, long timestamp, int feedType) {
-        Executors.newCachedThreadPool().execute(() -> {
+        if (dataExecutor.isShutdown()){
+            dataExecutor = Executors.newCachedThreadPool();
+        }
+        dataExecutor.execute(() -> {
 
             int lenKB = bytes.length / 1024;
 
