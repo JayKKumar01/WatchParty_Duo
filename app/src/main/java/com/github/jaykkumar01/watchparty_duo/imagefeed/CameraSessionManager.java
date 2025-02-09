@@ -56,7 +56,7 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
                 previewSize.getWidth(),
                 previewSize.getHeight(),
                 ImageFormat.YUV_420_888,
-                2
+                5
         );
         imageReader.setOnImageAvailableListener(this, null);
     }
