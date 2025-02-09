@@ -18,9 +18,8 @@ import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +35,7 @@ public class ImageProcessor {
     private int displayRotation = -1;
     private final Matrix rotationMatrix = new Matrix();
     private ScheduledExecutorService scheduler;
-    private final LinkedBlockingQueue<FeedModel> imageQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+    private final ConcurrentLinkedQueue<FeedModel> imageQueue = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
 
     public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener, TextureView textureView) {
@@ -78,13 +77,11 @@ public class ImageProcessor {
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
                 finalBitmap.recycle();
 
-                // Efficient queue management (drop oldest if full)
-                synchronized (imageQueue) {
-                    if (imageQueue.remainingCapacity() == 0) {
-                        imageQueue.poll();
-                    }
-                    imageQueue.offer(new FeedModel(finalBytes, System.currentTimeMillis()));
+                // Maintain a fixed queue size (drop oldest if full)
+                if (imageQueue.size() >= MAX_QUEUE_SIZE) {
+                    imageQueue.poll();
                 }
+                imageQueue.offer(new FeedModel(finalBytes, System.currentTimeMillis()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -106,22 +103,19 @@ public class ImageProcessor {
     }
 
     private void processImage() {
+        int size = imageQueue.size();
+        if (size == 0) return;
+
+        int middleIndex = size / 2;
+        int currentIndex = 0;
         FeedModel middleModel = null;
 
-        synchronized (imageQueue) {
-            int size = imageQueue.size();
-            if (size == 0) return;
-
-            int middleIndex = size / 2; // Find the middle index
-            int currentIndex = 0;
-
-            while (!imageQueue.isEmpty()) {
-                FeedModel model = imageQueue.poll(); // Keep polling
-                if (currentIndex == middleIndex) {
-                    middleModel = model; // Assign the middle item
-                }
-                currentIndex++;
+        while (!imageQueue.isEmpty()) {
+            FeedModel model = imageQueue.poll();
+            if (currentIndex == middleIndex) {
+                middleModel = model;
             }
+            currentIndex++;
         }
 
         if (middleModel == null) return;
@@ -136,7 +130,6 @@ public class ImageProcessor {
             TextureRenderer.updateTexture(textureView, bytes);
         }
     }
-
 
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
         if (bitmap == null) return null;

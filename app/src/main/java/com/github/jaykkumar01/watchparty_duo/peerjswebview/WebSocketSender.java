@@ -47,19 +47,17 @@ public class WebSocketSender {
         // Schedule batch sender every 333ms
         senderExecutor.scheduleWithFixedDelay(
                 () -> {
-                    synchronized (base64Queue) {
-                        if (!base64Queue.isEmpty()) {
-                            List<FeedModel> batch = new ArrayList<>(base64Queue);
-                            base64Queue.clear();
-                            String json = gson.toJson(batch);
+                    if (!base64Queue.isEmpty()) {
+                        List<FeedModel> batch = new ArrayList<>(base64Queue);
+                        base64Queue.clear();
+                        String json = gson.toJson(batch);
 
-                            webView.post(() -> {
-                                webView.evaluateJavascript(
-                                        "receiveFromAndroid(" + json + ")",
-                                        null
-                                );
-                            });
-                        }
+                        webView.post(() -> {
+                            webView.evaluateJavascript(
+                                    "receiveFromAndroid(" + json + ")",
+                                    null
+                            );
+                        });
                     }
                 },
                 0,
@@ -80,11 +78,9 @@ public class WebSocketSender {
             }
 
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
-            synchronized (base64Queue) {
-                FeedModel feedModel = new FeedModel(base64, timestamp);
-                feedModel.setFeedType(feedType);
-                base64Queue.add(feedModel);
-            }
+            FeedModel feedModel = new FeedModel(base64, timestamp);
+            feedModel.setFeedType(feedType);
+            base64Queue.add(feedModel);
         });
     }
 
