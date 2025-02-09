@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImageProcessor {
-    private static final int MAX_QUEUE_SIZE = 5; // Keep only latest frames
     private final Context context;
     private final CameraModel cameraModel;
     private final FeedListener feedListener;
@@ -78,7 +77,7 @@ public class ImageProcessor {
                 finalBitmap.recycle();
 
                 // Maintain a fixed queue size (drop oldest if full)
-                if (imageQueue.size() >= MAX_QUEUE_SIZE) {
+                if (imageQueue.size() >= Feed.IMAGE_READER_BUFFER) {
                     imageQueue.poll();
                 }
                 imageQueue.offer(new FeedModel(finalBytes, System.currentTimeMillis()));

@@ -8,6 +8,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +18,9 @@ public class ProcessFeed {
     private final TextureView remoteFeedTextureView;
     private final FeedListener feedListener;
     private final AudioPlayer audioPlayer;
-    private final ScheduledExecutorService imageScheduler = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService imageScheduler = Executors.newSingleThreadScheduledExecutor();
+    private ExecutorService imageProcessingExecutor = Executors.newCachedThreadPool();
+
     private final AtomicBoolean isProcessingImage = new AtomicBoolean(false);
     private final AtomicBoolean stopImageProcessing = new AtomicBoolean(false);
 
@@ -42,23 +45,12 @@ public class ProcessFeed {
 
     public void stopImageProcess() {
         stopImageProcessing.set(true);
+        imageScheduler.shutdownNow();  // Cancel all scheduled tasks
+        imageProcessingExecutor.shutdownNow();
         updateListener("Image processing stopped");
     }
 
-    public void process(List<FeedModel> models, int feedType) {
-        if (models == null || models.isEmpty()) return;
-
-        switch (feedType) {
-            case FeedType.IMAGE_FEED:
-                processImageFeed(models);
-                break;
-            case FeedType.AUDIO_FEED:
-                processAudioFeed(models);
-                break;
-        }
-    }
-
-    private void processAudioFeed(List<FeedModel> models) {
+    public void processAudioFeed(List<FeedModel> models) {
         for (FeedModel model : models) {
             byte[] audioBytes = model.getBase64Bytes();
             if (audioBytes == null || audioBytes.length == 0) continue;
@@ -66,40 +58,52 @@ public class ProcessFeed {
         }
     }
 
-    private void processImageFeed(List<FeedModel> models) {
-        imageScheduler.execute(() -> {
-            long prevTimestamp = 0;
+    public void processImageFeed(List<FeedModel> models) {
 
-            for (FeedModel model : models) {
-                if (stopImageProcessing.get()) break; // Stop processing if requested
+        if (models.isEmpty() || stopImageProcessing.get()) return;
 
-                if (isProcessingImage.get()) {
-                    // Skip this model and move to the next
-                    continue;
+        long firstTimestamp = models.get(0).getTimestamp(); // Reference timestamp
+
+        for (FeedModel model : models) {
+            long delay = model.getTimestamp() - firstTimestamp; // Calculate delay based on the first frame
+            if (delay <= 0){
+                continue;
+            }
+
+            synchronized (this) {  // Ensures only one thread checks/reinitializes at a time
+                if (imageScheduler.isShutdown()) {
+                    imageScheduler = Executors.newSingleThreadScheduledExecutor();
                 }
+            }
+            imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
+        }
+    }
 
-                try {
-                    isProcessingImage.set(true); // Mark image as being processed
+    private void renderImage(FeedModel model) {
+        if (stopImageProcessing.get()) {
+            return; // Drop frame if processing is stopped or another image is in process
+        }
 
-                    long timestamp = model.getTimestamp();
-                    if (timestamp < prevTimestamp) continue;
+        synchronized (isProcessingImage) {
+            if (isProcessingImage.get()) return; // Double-check within sync block
+            isProcessingImage.set(true);
+        }
 
-                    // Calculate delay based on timestamp
-                    if (prevTimestamp != 0) {
-                        long delay = timestamp - prevTimestamp;
-                        TimeUnit.MILLISECONDS.sleep(delay);
-                    }
-                    prevTimestamp = timestamp;
+        synchronized (this){
+            if (imageProcessingExecutor.isShutdown()){
+                imageProcessingExecutor = Executors.newCachedThreadPool();
+            }
+        }
+        imageProcessingExecutor.execute(() -> {
+            try {
+                byte[] imageBytes = model.getBase64Bytes();
+                if (imageBytes == null || imageBytes.length == 0) return;
 
-                    byte[] imageBytes = model.getBase64Bytes();
-                    if (imageBytes == null || imageBytes.length == 0) continue;
-
-                    TextureRenderer.updateTexture(remoteFeedTextureView, imageBytes);
-                } catch (Exception e) {
-                    Log.e("ProcessFeed", "Error processing Image feed", e);
-                } finally {
-                    isProcessingImage.set(false); // Reset after processing
-                }
+                TextureRenderer.updateTexture(remoteFeedTextureView, imageBytes);
+            } catch (Exception e) {
+                Log.e("ProcessFeed", "Error processing image feed", e);
+            } finally {
+                isProcessingImage.set(false);
             }
         });
     }

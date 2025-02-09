@@ -294,8 +294,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                         break;
                     }
                 }
-                Executors.newCachedThreadPool().execute(() -> processFeed.process(imageFeeds, FeedType.IMAGE_FEED));
-                Executors.newCachedThreadPool().execute(() -> processFeed.process(audioFeeds, FeedType.AUDIO_FEED));
+                Executors.newCachedThreadPool().execute(() -> processFeed.processImageFeed(imageFeeds));
+                Executors.newCachedThreadPool().execute(() -> processFeed.processAudioFeed(audioFeeds));
 
             } catch (Exception e) {
                 Log.e("WebSocketReceiver", "Error processing batch", e);
