@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.Image;
 import android.media.ImageReader;
-import android.net.wifi.hotspot2.pps.Credential;
 import android.view.Surface;
 import android.view.TextureView;
 
@@ -19,15 +18,15 @@ import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImageProcessor {
+    private static final int MAX_QUEUE_SIZE = 5; // Keep only latest frames
     private final Context context;
     private final CameraModel cameraModel;
     private final FeedListener feedListener;
@@ -36,8 +35,9 @@ public class ImageProcessor {
 
     private int displayRotation = -1;
     private final Matrix rotationMatrix = new Matrix();
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private final Queue<FeedModel> imageQueue = new ConcurrentLinkedQueue<FeedModel>();
+    private ScheduledExecutorService scheduler;
+    private final LinkedBlockingQueue<FeedModel> imageQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+    private final AtomicBoolean isProcessing = new AtomicBoolean(false);
 
     public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener, TextureView textureView) {
         this.context = context;
@@ -46,15 +46,20 @@ public class ImageProcessor {
         this.textureView = textureView;
         this.frameIntervalMs = (long) (1000.0 / Feed.FPS);
     }
-    public void startScheduler(){
-        if (scheduler.isShutdown()){
-            scheduler = Executors.newSingleThreadScheduledExecutor();
-        }
 
-        updateListener("FPS: "+Feed.FPS +", Frame Interval : "+this.frameIntervalMs);
+    public synchronized void startScheduler() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            return;
+        }
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        updateListener("FPS: " + Feed.FPS + ", Frame Interval: " + frameIntervalMs);
         scheduler.scheduleWithFixedDelay(() -> {
-            synchronized (imageQueue) {
-                processImage();
+            if (isProcessing.compareAndSet(false, true)) {
+                try {
+                    processImage();
+                } finally {
+                    isProcessing.set(false);
+                }
             }
         }, 0, frameIntervalMs, TimeUnit.MILLISECONDS);
     }
@@ -63,7 +68,6 @@ public class ImageProcessor {
         Executors.newCachedThreadPool().execute(() -> {
             try (Image image = reader.acquireLatestImage()) {
                 if (image == null) return;
-                long timestamp = System.currentTimeMillis();
 
                 byte[] bytes = YUVConverter.toJpegImage(image, 80);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
@@ -72,35 +76,58 @@ public class ImageProcessor {
                     bitmap.recycle();
                 }
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
-                synchronized (imageQueue) {
-                    imageQueue.add(new FeedModel(finalBytes, timestamp));
-                }
                 finalBitmap.recycle();
 
+                // Efficient queue management (drop oldest if full)
+                synchronized (imageQueue) {
+                    if (imageQueue.remainingCapacity() == 0) {
+                        imageQueue.poll();
+                    }
+                    imageQueue.offer(new FeedModel(finalBytes, System.currentTimeMillis()));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void stopScheduler() {
-        if (!scheduler.isShutdown()) {
+    public synchronized void stopScheduler() {
+        if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdownNow();
+            try {
+                if (!scheduler.awaitTermination(100, TimeUnit.MILLISECONDS)) {
+                    updateListener("Scheduler termination timeout");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
+        imageQueue.clear();
     }
 
     private void processImage() {
-        if (imageQueue.isEmpty()) {
-            return;
+        FeedModel middleModel = null;
+
+        synchronized (imageQueue) {
+            int size = imageQueue.size();
+            if (size == 0) return;
+
+            int middleIndex = size / 2; // Find the middle index
+            int currentIndex = 0;
+
+            while (!imageQueue.isEmpty()) {
+                FeedModel model = imageQueue.poll(); // Keep polling
+                if (currentIndex == middleIndex) {
+                    middleModel = model; // Assign the middle item
+                }
+                currentIndex++;
+            }
         }
 
-        List<FeedModel> batch = new ArrayList<>(imageQueue);
-        imageQueue.clear();
+        if (middleModel == null) return;
 
-        FeedModel tempModel = batch.get(batch.size()/2);
-        byte[] bytes = tempModel.getBytes();
-        long timeStamp = tempModel.getTimestamp();
-        batch.clear();
+        byte[] bytes = middleModel.getBytes();
+        long timeStamp = middleModel.getTimestamp();
 
         if (feedListener != null) {
             feedListener.onFeed(bytes, timeStamp, FeedType.IMAGE_FEED);
@@ -110,39 +137,33 @@ public class ImageProcessor {
         }
     }
 
+
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
         if (bitmap == null) return null;
 
         int displayRotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
-
         if (this.displayRotation != displayRotation) {
             this.displayRotation = displayRotation;
-
             updateListener("Display Rotation: " + displayRotation);
 
             rotationMatrix.reset();
             int rotationDegrees = 0;
-
             switch (displayRotation) {
-                case Surface.ROTATION_0: break;
                 case Surface.ROTATION_90: rotationDegrees = 270; break;
                 case Surface.ROTATION_180: rotationDegrees = 180; break;
                 case Surface.ROTATION_270: rotationDegrees = 90; break;
+                case Surface.ROTATION_0:
+                    break;
             }
 
-            // Calculate the correct rotation
             int finalRotation = (cameraModel.getSensorOrientation() - rotationDegrees + 360) % 360;
             rotationMatrix.postRotate(finalRotation);
         }
 
-        // Create a new matrix for the current bitmap (to avoid cumulative flips)
         Matrix tempMatrix = new Matrix(rotationMatrix);
         tempMatrix.postScale(-1, 1, bitmap.getWidth() / 2f, bitmap.getHeight() / 2f);
-
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), tempMatrix, true);
     }
-
-
 
     private void updateListener(String logMessage) {
         if (feedListener != null) {
