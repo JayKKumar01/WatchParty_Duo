@@ -27,17 +27,18 @@ public class AudioRecorder {
         }
 
         audioRecord = new AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+//                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 AudioConfig.SAMPLE_RATE,
-                AudioConfig.CHANNEL_CONFIG,
+                AudioConfig.CHANNEL_IN_CONFIG,
                 AudioConfig.AUDIO_FORMAT,
-                AudioConfig.BUFFER_SIZE
+                AudioConfig.BUFFER_IN_SIZE
         );
 
         isRecording = true;
         recordingThread = new Thread(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
-            byte[] buffer = new byte[AudioConfig.BUFFER_SIZE];
+            byte[] buffer = new byte[AudioConfig.BUFFER_IN_SIZE];
             try {
                 audioRecord.startRecording();
                 while (isRecording) {

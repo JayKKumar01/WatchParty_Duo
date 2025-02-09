@@ -1,8 +1,15 @@
 package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
+import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.AUDIO_FORMAT;
+import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.CHANNEL_IN_CONFIG;
+import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.CHANNEL_OUT_CONFIG;
+import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.SAMPLE_RATE;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +22,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +37,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
@@ -39,6 +48,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 //import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
+import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
@@ -88,6 +98,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     private ProcessFeed processFeed;
     private LogUpdater logUpdater;
+    private boolean isMute = true;
 
 
     @Override
@@ -106,7 +117,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initWebView();
         logUpdater = new LogUpdater(logTextView,logScrollView);
 
-        processFeed = new ProcessFeed(remoteFeedTextureView);
+        processFeed = new ProcessFeed(remoteFeedTextureView,this);
 
 
         boolean isTesting = false;
@@ -115,12 +126,16 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         imageFeed = new ImageFeed(this,this,isTesting ? remoteFeedTextureView: peerFeedTextureView);
         audioFeed = new AudioFeed(this,this);
 
+
+
         socketSender = new WebSocketSender(this);
         socketSender.setUpdateListener(this);
 
         if (isTesting){
             imageFeed.initializeCamera();
             socketSender.initializeSender(webView);
+            layoutConnection.setVisibility(View.GONE);
+            imageFeedLayout.setVisibility(View.VISIBLE);
         }
     }
 
@@ -422,5 +437,16 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     protected void onStop() {
         super.onStop();
         imageFeed.releaseResources();
+    }
+
+    public void mic(View view) {
+        ImageView imageView = (ImageView) view;
+        isMute = !isMute;
+        if (isMute){
+            audioFeed.stop();
+        }else {
+            audioFeed.start();
+        }
+        imageView.setImageResource(isMute ? R.drawable.mic_off : R.drawable.mic_on);
     }
 }

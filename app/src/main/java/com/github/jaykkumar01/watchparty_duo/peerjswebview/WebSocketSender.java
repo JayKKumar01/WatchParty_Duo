@@ -6,6 +6,7 @@ import android.util.Base64;
 import android.webkit.WebView;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
+import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
@@ -75,7 +76,9 @@ public class WebSocketSender {
         Executors.newCachedThreadPool().execute(() -> {
 
             int lenKB = bytes.length/1024;
-            if (lenKB < minSize || lenKB > maxSize){
+            if ((lenKB < minSize || lenKB > maxSize)
+//                    && feedType == FeedType.IMAGE_FEED
+            ){
                 if (lenKB < minSize){
                     minSize = lenKB;
                 }
