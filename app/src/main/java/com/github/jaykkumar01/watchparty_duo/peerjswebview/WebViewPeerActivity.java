@@ -99,7 +99,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private LogUpdater logUpdater;
     private boolean isMute = true;
     private boolean isRunning = true;
-
+    private boolean isConnectionOpen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -263,6 +263,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
     @Override
     public void onConnectionOpen(String peerId, String remoteId) {
+        isConnectionOpen = true;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -435,7 +436,9 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     protected void onRestart() {
         super.onRestart();
         isRunning = true;
-        imageFeed.initializeCamera();
+        if (isConnectionOpen) {
+            imageFeed.initializeCamera();
+        }
     }
 
     @Override

@@ -33,7 +33,6 @@ public class ImageProcessor {
     private final FeedListener feedListener;
     private final long frameIntervalMs;
     private final TextureView textureView;
-//    private static final ExecutorService onProcessExecutor = Executors.newSingleThreadExecutor();
 
     private int displayRotation = -1;
     private final Matrix rotationMatrix = new Matrix();
