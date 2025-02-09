@@ -20,18 +20,36 @@ public class ProcessFeed {
 
     private final TextureView remoteFeedTextureView;
     private final FeedListener feedListener;
+    private final AudioPlayer audioPlayer;
 
     public ProcessFeed(TextureView remoteFeedTextureView, FeedListener feedListener){
         this.remoteFeedTextureView = remoteFeedTextureView;
         this.feedListener = feedListener;
+        this.audioPlayer = new AudioPlayer(feedListener);
     }
     public void process(List<FeedModel> models, int feedType) {
-        AudioPlayer audioPlayer = new AudioPlayer();
-        if (feedType == FeedType.AUDIO_FEED){
-            audioPlayer.start();
-            updateListener("Audio Model Size: "+models.size());
+
+        switch (feedType) {
+            case FeedType.IMAGE_FEED: processImageFeed(models);
+                break;
+            case FeedType.AUDIO_FEED: processAudioFeed(models);
+                break;
         }
 
+    }
+
+    private void processAudioFeed(List<FeedModel> models) {
+
+        for (FeedModel model: models){
+            byte[] audioBytes = model.getBase64Bytes();
+            if (audioBytes == null || audioBytes.length == 0){
+                return;
+            }
+            audioPlayer.play(audioBytes);
+        }
+    }
+
+    private void processImageFeed(List<FeedModel> models) {
         long prevTimestamp = 0;
 
         for (FeedModel model: models){
@@ -41,42 +59,21 @@ public class ProcessFeed {
                     continue;
                 }
                 // Calculate delay based on timestamp difference
-                if (prevTimestamp != 0
-                        && feedType == FeedType.IMAGE_FEED
-                ) {
+                if (prevTimestamp != 0) {
                     int delay = (int) (timestamp - prevTimestamp);
                     Thread.sleep(delay);
                 }
                 prevTimestamp = timestamp; // Update for next iteration
 
-                switch (feedType) {
-                    case FeedType.IMAGE_FEED: processImageFeed(model);
-                    break;
-                    case FeedType.AUDIO_FEED: processAudioFeed(model,audioPlayer);
-                    break;
+                byte[] imageBytes = model.getBase64Bytes();
+                if (imageBytes == null || imageBytes.length == 0) {
+                    return;
                 }
+                TextureRenderer.updateTexture(remoteFeedTextureView, imageBytes);
             } catch (Exception e) {
-                Log.e("FeedProcessor", "Error processing 'Type "+feedType+"' feed item", e);
+                Log.e("FeedProcessor", "Error processing Image feed item", e);
             }
         }
-        audioPlayer.stop();
-
-    }
-
-    private void processAudioFeed(FeedModel model,AudioPlayer audioPlayer) {
-        byte[] audioBytes = model.getBase64Bytes();
-        if (audioBytes == null || audioBytes.length == 0){
-            return;
-        }
-        audioPlayer.play(audioBytes);
-    }
-
-    private void processImageFeed(FeedModel model) {
-        byte[] imageBytes = model.getBase64Bytes();
-        if (imageBytes == null || imageBytes.length == 0) {
-            return;
-        }
-        TextureRenderer.updateTexture(remoteFeedTextureView, imageBytes);
     }
 
     private void updateListener(String logMessage) {

@@ -81,6 +81,7 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
                     public void onConfigured(@NonNull CameraCaptureSession session) {
                         cameraCaptureSession = session;
                         sessionCallback.onSessionReady(session, imageReader.getSurface());
+                        imageProcessor.startScheduler();
                     }
 
                     @Override
@@ -109,7 +110,7 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
         if (cameraCaptureSession != null){
             cameraCaptureSession.close();
         }
-        imageProcessor.stop();
+        imageProcessor.stopScheduler();
     }
 
     @Override

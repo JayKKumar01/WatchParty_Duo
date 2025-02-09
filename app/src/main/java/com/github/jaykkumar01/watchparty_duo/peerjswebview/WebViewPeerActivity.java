@@ -48,6 +48,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 //import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
+import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
@@ -82,9 +83,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private String userName;
     private long startTime;
 
-    private int sentCount = 0;
-    private int receivedCount = 0;
-    private int totalBytesPerSecond = 0;
+    private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
     private ImageFeed imageFeed;
     private AudioFeed audioFeed;
@@ -99,6 +98,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     private ProcessFeed processFeed;
     private LogUpdater logUpdater;
     private boolean isMute = true;
+    private boolean isRunning = true;
 
 
     @Override
@@ -296,15 +296,20 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 for (FeedModel model: batch){
                     switch (model.getFeedType()){
                         case FeedType.IMAGE_FEED:
+                            packetModel.imageFeedReceived();
                             imageFeeds.add(model);
-                            receivedCount++;
                         break;
                         case FeedType.AUDIO_FEED:
+                            packetModel.audioFeedReceived();
                             audioFeeds.add(model);
                         break;
                     }
                 }
-                Executors.newCachedThreadPool().execute(() -> processFeed.process(imageFeeds, FeedType.IMAGE_FEED));
+                Executors.newCachedThreadPool().execute(() -> {
+                    if (isRunning) {
+                        processFeed.process(imageFeeds, FeedType.IMAGE_FEED);
+                    }
+                });
                 Executors.newCachedThreadPool().execute(() -> processFeed.process(audioFeeds, FeedType.AUDIO_FEED));
 
             } catch (Exception e) {
@@ -319,12 +324,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         updateLogHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                updateLogs("Updates: [" + sentCount + ", " + receivedCount + "], Size: "+(totalBytesPerSecond/1024.0) + " KB");
-
-                // Reset sent and received counts
-                sentCount = 0;
-                receivedCount = 0;
-
+                updateLogs(packetModel.toString());
+                packetModel.reset();
                 // Continue updating every second
                 updateLogHandler.postDelayed(this, 1000);
             }
@@ -400,8 +401,11 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     public void onFeed(byte[] bytes, long millis,int feedType) {
         socketSender.addData(bytes,millis,feedType);
         if (feedType == FeedType.IMAGE_FEED) {
-            sentCount++;
+            packetModel.imageFeedSent();
+        }else if (feedType == FeedType.AUDIO_FEED) {
+            packetModel.audioFeedSent();
         }
+
     }
 
     @Override
@@ -430,12 +434,14 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
     @Override
     protected void onRestart() {
         super.onRestart();
+        isRunning = true;
         imageFeed.initializeCamera();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        isRunning = false;
         imageFeed.releaseResources();
     }
 

@@ -9,6 +9,7 @@ import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
+import com.github.jaykkumar01.watchparty_duo.models.FeedSizeTracker;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.google.gson.Gson;
 
@@ -27,8 +28,7 @@ public class WebSocketSender {
 
     private UpdateListener updateListener;
     private final Gson gson = new Gson();
-
-    private final Handler handler = new Handler();
+    private final FeedSizeTracker feedSizeTracker = new FeedSizeTracker(); // Instance of tracker
 
     public WebSocketSender(Context context) {
         this.context = context;
@@ -68,28 +68,15 @@ public class WebSocketSender {
         );
     }
 
-    // Add image data with background conversion
-
-    int minSize = Integer.MAX_VALUE;
-    int maxSize = Integer.MIN_VALUE;
+    // Add data with background conversion
     public void addData(byte[] bytes, long timestamp, int feedType) {
         Executors.newCachedThreadPool().execute(() -> {
 
-            int lenKB = bytes.length/1024;
-            if ((lenKB < minSize || lenKB > maxSize)
-//                    && feedType == FeedType.IMAGE_FEED
-            ){
-                if (lenKB < minSize){
-                    minSize = lenKB;
-                }
-                if (lenKB > maxSize){
-                    maxSize = lenKB;
-                }
-                if (updateListener != null) {
-                    updateListener.onUpdate("");
-                    updateListener.onUpdate("Max Size: "+maxSize + " KB");
-                    updateListener.onUpdate("Min Size: "+minSize + " KB");
-                }
+            int lenKB = bytes.length / 1024;
+
+            // Update size tracking
+            if (feedSizeTracker.updateSize(lenKB, feedType) && updateListener != null){
+                updateListener.onUpdate(feedSizeTracker.toString());
             }
 
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
