@@ -1,15 +1,8 @@
 package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 
-import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.AUDIO_FORMAT;
-import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.CHANNEL_IN_CONFIG;
-import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.CHANNEL_OUT_CONFIG;
-import static com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig.SAMPLE_RATE;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.media.AudioRecord;
-import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -37,9 +30,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioConfig;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
-import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
@@ -49,14 +40,10 @@ import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 //import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
 import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
-import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
-import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
-import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
-import com.google.android.material.shape.OffsetEdgeTreatment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -275,6 +262,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                 resetJoinButton();
                 socketSender.initializeSender(webView);
                 imageFeed.initializeCamera();
+                processFeed.startAudioProcess();
                 imageFeedLayout.setVisibility(View.VISIBLE);
                 startLoggingImageUpdates();
             }
@@ -306,11 +294,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
                         break;
                     }
                 }
-                Executors.newCachedThreadPool().execute(() -> {
-                    if (isRunning) {
-                        processFeed.process(imageFeeds, FeedType.IMAGE_FEED);
-                    }
-                });
+                Executors.newCachedThreadPool().execute(() -> processFeed.process(imageFeeds, FeedType.IMAGE_FEED));
                 Executors.newCachedThreadPool().execute(() -> processFeed.process(audioFeeds, FeedType.AUDIO_FEED));
 
             } catch (Exception e) {
@@ -438,6 +422,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         isRunning = true;
         if (isConnectionOpen) {
             imageFeed.initializeCamera();
+            processFeed.startImageProcess();
         }
     }
 
@@ -446,6 +431,7 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         super.onStop();
         isRunning = false;
         imageFeed.releaseResources();
+        processFeed.stopImageProcess();
     }
 
     public void mic(View view) {
