@@ -74,23 +74,8 @@ public class PlayerActivity extends AppCompatActivity {
 
         setupPickVideoLauncher();
 
-        Toast.makeText(instance, "onCreate", Toast.LENGTH_SHORT).show();
-
     }
 
-    public void updateLog(String message) {
-        runOnUiThread(() -> {
-//            TextView logTextView = findViewById(R.id.logTextView);
-//            ScrollView logScrollView = findViewById(R.id.logScrollView);
-//
-//            // Prepend new message at the top
-//            String currentText = logTextView.getText().toString();
-//            logTextView.setText(currentText + "\n" + message);
-//
-//            // Auto-scroll to top
-//            logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
-        });
-    }
 
 
 
@@ -115,16 +100,6 @@ public class PlayerActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 this::initializePlayer
         );
-    }
-
-    public void updateRemoteImageFeed(Bitmap bitmap) {
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                remoteFeedImageView.setImageBitmap(bitmap);
-//            }
-//        });
-        mainHandler.post(() -> remoteFeedImageView.setImageBitmap(bitmap));
     }
 
     private void initializePlayer(Uri uri) {
@@ -162,14 +137,14 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void mic(View view) {
-        ImageView imageView = (ImageView) view;
-        AppData.getInstance().setMute(!AppData.getInstance().isMute());
-
-        if (ConnectionService.getInstance() != null) {
-            ConnectionService.getInstance().toggleMic();
-        }
-
-        imageView.setImageResource(AppData.getInstance().isMute() ? R.drawable.mic_off : R.drawable.mic_on);
+//        ImageView imageView = (ImageView) view;
+//        AppData.getInstance().setMute(!AppData.getInstance().isMute());
+//
+//        if (ConnectionService.getInstance() != null) {
+//            ConnectionService.getInstance().toggleMic();
+//        }
+//
+//        imageView.setImageResource(AppData.getInstance().isMute() ? R.drawable.mic_off : R.drawable.mic_on);
     }
 
 

@@ -61,6 +61,12 @@ function connect(otherPeerId) {
     if (targetPeerId !== '') {
         const connection = peer.connect(peerBranch + targetPeerId, { reliable: true });
         setupConnection(connection);
+        // Check if the connection is still closed after 5 seconds
+        setTimeout(() => {
+            if (!connection.open) {
+                connection.close();
+            }
+        }, 4000);
     }
 }
 

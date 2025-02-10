@@ -30,7 +30,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onPeerOpen(String peerId){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("onPeerOpen: "+peerId);
+//            PlayerActivity.getInstance().updateLog("onPeerOpen: "+peerId);
         }
         if (AppData.getInstance().isConnectionEstablished()){
             return;
@@ -90,7 +90,7 @@ public class JavaScriptInterface implements AudioData{
             public void run() {
                 Bitmap bitmap = BitmapUtils.getBitmap(imageFeedBytes);
                 if (PlayerActivity.getInstance() != null){
-                    PlayerActivity.getInstance().updateRemoteImageFeed(bitmap);
+//                    PlayerActivity.getInstance().updateRemoteImageFeed(bitmap);
                 }
             }
         });
@@ -100,7 +100,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onConnectionAlive(boolean isAlive){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("isConnectionAlive: "+isAlive);
+//            PlayerActivity.getInstance().updateLog("isConnectionAlive: "+isAlive);
         }
         if (!isAlive){
             AppData.getInstance().setConnectionActive(false);
@@ -116,7 +116,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onNextPeer(String nextPeerId, String nextRemoteId){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("nextPeerId: "+nextPeerId+", nextRemoteId: "+nextRemoteId);
+//            PlayerActivity.getInstance().updateLog("nextPeerId: "+nextPeerId+", nextRemoteId: "+nextRemoteId);
         }
 //        Toast.makeText(context, "nextPeerId: "+nextPeerId+", nextRemoteId: "+nextRemoteId, Toast.LENGTH_SHORT).show();
     }
@@ -125,7 +125,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onPeerDisconnected(String peerId){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("onPeerDisconnected: "+peerId);
+//            PlayerActivity.getInstance().updateLog("onPeerDisconnected: "+peerId);
         }
 
 //        Toast.makeText(context, "onPeerDisconnected: "+peerId, Toast.LENGTH_SHORT).show();
@@ -134,7 +134,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onPeerClose(String peerId){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("onPeerClose: "+ peerId);
+//            PlayerActivity.getInstance().updateLog("onPeerClose: "+ peerId);
         }
 //        Toast.makeText(context, "onPeerClose: "+ peerId, Toast.LENGTH_SHORT).show();
     }
@@ -142,7 +142,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onConnectionClose(String remoteId){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("onConnectionClose: "+ remoteId);
+//            PlayerActivity.getInstance().updateLog("onConnectionClose: "+ remoteId);
         }
 //        Toast.makeText(context, "onConnectionClose: "+ remoteId, Toast.LENGTH_SHORT).show();
     }
@@ -150,7 +150,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onConnectionError(String err){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("Error: "+ err);
+//            PlayerActivity.getInstance().updateLog("Error: "+ err);
         }
 //        Toast.makeText(context, "Error: "+ err, Toast.LENGTH_SHORT).show();
     }
@@ -158,7 +158,7 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onPeerReopened(String peerId){
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("onPeerReopen: "+peerId);
+//            PlayerActivity.getInstance().updateLog("onPeerReopen: "+peerId);
         }
 //        Toast.makeText(context, "onPeerReopen: "+peerId, Toast.LENGTH_SHORT).show();
     }
@@ -166,14 +166,14 @@ public class JavaScriptInterface implements AudioData{
     @JavascriptInterface
     public void onRetryConnection(int attempt) {
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("Connection Attempt #" + attempt);
+//            PlayerActivity.getInstance().updateLog("Connection Attempt #" + attempt);
         }
 //        Toast.makeText(context, "Connection Attempt #" + attempt, Toast.LENGTH_SHORT).show();
     }
     @JavascriptInterface
     public void onRetryPeer(int attempt) {
         if (PlayerActivity.getInstance() != null){
-            PlayerActivity.getInstance().updateLog("Peer Attempt #" + attempt);
+//            PlayerActivity.getInstance().updateLog("Peer Attempt #" + attempt);
         }
 //        Toast.makeText(context, "Peer Attempt #" + attempt, Toast.LENGTH_SHORT).show();
     }
