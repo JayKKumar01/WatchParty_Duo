@@ -58,6 +58,10 @@ function setupConnection(connection) {
         handleData(data);
     });
 
+    conn.on('close', () => {
+        Android.onConnectionClosed();
+    });
+
     conn.on('error', (err) => {
         console.error("Connection error:", err);
     });
@@ -83,4 +87,22 @@ function sendData(data) {
     } else {
         console.warn("Connection is not open. Unable to send feed.");
     }
+}
+
+function closeConnectionAndDestroyPeer() {
+    if (conn) {
+        conn.close();
+        console.log("Connection closed.");
+    }
+    
+    if (peer) {
+        peer.destroy();
+        console.log("Peer destroyed.");
+    }
+
+    isPeerOpen = false;
+    isConnectionOpen = false;
+    remoteId = null;
+    conn = null;
+    peer = null;
 }

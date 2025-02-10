@@ -525,31 +525,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Log Area with Scrolling -->
-    <ScrollView
-        android:id="@+id/logScrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/bg_color"
-        android:fillViewport="true"
-        android:padding="10dp"
-        app:flow_lastVerticalBias="0"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_percent=".3"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/LYOUT1"
-        app:layout_constraintVertical_bias="0">
 
-        <TextView
-            android:id="@+id/logTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="@color/theme_color"
-            android:textSize="14sp"
-            android:typeface="monospace" />
-    </ScrollView>
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -683,27 +659,28 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent">
 
-                <ImageView
+                <TextureView
+                    android:id="@+id/remoteFeed"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:id="@+id/remoteFeedImageView"
-                    app:layout_constraintDimensionRatio="1"
-                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"/>
-                <ImageView
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+                <TextureView
+                    android:id="@+id/peerFeed"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:id="@+id/peerFeedImageView"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="1"
-                    app:layout_constraintVertical_bias="1"
                     app:layout_constraintHorizontal_bias="1"
-                    app:layout_constraintWidth_percent=".4"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent"/>
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="1"
+                    app:layout_constraintWidth_percent=".3" />
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -895,6 +872,32 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Log Area with Scrolling -->
+    <ScrollView
+        android:id="@+id/logScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/bg_color"
+        android:fillViewport="true"
+        android:padding="10dp"
+        app:flow_lastVerticalBias="0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_percent=".3"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/LYOUT1"
+        app:layout_constraintVertical_bias="0">
+
+        <TextView
+            android:id="@+id/logTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/theme_color"
+            android:textSize="14sp"
+            android:typeface="monospace" />
+    </ScrollView>
 
 
 

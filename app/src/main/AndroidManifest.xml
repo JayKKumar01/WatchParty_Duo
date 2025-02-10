@@ -36,14 +36,13 @@
         tools:targetApi="31">
         <service
             android:name=".services.FeedService"
-            android:enabled="true"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:hardwareAccelerated="true"
             android:foregroundServiceType="mediaPlayback"/>
 
         <activity
-            android:name=".feed.FeedActivity"
+            android:name=".activities.FeedActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="true"
             android:hardwareAccelerated="true">
@@ -59,26 +58,9 @@
             android:exported="false"
             android:hardwareAccelerated="true"/>
         <activity
-            android:name=".activities.PeerActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
-            android:exported="false"
-            android:hardwareAccelerated="true" />
-        <activity
-            android:name=".activities.CameraActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
-            android:exported="false" />
-        <activity
             android:name=".activities.PlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-
-        <service
-            android:name=".services.ConnectionService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
     </application>
 
 </manifest>

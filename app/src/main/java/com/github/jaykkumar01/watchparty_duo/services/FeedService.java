@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.services;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
@@ -46,8 +47,9 @@ public class FeedService extends Service implements ForegroundNotifier {
         feedManager.muteAudio(mute);
     }
 
-
-
+    public void deafenAudio(boolean isDeafen) {
+        feedManager.deafenAudio(isDeafen);
+    }
 
     public void stopService() {
         stopSelf();
@@ -78,5 +80,17 @@ public class FeedService extends Service implements ForegroundNotifier {
         if (playerActivity != null){
             playerActivity.addLog(logMessage);
         }
+    }
+
+    @Override
+    public void onConnectionClosed() {
+        PlayerActivity playerActivity = PlayerActivity.getInstance();
+        if (playerActivity != null){
+            playerActivity.onConnectionClosed();
+        }
+    }
+
+    public void setImageFeedSurface(TextureView imageFeed) {
+        feedManager.setImageFeedSurface(imageFeed);
     }
 }

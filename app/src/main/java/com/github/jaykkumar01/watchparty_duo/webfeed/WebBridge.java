@@ -23,4 +23,14 @@ public class WebBridge {
     public void onBatchReceived(String jsonData) {
         webFeedListener.onBatchReceived(jsonData);
     }
+
+    @JavascriptInterface
+    public void onUpdate(String message){
+        webFeedListener.onUpdate("From Javascript bridge: "+message);
+    }
+
+    @JavascriptInterface
+    public void onConnectionClosed(){
+        webFeedListener.onConnectionClosed();
+    }
 }

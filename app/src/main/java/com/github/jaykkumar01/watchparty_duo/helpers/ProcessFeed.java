@@ -62,7 +62,7 @@ public class ProcessFeed {
 
     public void processImageFeed(List<FeedModel> models) {
 
-        if (models.isEmpty() || stopImageProcessing.get()) return;
+        if (models.isEmpty() || stopImageProcessing.get() || remoteFeedTextureView == null) return;
 
         long firstTimestamp = models.get(0).getTimestamp(); // Reference timestamp
 

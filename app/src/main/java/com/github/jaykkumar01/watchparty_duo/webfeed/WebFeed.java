@@ -5,6 +5,7 @@ import android.webkit.WebView;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
+import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebSocketSender;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 
 public class WebFeed{
@@ -13,6 +14,8 @@ public class WebFeed{
 
     private boolean isPeerOpen;
     private boolean isConnectionOpen;
+
+
 
     public WebFeed(Context context, WebFeedListener webFeedListener) {
         helper = new WebFeedHelper(context);
@@ -35,14 +38,11 @@ public class WebFeed{
 
     public void onPeerOpen(String peerId) {
         isPeerOpen = true;
-        helper.onPeerOpen(peerId);
     }
 
     public void onConnectionOpen(String peerId, String remoteId) {
         isConnectionOpen = true;
-        helper.onConnectionOpen(peerId,remoteId);
     }
-
 
     public WebView getWebView() {
         return helper.getWebView();

@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/discord_bg"
     android:keepScreenOn="true"
-    tools:context=".feed.FeedActivity">
+    tools:context=".activities.FeedActivity">
     <!-- Log Area with Scrolling -->
     <ScrollView
         android:id="@+id/logScrollView"

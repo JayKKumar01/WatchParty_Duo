@@ -1,11 +1,7 @@
-package com.github.jaykkumar01.watchparty_duo.feed;
+package com.github.jaykkumar01.watchparty_duo.activities;
 
-import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -23,19 +19,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
-import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
-import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
-import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
-import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
-import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeedHelper;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.lang.ref.WeakReference;
@@ -121,7 +111,7 @@ public class FeedActivity extends AppCompatActivity {
         addLog("Starting Feed Service...");
 
         new Handler().postDelayed(new Runnable() {
-            private int secondsLeft = 5;
+            private int secondsLeft = 10;
 
             @Override
             public void run() {

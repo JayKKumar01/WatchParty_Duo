@@ -1,16 +1,15 @@
 package com.github.jaykkumar01.watchparty_duo.activities;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -23,15 +22,11 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
-import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.feed.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
-import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
-import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
 import java.lang.ref.WeakReference;
@@ -51,13 +46,15 @@ public class PlayerActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> pickVideoLauncher;
 
     private PeerModel peerModel;
-    private ImageView peerFeedImageView,remoteFeedImageView;
+    private TextureView peerFeedTextureView,remoteFeedTextureView;
 
     private ScrollView logScrollView;
     private TextView logTextView;
     private LogUpdater logUpdater;
 
     boolean isMute = true;
+    boolean isDeafen;
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,6 +69,12 @@ public class PlayerActivity extends AppCompatActivity {
         instanceRef = new WeakReference<>(this);
 
         initViews();
+
+        FeedService feedService = FeedService.getInstance();
+        if (feedService != null){
+            feedService.setImageFeedSurface(remoteFeedTextureView);
+        }
+
         setupLogUpdater();
         setupScrollListener();
 
@@ -124,8 +127,8 @@ public class PlayerActivity extends AppCompatActivity {
         logTextView = findViewById(R.id.logTextView);
         playerView = findViewById(R.id.player_view);
         userName = findViewById(R.id.userName);
-        peerFeedImageView = findViewById(R.id.peerFeedImageView);
-        remoteFeedImageView = findViewById(R.id.remoteFeedImageView);
+        peerFeedTextureView = findViewById(R.id.peerFeed);
+        remoteFeedTextureView = findViewById(R.id.remoteFeed);
     }
     private void setupPickVideoLauncher() {
         pickVideoLauncher = registerForActivityResult(
@@ -177,13 +180,44 @@ public class PlayerActivity extends AppCompatActivity {
             feedService.muteAudio(isMute);
         }
     }
+    public void deafen(View view) {
+        ImageView imageView = (ImageView) view;
+        isDeafen = !isDeafen;
+        imageView.setImageResource(isDeafen ? R.drawable.deafen_on : R.drawable.deafen_off);
+        FeedService feedService = FeedService.getInstance();
+        if (feedService != null){
+            feedService.deafenAudio(isDeafen);
+        }
+    }
 
 
     public void endCall(View view) {
+        Intent intent = new Intent(this,FeedActivity.class);
+        finish();
+        startActivity(intent);
     }
 
-    public void deafen(View view) {
+    public void onConnectionClosed() {
+        addLog("Connection Closed. Returning to Homepage in 3 seconds...");
+
+        Runnable countdownRunnable = new Runnable() {
+            int secondsLeft = 3;
+
+            @Override
+            public void run() {
+                if (secondsLeft > 0) {
+                    addLog("Returning to Homepage in " + secondsLeft + (secondsLeft == 1 ? " second..." : " seconds..."));
+                    secondsLeft--;
+                    handler.postDelayed(this, 1000);
+                } else {
+                    endCall(null);
+                }
+            }
+        };
+
+        handler.post(countdownRunnable);
     }
+
 
     public void sendMessage(View view) {
     }
@@ -196,6 +230,7 @@ public class PlayerActivity extends AppCompatActivity {
         RefHelper.reset(instanceRef);
         super.onDestroy();
     }
+
 
 
 }

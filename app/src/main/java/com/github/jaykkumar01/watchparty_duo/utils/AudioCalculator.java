@@ -1,9 +1,9 @@
 package com.github.jaykkumar01.watchparty_duo.utils;
 
 
-import com.github.jaykkumar01.watchparty_duo.interfaces.AudioData;
-
 public class AudioCalculator {
+
+    private static final float MAX_AMP = 1f;
 
     private static int[] getAmplitudesFromBytes(byte[] bytes) {
         int[] amps = new int[bytes.length / 2];
@@ -29,6 +29,6 @@ public class AudioCalculator {
             if (i < minor) minor = i;
         }
         int amplitude = Math.max(major, minor * (-1));
-        return (float) amplitude / AudioData.MAX_AMP;
+        return (float) amplitude / MAX_AMP;
     }
 }

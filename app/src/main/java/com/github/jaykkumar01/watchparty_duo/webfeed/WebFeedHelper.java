@@ -5,14 +5,17 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
-import com.github.jaykkumar01.watchparty_duo.feed.FeedActivity;
+import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
+import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebSocketSender;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 
 @SuppressLint("StaticFieldLeak")
@@ -100,33 +103,23 @@ public class WebFeedHelper {
         }
     }
 
-
-
-    public void onPeerOpen(String peerId) {
-        FeedActivity feedActivity = FeedActivity.getInstance();
-        if (feedActivity != null){
-            feedActivity.onPeerOpen(peerId);
-        }
-    }
-
-    public void onConnectionOpen(String peerId, String remoteId) {
-        FeedActivity feedActivity = FeedActivity.getInstance();
-        if (feedActivity != null) {
-            feedActivity.onConnectionOpen(peerId, remoteId);
-        }
-    }
-
     public void destroy() {
-        mainHandler.post(() -> {
-            if (webView != null) {
-                webView.stopLoading();
-                webView.clearHistory();
-                webView.clearCache(true);
-                webView.removeAllViews();
-                webView.destroy();
+        callJavaScript("closeConnectionAndDestroyPeer");
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (webView != null) {
+                    webView.stopLoading();
+                    webView.clearHistory();
+                    webView.clearCache(true);
+                    webView.removeAllViews();
+                    webView.destroy();
+                }
             }
-        });
+        };
+        mainHandler.postDelayed(runnable,1000);
     }
+
 
     public WebView getWebView() {
         return webView;

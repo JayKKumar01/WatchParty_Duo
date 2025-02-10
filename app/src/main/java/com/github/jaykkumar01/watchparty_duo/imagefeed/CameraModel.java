@@ -7,7 +7,6 @@ import android.util.Range;
 import android.util.Size;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
-import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 
 public class CameraModel {
     private final CameraManager cameraManager;

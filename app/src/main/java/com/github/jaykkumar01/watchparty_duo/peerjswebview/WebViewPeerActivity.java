@@ -35,7 +35,6 @@ import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
-import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 //import com.github.jaykkumar01.watchparty_duo.transferfeeds.ImageFeed1;
@@ -50,12 +49,11 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressLint("SetTextI18n")
-public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, FeedListener, UpdateListener{
+public class WebViewPeerActivity extends AppCompatActivity implements PeerListener, FeedListener{
 
     private ScrollView logScrollView;
     private TextView logTextView;
@@ -120,7 +118,6 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
 
 
         socketSender = new WebSocketSender(this);
-        socketSender.setUpdateListener(this);
 
         if (isTesting){
             imageFeed.initializeCamera();

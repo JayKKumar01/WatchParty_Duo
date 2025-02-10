@@ -2,8 +2,6 @@ const PREFIX = "JayKKumar01-WatchParty-Duo-Constant-Transfer-Rate-";
 // Generate peer connection ID using prefix and random ID
 const peerBranch = `${PREFIX}${getTodayDate()}-`;
 
-const logTextarea = document.getElementById('logTextarea');
-
 // Utility functions
 function getTodayDate() {
     const today = new Date();
@@ -24,13 +22,4 @@ function getRandomId() {
 
 function getFileTransferId() {
     return String(Math.floor(10_000_000_000_000 + Math.random() * 9_000_000_000_000_000)); // 15-digit ID
-}
-
-// Add function to update the textarea
-function updateLog(log) {
-    const currentTime = new Date().toLocaleTimeString();
-    logTextarea.value += `[${currentTime}]: ${log}\n`;
-
-    // Automatically scroll to the bottom
-    logTextarea.scrollTop = logTextarea.scrollHeight;
 }
