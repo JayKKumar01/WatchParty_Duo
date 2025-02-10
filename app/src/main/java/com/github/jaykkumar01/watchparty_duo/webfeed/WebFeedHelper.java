@@ -20,8 +20,6 @@ import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 
 @SuppressLint("StaticFieldLeak")
 public class WebFeedHelper {
-
-
     private final Context context;
     private WebView webView;
 

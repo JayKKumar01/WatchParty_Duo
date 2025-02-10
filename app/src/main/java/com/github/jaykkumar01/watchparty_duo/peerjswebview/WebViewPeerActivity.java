@@ -106,25 +106,25 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         logUpdater = new LogUpdater(logTextView,logScrollView);
 
         processFeed = new ProcessFeed(this);
-        processFeed.setRemoteFeedTextureView(remoteFeedTextureView);
+        processFeed.setTextureView(remoteFeedTextureView);
+
+        imageFeed = new ImageFeed(this,this);
+        imageFeed.setTextureView(peerFeedTextureView);
 
 
-        boolean isTesting = false;
-
-
-        imageFeed = new ImageFeed(this,this,isTesting ? remoteFeedTextureView: peerFeedTextureView);
         audioFeed = new AudioFeed(this,this);
 
 
 
         socketSender = new WebSocketSender(this);
 
-        if (isTesting){
-            imageFeed.initializeCamera();
+        if (true) {
+            imageFeed.setTextureView(remoteFeedTextureView);
             socketSender.initializeSender(webView);
-            layoutConnection.setVisibility(View.GONE);
+            imageFeed.initializeCamera();
             imageFeedLayout.setVisibility(View.VISIBLE);
         }
+
     }
 
     private void initViews() {

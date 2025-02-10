@@ -10,6 +10,7 @@ import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
+import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
@@ -29,6 +30,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final ForegroundNotifier foregroundNotifier;
     private final WebFeed webFeed;
     private final AudioFeed audioFeed;
+    private final ImageFeed imageFeed;
 
     private final Context context;
     private final WebSocketSender webSocketSender;
@@ -44,6 +46,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.foregroundNotifier = foregroundNotifier;
         this.webFeed = new WebFeed(context,this);
         this.audioFeed = new AudioFeed(context,this);
+        this.imageFeed = new ImageFeed(context,this);
         this.webSocketSender = new WebSocketSender(context);
         this.webSocketSender.setForegroundNotifier(foregroundNotifier);
         this.processFeed = new ProcessFeed(this);
@@ -74,16 +77,28 @@ public class FeedManager implements FeedListener,WebFeedListener{
         audioFeed.start();
     }
 
-    public void setImageFeedSurface(TextureView imageFeed) {
-        processFeed.setRemoteFeedTextureView(imageFeed);
+    public void startImageFeed(){
+        imageFeed.initializeCamera();
+    }
+
+    public void stopImageFeed(){
+        imageFeed.releaseResources();
+    }
+
+
+    public void setFeedSurfaces(TextureView peerFeed, TextureView remoteFeed) {
+        imageFeed.setTextureView(peerFeed);
+        processFeed.setTextureView(remoteFeed);
     }
 
     public void startFeeds() {
         webFeed.start();
         audioFeed.start();
+        imageFeed.initializeCamera();
     }
 
     public void stopFeeds() {
+        imageFeed.releaseResources();
         webFeed.stop();
         audioFeed.stop();
     }
@@ -148,6 +163,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         webFeed.onConnectionOpen(peerId,remoteId);
         webSocketSender.initializeSender(webFeed.getWebView());
         processFeed.startAudioProcess();
+        startImageFeed();
     }
 
     @Override
@@ -187,7 +203,4 @@ public class FeedManager implements FeedListener,WebFeedListener{
         });
 
     }
-
-
-
 }

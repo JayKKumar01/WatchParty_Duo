@@ -90,7 +90,7 @@ public class FeedService extends Service implements ForegroundNotifier {
         }
     }
 
-    public void setImageFeedSurface(TextureView imageFeed) {
-        feedManager.setImageFeedSurface(imageFeed);
+    public void setFeedSurfaces(TextureView peerFeed, TextureView remoteFeed) {
+        feedManager.setFeedSurfaces(peerFeed,remoteFeed);
     }
 }

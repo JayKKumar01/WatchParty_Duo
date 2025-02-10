@@ -13,6 +13,7 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -34,12 +35,15 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
     private final ImageProcessor imageProcessor;
     private ImageReader imageReader;
 
-    public CameraSessionManager(Context context, CameraModel cameraModel, FeedListener feedListener, TextureView textureView) {
+    public CameraSessionManager(Context context, CameraModel cameraModel, FeedListener feedListener) {
         this.context = context;
         this.cameraModel = cameraModel;
         this.feedListener = feedListener;
-        this.imageProcessor = new ImageProcessor(context,cameraModel, feedListener,textureView);
+        this.imageProcessor = new ImageProcessor(context,cameraModel, feedListener);
         setupImageReader();
+    }
+    public void setTextureView(TextureView textureView) {
+        imageProcessor.setTextureView(textureView);
     }
 
     private void setupImageReader() {
@@ -115,6 +119,7 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
 
     @Override
     public void onImageAvailable(ImageReader reader) {
+
         imageProcessor.onProcessImage(reader);
     }
 

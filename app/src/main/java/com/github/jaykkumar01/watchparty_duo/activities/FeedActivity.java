@@ -23,6 +23,7 @@ import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
+import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebViewPeerActivity;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
@@ -272,5 +273,10 @@ public class FeedActivity extends AppCompatActivity {
             }
         }
         super.onDestroy();
+    }
+
+    public void test(View view) {
+        Intent intent = new Intent(this, WebViewPeerActivity.class);
+        startActivity(intent);
     }
 }

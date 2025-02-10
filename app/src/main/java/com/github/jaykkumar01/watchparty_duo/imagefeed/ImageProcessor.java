@@ -1,5 +1,7 @@
 package com.github.jaykkumar01.watchparty_duo.imagefeed;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,10 +11,12 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.WindowManager;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.converters.YUVConverter;
+import com.github.jaykkumar01.watchparty_duo.helpers.DisplayHelper;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
@@ -29,7 +33,7 @@ public class ImageProcessor {
     private final CameraModel cameraModel;
     private final FeedListener feedListener;
     private final long frameIntervalMs;
-    private final TextureView textureView;
+    private TextureView textureView;
 
     private int displayRotation = -1;
     private final Matrix rotationMatrix = new Matrix();
@@ -37,12 +41,15 @@ public class ImageProcessor {
     private final ConcurrentLinkedQueue<FeedModel> imageQueue = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
 
-    public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener, TextureView textureView) {
+    public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener) {
         this.context = context;
         this.cameraModel = cameraModel;
         this.feedListener = feedListener;
-        this.textureView = textureView;
         this.frameIntervalMs = (long) (1000.0 / Feed.FPS);
+    }
+
+    public void setTextureView(TextureView textureView) {
+        this.textureView = textureView;
     }
 
     public synchronized void startScheduler() {
@@ -66,7 +73,6 @@ public class ImageProcessor {
         Executors.newCachedThreadPool().execute(() -> {
             try (Image image = reader.acquireLatestImage()) {
                 if (image == null) return;
-
                 byte[] bytes = YUVConverter.toJpegImage(image, 80);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 Bitmap finalBitmap = fixFrontCameraOrientation(bitmap);
@@ -75,7 +81,6 @@ public class ImageProcessor {
                 }
                 byte[] finalBytes = BitmapUtils.getBytes(finalBitmap);
                 finalBitmap.recycle();
-
                 // Maintain a fixed queue size (drop oldest if full)
                 if (imageQueue.size() >= Feed.IMAGE_READER_BUFFER) {
                     imageQueue.poll();
@@ -133,7 +138,8 @@ public class ImageProcessor {
     private Bitmap fixFrontCameraOrientation(Bitmap bitmap) {
         if (bitmap == null) return null;
 
-        int displayRotation = ((Activity) context).getWindowManager().getDefaultDisplay().getRotation();
+        int displayRotation = DisplayHelper.getDisplayRotation(context);
+
         if (this.displayRotation != displayRotation) {
             this.displayRotation = displayRotation;
             updateListener("Display Rotation: " + displayRotation);
@@ -162,4 +168,6 @@ public class ImageProcessor {
             feedListener.onUpdate(logMessage);
         }
     }
+
+
 }

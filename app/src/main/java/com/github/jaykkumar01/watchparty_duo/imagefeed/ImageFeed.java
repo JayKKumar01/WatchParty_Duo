@@ -1,18 +1,13 @@
 package com.github.jaykkumar01.watchparty_duo.imagefeed;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.camera2.*;
-import android.media.ImageReader;
-import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
-import com.github.jaykkumar01.watchparty_duo.utils.CameraUtil;
 
 import java.util.Arrays;
 
@@ -24,16 +19,21 @@ public class ImageFeed{
 
 
 
-    public ImageFeed(Context context, FeedListener feedListener, TextureView textureView){
+    public ImageFeed(Context context, FeedListener feedListener){
         this.context = context;
         this.feedListener = feedListener;
         this.cameraModel = new CameraModel(context);
 
         // Handler for the main thread
-        this.sessionManager = new CameraSessionManager(context, cameraModel,feedListener,textureView);
+        this.sessionManager = new CameraSessionManager(context, cameraModel,feedListener);
+    }
+
+    public void setTextureView(TextureView textureView) {
+        sessionManager.setTextureView(textureView);
     }
 
     public void initializeCamera(){
+
         updateListener("Ranges: "+ Arrays.toString(cameraModel.getFpsRanges()));
         updateListener("Optimal Range: "+ cameraModel.getOptimalFpsRange() + ", FPS: "+ Feed.FPS);
 
@@ -69,4 +69,6 @@ public class ImageFeed{
             feedListener.onUpdate(logMessage);
         }
     }
+
+
 }

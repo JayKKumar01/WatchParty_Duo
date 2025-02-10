@@ -25,13 +25,14 @@ import androidx.media3.ui.PlayerView;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
 import java.lang.ref.WeakReference;
 
-public class PlayerActivity extends AppCompatActivity {
+public class PlayerActivity extends AppCompatActivity{
 
     private static WeakReference<PlayerActivity> instanceRef;
 
@@ -72,7 +73,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         FeedService feedService = FeedService.getInstance();
         if (feedService != null){
-            feedService.setImageFeedSurface(remoteFeedTextureView);
+            feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
         }
 
         setupLogUpdater();
@@ -86,7 +87,6 @@ public class PlayerActivity extends AppCompatActivity {
                 userName.setText(peerModel.getName());
             }
         }
-
 
 
         setupPickVideoLauncher();
@@ -230,7 +230,4 @@ public class PlayerActivity extends AppCompatActivity {
         RefHelper.reset(instanceRef);
         super.onDestroy();
     }
-
-
-
 }

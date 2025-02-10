@@ -3,7 +3,6 @@ package com.github.jaykkumar01.watchparty_duo.helpers;
 import android.util.Log;
 import android.view.TextureView;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
-import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
@@ -15,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProcessFeed {
-    private TextureView remoteFeedTextureView;
+    private TextureView textureView;
     private final FeedListener feedListener;
     private final AudioPlayer audioPlayer;
     private ScheduledExecutorService imageScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -29,8 +28,8 @@ public class ProcessFeed {
         this.audioPlayer = new AudioPlayer(feedListener);
     }
 
-    public void setRemoteFeedTextureView(TextureView remoteFeedTextureView){
-        this.remoteFeedTextureView = remoteFeedTextureView;
+    public void setTextureView(TextureView textureView){
+        this.textureView = textureView;
     }
     public void startAudioProcess() {
         audioPlayer.start();
@@ -62,7 +61,7 @@ public class ProcessFeed {
 
     public void processImageFeed(List<FeedModel> models) {
 
-        if (models.isEmpty() || stopImageProcessing.get() || remoteFeedTextureView == null) return;
+        if (models.isEmpty() || stopImageProcessing.get()) return;
 
         long firstTimestamp = models.get(0).getTimestamp(); // Reference timestamp
 
@@ -101,7 +100,7 @@ public class ProcessFeed {
                 byte[] imageBytes = model.getBase64Bytes();
                 if (imageBytes == null || imageBytes.length == 0) return;
 
-                TextureRenderer.updateTexture(remoteFeedTextureView, imageBytes);
+                TextureRenderer.updateTexture(textureView, imageBytes);
             } catch (Exception e) {
                 Log.e("ProcessFeed", "Error processing image feed", e);
             } finally {
