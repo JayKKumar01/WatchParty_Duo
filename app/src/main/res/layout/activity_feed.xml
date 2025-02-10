@@ -28,7 +28,7 @@
             android:id="@+id/logTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Logs:\n"
+            android:text=""
             android:textColor="@color/theme_color"
             android:textSize="14sp"
             android:typeface="monospace" />

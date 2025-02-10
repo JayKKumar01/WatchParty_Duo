@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,17 +25,23 @@ import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.MainActivity;
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.feed.FeedActivity;
+import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
+import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.ConnectionService;
+import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.updates.AppData;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
+import java.lang.ref.WeakReference;
+
 public class PlayerActivity extends AppCompatActivity {
 
-    private static PlayerActivity instance;
+    private static WeakReference<PlayerActivity> instanceRef;
 
-    public static PlayerActivity getInstance(){
-        return instance;
+    public static PlayerActivity getInstance() {
+        return instanceRef != null ? instanceRef.get() : null;
     }
 
 
@@ -45,7 +52,12 @@ public class PlayerActivity extends AppCompatActivity {
 
     private PeerModel peerModel;
     private ImageView peerFeedImageView,remoteFeedImageView;
-    private final Handler mainHandler = new Handler(Looper.getMainLooper()); // Handler for the main thread
+
+    private ScrollView logScrollView;
+    private TextView logTextView;
+    private LogUpdater logUpdater;
+
+    boolean isMute = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,9 +69,11 @@ public class PlayerActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        instance = this;
+        instanceRef = new WeakReference<>(this);
 
         initViews();
+        setupLogUpdater();
+        setupScrollListener();
 
         // Retrieve extras from the intent
         Intent intent = getIntent();
@@ -76,7 +90,23 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
+    private void setupLogUpdater() {
+        logUpdater = new LogUpdater(logTextView, logScrollView);
+        logUpdater.addLogMessage("Check logs here...");
+    }
 
+    private void setupScrollListener() {
+        logScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            boolean isUserScrolling = logScrollView.getScrollY() < logTextView.getHeight() - logScrollView.getHeight();
+            logUpdater.setUserScrolling(isUserScrolling);
+        });
+    }
+
+    public void addLog(String message) {
+        if (logUpdater != null) {
+            logUpdater.addLogMessage(message);
+        }
+    }
 
 
     @Override
@@ -90,6 +120,8 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+        logScrollView = findViewById(R.id.logScrollView);
+        logTextView = findViewById(R.id.logTextView);
         playerView = findViewById(R.id.player_view);
         userName = findViewById(R.id.userName);
         peerFeedImageView = findViewById(R.id.peerFeedImageView);
@@ -137,25 +169,17 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void mic(View view) {
-//        ImageView imageView = (ImageView) view;
-//        AppData.getInstance().setMute(!AppData.getInstance().isMute());
-//
-//        if (ConnectionService.getInstance() != null) {
-//            ConnectionService.getInstance().toggleMic();
-//        }
-//
-//        imageView.setImageResource(AppData.getInstance().isMute() ? R.drawable.mic_off : R.drawable.mic_on);
+        ImageView imageView = (ImageView) view;
+        isMute = !isMute;
+        imageView.setImageResource(isMute ? R.drawable.mic_off : R.drawable.mic_on);
+        FeedService feedService = FeedService.getInstance();
+        if (feedService != null){
+            feedService.muteAudio(isMute);
+        }
     }
 
 
     public void endCall(View view) {
-        AppData.getInstance().reset();
-        if(ConnectionService.getInstance() != null){
-            ConnectionService.getInstance().stop();
-        }
-        finish();
-
-        startActivity(new Intent(this, MainActivity.class));
     }
 
     public void deafen(View view) {
@@ -166,6 +190,10 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (FeedService.getInstance() != null){
+            FeedService.getInstance().stopService();
+        }
+        RefHelper.reset(instanceRef);
         super.onDestroy();
     }
 

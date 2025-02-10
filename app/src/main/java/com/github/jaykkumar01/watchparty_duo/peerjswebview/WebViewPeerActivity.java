@@ -107,7 +107,8 @@ public class WebViewPeerActivity extends AppCompatActivity implements PeerListen
         initWebView();
         logUpdater = new LogUpdater(logTextView,logScrollView);
 
-        processFeed = new ProcessFeed(remoteFeedTextureView,this);
+        processFeed = new ProcessFeed(this);
+        processFeed.setRemoteFeedTextureView(remoteFeedTextureView);
 
 
         boolean isTesting = false;

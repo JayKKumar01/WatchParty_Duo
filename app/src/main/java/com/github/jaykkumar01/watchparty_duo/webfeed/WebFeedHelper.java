@@ -127,4 +127,8 @@ public class WebFeedHelper {
             }
         });
     }
+
+    public WebView getWebView() {
+        return webView;
+    }
 }

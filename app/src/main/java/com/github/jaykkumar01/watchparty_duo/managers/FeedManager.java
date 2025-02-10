@@ -1,24 +1,62 @@
 package com.github.jaykkumar01.watchparty_duo.managers;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
+import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
+import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
+import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
+import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
+import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebSocketSender;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeed;
+import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeedListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
-public class FeedManager implements FeedListener {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class FeedManager implements FeedListener,WebFeedListener{
+    private final ForegroundNotifier foregroundNotifier;
     private final WebFeed webFeed;
     private final AudioFeed audioFeed;
+//    private final WebSocketSender webSocketSender;
+//    private final ProcessFeed processFeed;
+    private ExecutorService packetExecutor = Executors.newCachedThreadPool();
+    private final Gson gson = new Gson();
+    private final PacketModel packetModel = new PacketModel();
+    private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
 
 
-
-    public FeedManager(Context context) {
-        this.webFeed = new WebFeed(context);
+    public FeedManager(Context context, ForegroundNotifier foregroundNotifier) {
+        this.foregroundNotifier = foregroundNotifier;
+        this.webFeed = new WebFeed(context,this);
         this.audioFeed = new AudioFeed(context,this);
+//        this.webSocketSender = new WebSocketSender(context);
+//        this.webSocketSender.setForegroundNotifier(foregroundNotifier);
+//        processFeed = new ProcessFeed(this);
     }
 
 
+    private void startLoggingUpdates() {
+        updateLogHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                foregroundNotifier.onUpdateLogs(packetModel.toString());
+                packetModel.reset();
+                // Continue updating every second
+                updateLogHandler.postDelayed(this, 1000);
+            }
+        }, 1000);
+    }
 
     public void startWebFeed(){
         webFeed.start();
@@ -28,9 +66,12 @@ public class FeedManager implements FeedListener {
         webFeed.connect(remoteId);
     }
 
+    public void startAudioFeed(){
+        audioFeed.start();
+    }
 
     public void startFeeds() {
-//        webFeed.start();
+        webFeed.start();
         audioFeed.start();
     }
 
@@ -39,9 +80,22 @@ public class FeedManager implements FeedListener {
         audioFeed.stop();
     }
 
+    public void muteAudio(boolean mute) {
+        if (mute) {
+            audioFeed.stop();
+        } else {
+            audioFeed.start();
+        }
+    }
+
     @Override
     public void onFeed(byte[] bytes, long millis, int feedType) {
-
+//        webSocketSender.addData(bytes,millis,feedType);
+//        if (feedType == FeedType.IMAGE_FEED) {
+//            packetModel.imageFeedSent();
+//        }else if (feedType == FeedType.AUDIO_FEED) {
+//            packetModel.audioFeedSent();
+//        }
     }
 
     @Override
@@ -51,6 +105,57 @@ public class FeedManager implements FeedListener {
 
     @Override
     public void onUpdate(String logMessage) {
+
+    }
+
+    @Override
+    public void onPeerOpen(String peerId) {
+        webFeed.onPeerOpen(peerId);
+    }
+
+    @Override
+    public void onConnectionOpen(String peerId, String remoteId) {
+        startLoggingUpdates();
+        foregroundNotifier.updateNotification(true);
+        webFeed.onConnectionOpen(peerId,remoteId);
+//        webSocketSender.initializeSender(webFeed.getWebView());
+    }
+
+    @Override
+    public void onBatchReceived(String jsonData) {
+        if (packetExecutor.isShutdown()){
+            packetExecutor = Executors.newCachedThreadPool();
+        }
+        packetExecutor.execute(() -> {
+            try {
+
+                List<FeedModel> batch = gson.fromJson(
+                        jsonData,
+                        new TypeToken<List<FeedModel>>(){}.getType()
+                );
+
+                List<FeedModel> imageFeeds = new ArrayList<>();
+                List<FeedModel> audioFeeds = new ArrayList<>();
+
+                for (FeedModel model: batch){
+                    switch (model.getFeedType()){
+                        case FeedType.IMAGE_FEED:
+                            packetModel.imageFeedReceived();
+                            imageFeeds.add(model);
+                            break;
+                        case FeedType.AUDIO_FEED:
+                            packetModel.audioFeedReceived();
+                            audioFeeds.add(model);
+                            break;
+                    }
+                }
+                //Executors.newCachedThreadPool().execute(() -> processFeed.processImageFeed(imageFeeds));
+//                Executors.newCachedThreadPool().execute(() -> processFeed.processAudioFeed(audioFeeds));
+
+            } catch (Exception e) {
+                Log.e("WebSocketReceiver", "Error processing batch", e);
+            }
+        });
 
     }
 }

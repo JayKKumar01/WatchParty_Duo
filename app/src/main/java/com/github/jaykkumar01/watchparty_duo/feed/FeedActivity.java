@@ -25,9 +25,11 @@ import androidx.core.view.WindowInsetsCompat;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
+import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
+import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
@@ -44,11 +46,9 @@ public class FeedActivity extends AppCompatActivity {
     public static FeedActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
     }
-
-    private ConstraintLayout mainLayout;
     private ScrollView logScrollView;
     private TextView logTextView;
-    private ConstraintLayout layoutConnection;
+    private LogUpdater logUpdater;
     private ConstraintLayout layoutConnect;
     private ConstraintLayout layoutJoin;
     private TextInputEditText etJoinName;
@@ -57,10 +57,11 @@ public class FeedActivity extends AppCompatActivity {
     private AppCompatButton btnConnect;
     private AppCompatButton btnJoin;
 
-    private LogUpdater logUpdater;
+
     private String userName;
     private String peerId;
     private String remoteId;
+    private boolean isOpeningPlayerActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,14 +78,12 @@ public class FeedActivity extends AppCompatActivity {
         initViews();
         setupLogUpdater();
         setupScrollListener();
-        createNotificationChannel();
+        FeedNotificationHelper.createNotificationChannel(this);
     }
 
     private void initViews() {
-        mainLayout = findViewById(R.id.main);
         logScrollView = findViewById(R.id.logScrollView);
         logTextView = findViewById(R.id.logTextView);
-        layoutConnection = findViewById(R.id.layoutConnection);
         layoutConnect = findViewById(R.id.layoutConnect);
         layoutJoin = findViewById(R.id.layoutJoin);
         etJoinName = findViewById(R.id.etJoinName);
@@ -96,7 +95,7 @@ public class FeedActivity extends AppCompatActivity {
 
     private void setupLogUpdater() {
         logUpdater = new LogUpdater(logTextView, logScrollView);
-        logUpdater.addLogMessage("Log system initialized.");
+        logUpdater.addLogMessage("Check logs here...");
     }
 
     private void setupScrollListener() {
@@ -243,6 +242,7 @@ public class FeedActivity extends AppCompatActivity {
         Intent intent = new Intent(this, PlayerActivity.class);
         // Add extras to the intent
         intent.putExtra(Constants.PEER, new PeerModel(userName,peerId,remoteId));
+        isOpeningPlayerActivity = true;
         finish(); // Destroy the current activity before launching the new one
         startActivity(intent);
     }
@@ -257,18 +257,6 @@ public class FeedActivity extends AppCompatActivity {
         }
     }
 
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    FeedServiceInfo.CHANNEL_ID,
-                    FeedServiceInfo.CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            channel.setDescription(FeedServiceInfo.CHANNEL_DESCRIPTION);
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
     private void startFeedService() {
         Intent serviceIntent = new Intent(this, FeedService.class);
         startService(serviceIntent);
@@ -288,6 +276,11 @@ public class FeedActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         RefHelper.reset(instanceRef);
+        if (!isOpeningPlayerActivity){
+            if (FeedService.getInstance() != null){
+                FeedService.getInstance().stopService();
+            }
+        }
         super.onDestroy();
     }
 }

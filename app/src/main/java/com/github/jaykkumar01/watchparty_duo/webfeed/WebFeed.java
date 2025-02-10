@@ -1,21 +1,26 @@
 package com.github.jaykkumar01.watchparty_duo.webfeed;
 
 import android.content.Context;
+import android.webkit.WebView;
 
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
+import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 
-public class WebFeed implements WebFeedListener{
+public class WebFeed{
+    private final WebFeedListener webFeedListener;
     private final WebFeedHelper helper;
 
     private boolean isPeerOpen;
     private boolean isConnectionOpen;
 
-    public WebFeed(Context context) {
+    public WebFeed(Context context, WebFeedListener webFeedListener) {
         helper = new WebFeedHelper(context);
+        this.webFeedListener = webFeedListener;
     }
 
     public void start(){
-        helper.initWebView(this);
+        helper.initWebView(webFeedListener);
     }
 
     public void connect(String remoteId) {
@@ -28,30 +33,18 @@ public class WebFeed implements WebFeedListener{
         helper.destroy();
     }
 
-    @Override
     public void onPeerOpen(String peerId) {
         isPeerOpen = true;
         helper.onPeerOpen(peerId);
     }
 
-    @Override
     public void onConnectionOpen(String peerId, String remoteId) {
         isConnectionOpen = true;
-        if (FeedService.getInstance() != null) {
-            FeedService.getInstance().updateNotification(true);
-        }
         helper.onConnectionOpen(peerId,remoteId);
     }
 
-    @Override
-    public void onBatchReceived(String jsonData) {
 
-    }
-
-    public boolean isPeerOpen(){
-        return isPeerOpen;
-    }
-    public boolean isConnectionOpen() {
-        return isConnectionOpen;
+    public WebView getWebView() {
+        return helper.getWebView();
     }
 }

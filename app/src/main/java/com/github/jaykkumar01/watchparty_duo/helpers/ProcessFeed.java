@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProcessFeed {
-    private final TextureView remoteFeedTextureView;
+    private TextureView remoteFeedTextureView;
     private final FeedListener feedListener;
     private final AudioPlayer audioPlayer;
     private ScheduledExecutorService imageScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -24,12 +24,14 @@ public class ProcessFeed {
     private final AtomicBoolean isProcessingImage = new AtomicBoolean(false);
     private final AtomicBoolean stopImageProcessing = new AtomicBoolean(false);
 
-    public ProcessFeed(TextureView remoteFeedTextureView, FeedListener feedListener) {
-        this.remoteFeedTextureView = remoteFeedTextureView;
+    public ProcessFeed(FeedListener feedListener) {
         this.feedListener = feedListener;
         this.audioPlayer = new AudioPlayer(feedListener);
     }
 
+    public void setRemoteFeedTextureView(TextureView remoteFeedTextureView){
+        this.remoteFeedTextureView = remoteFeedTextureView;
+    }
     public void startAudioProcess() {
         audioPlayer.start();
     }

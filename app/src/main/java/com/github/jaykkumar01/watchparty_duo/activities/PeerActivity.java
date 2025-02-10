@@ -211,6 +211,7 @@ public class PeerActivity extends AppCompatActivity implements PeerListener, Fee
 
     }
 
+
     @SuppressLint("SetTextI18n")
     private void updateLogs(String message) {
         TextView logTextView = findViewById(R.id.logTextView);

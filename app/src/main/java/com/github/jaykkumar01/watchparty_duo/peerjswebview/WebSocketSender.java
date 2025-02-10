@@ -7,6 +7,7 @@ import android.webkit.WebView;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
 import com.github.jaykkumar01.watchparty_duo.listeners.UpdateListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.FeedSizeTracker;
@@ -30,6 +31,7 @@ public class WebSocketSender {
     private Context context;
 
     private UpdateListener updateListener;
+    private ForegroundNotifier foregroundNotifier;
     private final Gson gson = new Gson();
     private final FeedSizeTracker feedSizeTracker = new FeedSizeTracker(); // Instance of tracker
     private ExecutorService dataExecutor = Executors.newCachedThreadPool();
@@ -40,6 +42,9 @@ public class WebSocketSender {
 
     public void setUpdateListener(UpdateListener updateListener){
         this.updateListener = updateListener;
+    }
+    public void setForegroundNotifier(ForegroundNotifier foregroundNotifier) {
+        this.foregroundNotifier = foregroundNotifier;
     }
 
     public void initializeSender(WebView webView) {
@@ -56,6 +61,9 @@ public class WebSocketSender {
                         base64Queue.clear();
                         String json = gson.toJson(batch);
 
+                        if (webView == null){
+                            return;
+                        }
                         webView.post(() -> {
                             webView.evaluateJavascript(
                                     "receiveFromAndroid(" + json + ")",
@@ -80,8 +88,13 @@ public class WebSocketSender {
             int lenKB = bytes.length / 1024;
 
             // Update size tracking
-            if (feedSizeTracker.updateSize(lenKB, feedType) && updateListener != null){
-                updateListener.onUpdate(feedSizeTracker.toString());
+            if (feedSizeTracker.updateSize(lenKB, feedType)){
+                if (updateListener != null) {
+                    updateListener.onUpdate(feedSizeTracker.toString());
+                }
+                if (foregroundNotifier != null){
+                    foregroundNotifier.onUpdateLogs(feedSizeTracker.toString());
+                }
             }
 
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
@@ -90,5 +103,6 @@ public class WebSocketSender {
             base64Queue.add(feedModel);
         });
     }
+
 
 }
