@@ -89,6 +89,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     public void setFeedSurfaces(TextureView peerFeed, TextureView remoteFeed) {
         imageFeed.setTextureView(peerFeed);
         processFeed.setTextureView(remoteFeed);
+        startImageFeed();
     }
 
     public void startFeeds() {
@@ -163,7 +164,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         webFeed.onConnectionOpen(peerId,remoteId);
         webSocketSender.initializeSender(webFeed.getWebView());
         processFeed.startAudioProcess();
-        startImageFeed();
+//        startImageFeed();
     }
 
     @Override
