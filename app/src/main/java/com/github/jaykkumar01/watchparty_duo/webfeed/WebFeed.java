@@ -5,16 +5,12 @@ import android.content.Context;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 
 public class WebFeed implements WebFeedListener{
-    private final Context context;
-    private final FeedService feedService;
     private final WebFeedHelper helper;
 
     private boolean isPeerOpen;
     private boolean isConnectionOpen;
 
-    public WebFeed(Context context, FeedService feedService) {
-        this.context = context;
-        this.feedService = feedService;
+    public WebFeed(Context context) {
         helper = new WebFeedHelper(context);
     }
 
@@ -41,7 +37,9 @@ public class WebFeed implements WebFeedListener{
     @Override
     public void onConnectionOpen(String peerId, String remoteId) {
         isConnectionOpen = true;
-        feedService.updateNotification(true);
+        if (FeedService.getInstance() != null) {
+            FeedService.getInstance().updateNotification(true);
+        }
         helper.onConnectionOpen(peerId,remoteId);
     }
 

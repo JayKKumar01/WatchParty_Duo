@@ -26,6 +26,7 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
+import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
@@ -35,11 +36,13 @@ import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeedHelper;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.lang.ref.WeakReference;
+
 public class FeedActivity extends AppCompatActivity {
-    @SuppressLint("StaticFieldLeak")
-    public static FeedActivity instance;
+    private static WeakReference<FeedActivity> instanceRef;
+
     public static FeedActivity getInstance() {
-        return instance;
+        return instanceRef != null ? instanceRef.get() : null;
     }
 
     private ConstraintLayout mainLayout;
@@ -59,8 +62,6 @@ public class FeedActivity extends AppCompatActivity {
     private String peerId;
     private String remoteId;
 
-    boolean isTimeout;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,8 +73,7 @@ public class FeedActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        instance = this;
+        instanceRef = new WeakReference<>(this);
         initViews();
         setupLogUpdater();
         setupScrollListener();
@@ -121,17 +121,31 @@ public class FeedActivity extends AppCompatActivity {
         startFeedService();
         addLog("Starting Feed Service...");
 
-        // Set timeout logic
-        isTimeout = false;
-        new Handler().postDelayed(() -> {
-            if (peerId == null) {  // Check if peerId is still null, meaning no connection was established
-                isTimeout = true;
-                stopFeedService();
-                resetConnectButton();
-                addLog("Connection timeout. Please try again.");
-                Toast.makeText(this, "Connection timeout. Please try again.", Toast.LENGTH_SHORT).show();
+        new Handler().postDelayed(new Runnable() {
+            private int secondsLeft = 5;
+
+            @Override
+            public void run() {
+                if (peerId != null) {  // If peerId is assigned, stop the countdown
+                    addLog("Peer successfully opened: " + peerId);
+                    return;
+                }
+
+                if (secondsLeft > 0) {
+                    addLog("Generating peer ... (Timeout in " + secondsLeft + " sec)");
+                    secondsLeft--;
+                    new Handler().postDelayed(this, 1000); // Repeat every second
+                } else {
+                    // If still null, timeout
+                    stopFeedService();
+                    resetConnectButton();
+                    addLog("Connection timeout. Please try again.");
+                    Toast.makeText(FeedActivity.this, "Connection timeout. Please try again.", Toast.LENGTH_SHORT).show();
+                }
             }
-        }, 5000); // 5-second timeout
+        }, 0);
+
+
     }
 
     private void stopFeedService() {
@@ -142,6 +156,7 @@ public class FeedActivity extends AppCompatActivity {
 
 
     // Join Logic
+    // Join Logic
     public void join(View view) {
         remoteId = null;
         btnJoin.setText(R.string.joining);
@@ -149,27 +164,43 @@ public class FeedActivity extends AppCompatActivity {
 
         String remoteId = etCode.getText().toString().trim();
         if (remoteId.isEmpty()) {
-            Toast.makeText(this, "Please enter Peer ID.", Toast.LENGTH_SHORT).show();;
+            Toast.makeText(this, "Please enter Peer ID.", Toast.LENGTH_SHORT).show();
             resetJoinButton();
             return;
         }
+
         FeedService feedService = FeedService.getInstance();
-        if (feedService == null){
+        if (feedService == null) {
             addLog("FeedService not running!");
+            resetJoinButton();
             return;
         }
+
         feedService.connect(remoteId);
-        addLog("Connecting to "+remoteId);
 
-        new Handler().postDelayed(() -> {
-            if (this.remoteId == null) {  // Check if peerId is still null, meaning no connection was established
-                resetJoinButton();
-                addLog("Connection timeout. Please try again.");
-                Toast.makeText(this, "Connection timeout. Please try again.", Toast.LENGTH_SHORT).show();
+        new Handler().postDelayed(new Runnable() {
+            private int secondsLeft = 5;
+
+            @Override
+            public void run() {
+                if (FeedActivity.this.remoteId != null) { // Stop countdown if connected
+                    addLog("Connected to " + FeedActivity.this.remoteId);
+                    return;
+                }
+
+                if (secondsLeft > 0) {
+                    addLog("Waiting for connection... (Timeout in " + secondsLeft + " sec)");
+                    secondsLeft--;
+                    new Handler().postDelayed(this, 1000);
+                } else {
+                    resetJoinButton();
+                    addLog("Connection timeout. Please try again.");
+                    Toast.makeText(FeedActivity.this, "Connection timeout. Please try again.", Toast.LENGTH_SHORT).show();
+                }
             }
-        }, 5000); // 5-second timeout
-
+        }, 0);
     }
+
 
     private void resetConnectButton() {
         btnConnect.setText(R.string.connect);
@@ -182,9 +213,6 @@ public class FeedActivity extends AppCompatActivity {
     }
 
     public void onPeerOpen(String peerId) {
-        if (isTimeout){
-            return;
-        }
         this.peerId = peerId;
         runOnUiThread(() -> {
             addLog("Peer Opened: " + peerId);
@@ -259,7 +287,7 @@ public class FeedActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        instance = null;
+        RefHelper.reset(instanceRef);
         super.onDestroy();
     }
 }

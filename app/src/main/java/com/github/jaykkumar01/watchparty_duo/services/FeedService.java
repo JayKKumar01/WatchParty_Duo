@@ -13,14 +13,18 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
+import com.github.jaykkumar01.watchparty_duo.feed.FeedActivity;
+import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
+
+import java.lang.ref.WeakReference;
 
 public class FeedService extends Service{
 
-    public static FeedService instance;
+    private static WeakReference<FeedService> instanceRef;
 
     public static FeedService getInstance() {
-        return instance;
+        return instanceRef != null ? instanceRef.get() : null;
     }
     private FeedManager feedManager;
 
@@ -28,8 +32,8 @@ public class FeedService extends Service{
     @Override
     public void onCreate() {
         super.onCreate();
-        instance = this;
-        feedManager = new FeedManager(this, instance);
+        instanceRef = new WeakReference<>(this);
+        feedManager = new FeedManager(this);
     }
 
     @Override
@@ -76,7 +80,7 @@ public class FeedService extends Service{
 
     @Override
     public void onDestroy() {
-        instance = null;
+        RefHelper.reset(instanceRef);
         feedManager.stopFeeds();
 
         // Cancel the foreground notification

@@ -13,8 +13,8 @@ public class FeedManager implements FeedListener {
 
 
 
-    public FeedManager(Context context, FeedService feedService) {
-        this.webFeed = new WebFeed(context,feedService);
+    public FeedManager(Context context) {
+        this.webFeed = new WebFeed(context);
         this.audioFeed = new AudioFeed(context,this);
     }
 

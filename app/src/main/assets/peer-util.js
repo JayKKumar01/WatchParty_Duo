@@ -13,6 +13,13 @@ function initPeer() {
     const id = `${peerBranch}${peerId}`;
     peer = new Peer(id);
     handlePeer(peer);
+    // Close peer if it does not open within 5 seconds
+    setTimeout(() => {
+        if (!isPeerOpen) {
+            peer.destroy();
+            console.warn("Peer failed to open, closing peer.");
+        }
+    }, 9000);
 }
 
 // Handle peer-related events like connection and disconnection
