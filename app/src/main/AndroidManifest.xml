@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Permissions -->
     <uses-feature
         android:name="android.hardware.camera"
@@ -34,12 +33,16 @@
         android:theme="@style/Theme.WatchPartyDuo"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".activities.TestingActivity"
+            android:exported="false" />
+
         <service
             android:name=".services.FeedService"
-            android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
-            android:hardwareAccelerated="true"
-            android:foregroundServiceType="mediaPlayback"/>
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:hardwareAccelerated="true" />
 
         <activity
             android:name=".activities.FeedActivity"
@@ -56,11 +59,12 @@
             android:name=".peerjswebview.WebViewPeerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
-            android:hardwareAccelerated="true"/>
+            android:hardwareAccelerated="true" />
         <activity
             android:name=".activities.PlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
-            android:exported="false" />
+            android:exported="false"
+            android:hardwareAccelerated="true" />
     </application>
 
 </manifest>

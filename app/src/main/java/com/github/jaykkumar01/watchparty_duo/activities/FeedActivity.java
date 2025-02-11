@@ -23,23 +23,24 @@ import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
-import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebViewPeerActivity;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 public class FeedActivity extends AppCompatActivity {
     private static WeakReference<FeedActivity> instanceRef;
 
     public static FeedActivity getInstance() {
-        return instanceRef != null ? instanceRef.get() : null;
+        return (instanceRef != null) ? instanceRef.get() : null;
     }
+
+    // UI Components
     private ScrollView logScrollView;
     private TextView logTextView;
-    private LogUpdater logUpdater;
     private ConstraintLayout layoutConnect;
     private ConstraintLayout layoutJoin;
     private TextInputEditText etJoinName;
@@ -48,7 +49,10 @@ public class FeedActivity extends AppCompatActivity {
     private AppCompatButton btnConnect;
     private AppCompatButton btnJoin;
 
+    // Utility
+    private LogUpdater logUpdater;
 
+    // Data Variables
     private String userName;
     private String peerId;
     private String remoteId;
@@ -101,7 +105,7 @@ public class FeedActivity extends AppCompatActivity {
         btnConnect.setText(R.string.connecting);
         btnConnect.setEnabled(false);
 
-        userName = etJoinName.getText().toString().trim();
+        userName = Objects.requireNonNull(etJoinName.getText()).toString().trim();
         if (userName.isEmpty()) {
             Toast.makeText(this, "Please enter your name.", Toast.LENGTH_SHORT).show();
             resetConnectButton();
@@ -152,7 +156,7 @@ public class FeedActivity extends AppCompatActivity {
         btnJoin.setText(R.string.joining);
         btnJoin.setEnabled(false);
 
-        String remoteId = etCode.getText().toString().trim();
+        String remoteId = Objects.requireNonNull(etCode.getText()).toString().trim();
         if (remoteId.isEmpty()) {
             Toast.makeText(this, "Please enter Peer ID.", Toast.LENGTH_SHORT).show();
             resetJoinButton();
@@ -204,49 +208,50 @@ public class FeedActivity extends AppCompatActivity {
 
     public void onPeerOpen(String peerId) {
         this.peerId = peerId;
-        runOnUiThread(() -> {
-            addLog("Peer Opened: " + peerId);
-            hideKeyboard();
-            tvName.setText("Welcome " + userName + ", Your ID: " + peerId);
-            layoutConnect.setVisibility(View.GONE);
-            layoutJoin.setVisibility(View.VISIBLE);
-            resetConnectButton();
-        });
+        runOnUiThread(() -> updateUI(peerId));
     }
+
+    private void updateUI(String peerId) {
+        addLog("Peer Opened: " + peerId);
+        hideKeyboard();
+        tvName.setText(String.format("Welcome %s, Your ID: %s", userName, peerId));
+        layoutConnect.setVisibility(View.GONE);
+        layoutJoin.setVisibility(View.VISIBLE);
+        resetConnectButton();
+    }
+
 
     public void onConnectionOpen(String peerId, String remoteId) {
         this.peerId = peerId;
         this.remoteId = remoteId;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                addLog("Peer: " + peerId + ", Remote: " + remoteId);
-                hideKeyboard();
-                layoutJoin.setVisibility(View.GONE);
-                resetJoinButton();
-                launchPlayerActivity();
-            }
-        });
+        runOnUiThread(() -> updateConnectionUI(peerId, remoteId));
     }
+
+    private void updateConnectionUI(String peerId, String remoteId) {
+        addLog(String.format("Peer: %s, Remote: %s", peerId, remoteId));
+        hideKeyboard();
+        layoutJoin.setVisibility(View.GONE);
+        resetJoinButton();
+        launchPlayerActivity();
+    }
+
 
     private void launchPlayerActivity(){
         Intent intent = new Intent(this, PlayerActivity.class);
         // Add extras to the intent
         intent.putExtra(Constants.PEER, new PeerModel(userName,peerId,remoteId));
         isOpeningPlayerActivity = true;
-        finish(); // Destroy the current activity before launching the new one
         startActivity(intent);
+        finish();
     }
 
 
     // Method to hide keyboard
     private void hideKeyboard() {
-        View view = getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
     }
+
 
     private void startFeedService() {
         Intent serviceIntent = new Intent(this, FeedService.class);
@@ -259,11 +264,6 @@ public class FeedActivity extends AppCompatActivity {
         }
     }
 
-    public void onPageFinished(String url) {
-        addLog("Page Loaded");
-        btnConnect.setEnabled(true);
-    }
-
     @Override
     protected void onDestroy() {
         RefHelper.reset(instanceRef);
@@ -273,10 +273,5 @@ public class FeedActivity extends AppCompatActivity {
             }
         }
         super.onDestroy();
-    }
-
-    public void test(View view) {
-        Intent intent = new Intent(this, WebViewPeerActivity.class);
-        startActivity(intent);
     }
 }

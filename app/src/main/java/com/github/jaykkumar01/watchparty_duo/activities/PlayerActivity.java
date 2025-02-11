@@ -23,8 +23,10 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.helpers.CircularOutlineProvider;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
+import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
@@ -32,9 +34,10 @@ import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
 import java.lang.ref.WeakReference;
 
-public class PlayerActivity extends AppCompatActivity{
+public class PlayerActivity extends AppCompatActivity implements FeedListener {
 
     private static WeakReference<PlayerActivity> instanceRef;
+    private ImageFeed imageFeed;
 
     public static PlayerActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
@@ -67,14 +70,14 @@ public class PlayerActivity extends AppCompatActivity{
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
         instanceRef = new WeakReference<>(this);
 
         initViews();
 
-        FeedService feedService = FeedService.getInstance();
-        if (feedService != null){
-            feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
-        }
+        peerFeedTextureView.setOutlineProvider(new CircularOutlineProvider());
+        peerFeedTextureView.setClipToOutline(true);
 
         setupLogUpdater();
         setupScrollListener();
@@ -90,6 +93,11 @@ public class PlayerActivity extends AppCompatActivity{
 
 
         setupPickVideoLauncher();
+
+        FeedService feedService = FeedService.getInstance();
+        if (feedService != null){
+            feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
+        }
 
     }
 
@@ -125,7 +133,7 @@ public class PlayerActivity extends AppCompatActivity{
     private void initViews() {
         logScrollView = findViewById(R.id.logScrollView);
         logTextView = findViewById(R.id.logTextView);
-        playerView = findViewById(R.id.player_view);
+//        playerView = findViewById(R.id.player_view);
         userName = findViewById(R.id.userName);
         peerFeedTextureView = findViewById(R.id.peerFeed);
         remoteFeedTextureView = findViewById(R.id.remoteFeed);
@@ -192,7 +200,7 @@ public class PlayerActivity extends AppCompatActivity{
 
 
     public void endCall(View view) {
-        Intent intent = new Intent(this,FeedActivity.class);
+        Intent intent = new Intent(this, FeedActivity.class);
         finish();
         startActivity(intent);
     }
@@ -229,5 +237,20 @@ public class PlayerActivity extends AppCompatActivity{
         }
         RefHelper.reset(instanceRef);
         super.onDestroy();
+    }
+
+    @Override
+    public void onFeed(byte[] bytes, long millis, int feedType) {
+
+    }
+
+    @Override
+    public void onError(String err) {
+
+    }
+
+    @Override
+    public void onUpdate(String logMessage) {
+
     }
 }

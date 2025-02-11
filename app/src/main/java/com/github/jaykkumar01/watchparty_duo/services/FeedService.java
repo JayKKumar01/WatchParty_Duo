@@ -9,6 +9,7 @@ import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
+import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 
@@ -92,5 +93,9 @@ public class FeedService extends Service implements ForegroundNotifier {
 
     public void setFeedSurfaces(TextureView peerFeed, TextureView remoteFeed) {
         feedManager.setFeedSurfaces(peerFeed,remoteFeed);
+    }
+
+    public FeedListener getFeedListener() {
+        return feedManager;
     }
 }

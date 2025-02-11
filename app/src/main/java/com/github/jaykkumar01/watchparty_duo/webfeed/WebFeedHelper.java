@@ -5,17 +5,13 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
-import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
-import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebSocketSender;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 
 @SuppressLint("StaticFieldLeak")
@@ -54,10 +50,6 @@ public class WebFeedHelper {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                FeedActivity feedActivity = FeedActivity.getInstance();
-                if (feedActivity != null){
-                    feedActivity.onPageFinished(url);
-                }
                 callJavaScript("initPeer");
             }
 
