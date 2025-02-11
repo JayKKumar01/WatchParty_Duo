@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:keepScreenOn="true"
     tools:context=".activities.PlayerActivity">
     <include layout="@layout/layout_1"/>
     <include layout="@layout/layout_scroll"/>

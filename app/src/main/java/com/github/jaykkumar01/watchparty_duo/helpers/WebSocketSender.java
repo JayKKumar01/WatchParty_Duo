@@ -1,11 +1,10 @@
-package com.github.jaykkumar01.watchparty_duo.peerjswebview;
+package com.github.jaykkumar01.watchparty_duo.helpers;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 import android.webkit.WebView;
-import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
@@ -54,13 +53,11 @@ public class WebSocketSender {
                         base64Queue.clear();
                         String json = gson.toJson(batch);
 
-                        if (webView == null){
-                            return;
-                        }
-
                         // Post execution on the main thread using Handler
                         mainHandler.post(() -> {
-                            webView.loadUrl("javascript:receiveFromAndroid(" + json + ")");
+                            if (webView != null){
+                                webView.loadUrl("javascript:receiveFromAndroid(" + json + ")");
+                            }
                         });
                     }
                 },

@@ -15,7 +15,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
-import com.github.jaykkumar01.watchparty_duo.peerjswebview.WebSocketSender;
+import com.github.jaykkumar01.watchparty_duo.helpers.WebSocketSender;
 import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeed;
 import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeedListener;
 import com.google.gson.Gson;
@@ -50,6 +50,14 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.webSocketSender = new WebSocketSender(context);
         this.webSocketSender.setForegroundNotifier(foregroundNotifier);
         this.processFeed = new ProcessFeed(this);
+    }
+
+    public void restartImageFeed(boolean isRestarting) {
+        if (isRestarting){
+            startImageFeed();
+        }else {
+            stopImageFeed();
+        }
     }
 
 

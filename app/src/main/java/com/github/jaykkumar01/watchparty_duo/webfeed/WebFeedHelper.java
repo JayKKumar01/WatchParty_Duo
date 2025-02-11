@@ -20,6 +20,7 @@ public class WebFeedHelper {
     private WebView webView;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean isWebViewDestroyed;
 
     public WebFeedHelper(Context context) {
         this.context = context;
@@ -70,6 +71,9 @@ public class WebFeedHelper {
     }
 
     public void callJavaScript(String func, Object... args) {
+        if (webView == null) {
+            return; // Prevent calling JS on a destroyed WebView
+        }
         StringBuilder argString = new StringBuilder();
         if (args.length > 0) {
             if (args[0] instanceof String) {
@@ -87,28 +91,29 @@ public class WebFeedHelper {
             }
         }
         final String javascriptCommand = String.format("javascript:%s(%s)", func, argString.toString());
-        if (webView != null) {
-            mainHandler.post(() -> webView.loadUrl(javascriptCommand));
-
-        }
+        mainHandler.post(() -> {
+            if (webView != null && !isWebViewDestroyed) {
+                webView.loadUrl(javascriptCommand);
+            }
+        });
     }
+
 
     public void destroy() {
         callJavaScript("closeConnectionAndDestroyPeer");
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if (webView != null) {
-                    webView.stopLoading();
-                    webView.clearHistory();
-                    webView.clearCache(true);
-                    webView.removeAllViews();
-                    webView.destroy();
-                }
+        mainHandler.postDelayed(() -> {
+            if (webView != null) {
+                isWebViewDestroyed = true;
+                webView.stopLoading();
+                webView.clearHistory();
+                webView.clearCache(true);
+                webView.removeAllViews();
+                webView.destroy();
+                webView = null; // Ensure no further interaction
             }
-        };
-        mainHandler.postDelayed(runnable,1000);
+        }, 1000);
     }
+
 
 
     public WebView getWebView() {
