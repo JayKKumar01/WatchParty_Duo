@@ -23,6 +23,8 @@ import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,12 +42,17 @@ public class ImageProcessor {
     private ScheduledExecutorService scheduler;
     private final ConcurrentLinkedQueue<FeedModel> imageQueue = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
+    private ExecutorService onProcessImageExecutor = Executors.newCachedThreadPool();
+    private ExecutorService processImageExecutor = Executors.newCachedThreadPool();
+
+    private final TextureRenderer textureRenderer;
 
     public ImageProcessor(Context context, CameraModel cameraModel, FeedListener feedListener) {
         this.context = context;
         this.cameraModel = cameraModel;
         this.feedListener = feedListener;
         this.frameIntervalMs = (long) (1000.0 / Feed.FPS);
+        this.textureRenderer = new TextureRenderer(feedListener,true);
     }
 
     public void setTextureView(TextureView textureView) {
@@ -61,7 +68,10 @@ public class ImageProcessor {
         scheduler.scheduleWithFixedDelay(() -> {
             if (isProcessing.compareAndSet(false, true)) {
                 try {
-                    processImage();
+                    if (processImageExecutor.isShutdown()){
+                        processImageExecutor = Executors.newCachedThreadPool();
+                    }
+                    processImageExecutor.execute(this::processImage);
                 } finally {
                     isProcessing.set(false);
                 }
@@ -70,7 +80,11 @@ public class ImageProcessor {
     }
 
     public void onProcessImage(ImageReader reader) {
-        Executors.newCachedThreadPool().execute(() -> {
+        if (onProcessImageExecutor.isShutdown()){
+            onProcessImageExecutor = Executors.newCachedThreadPool();
+        }
+        onProcessImageExecutor.execute(() -> {
+            long timestamp = System.currentTimeMillis();
             try (Image image = reader.acquireLatestImage()) {
                 if (image == null) return;
                 byte[] bytes = YUVConverter.toJpegImage(image, 80);
@@ -85,7 +99,7 @@ public class ImageProcessor {
                 if (imageQueue.size() >= Feed.IMAGE_READER_BUFFER) {
                     imageQueue.poll();
                 }
-                imageQueue.offer(new FeedModel(finalBytes, System.currentTimeMillis()));
+                imageQueue.offer(new FeedModel(finalBytes, timestamp));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -131,7 +145,7 @@ public class ImageProcessor {
             feedListener.onFeed(bytes, timeStamp, FeedType.IMAGE_FEED);
         }
         if (textureView != null) {
-            TextureRenderer.updateTexture(textureView, bytes);
+            textureRenderer.updateTexture(textureView, bytes);
         }
     }
 

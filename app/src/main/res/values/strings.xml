@@ -7,4 +7,11 @@
     <string name="join">Join</string>
     <string name="image">image</string>
     <string name="timestamp">timestamp</string>
+    <string name="friend">Friend</string>
+    <string name="deafen_description">It updates deafen status</string>
+    <string name="video_btn_description">It updates video status</string>
+    <string name="call_btn_description">It ends the call</string>
+    <string name="name">Name</string>
+    <string name="user_code">User - Code</string>
+    <string name="room_code_optional">Room Code (Optional)</string>
 </resources>

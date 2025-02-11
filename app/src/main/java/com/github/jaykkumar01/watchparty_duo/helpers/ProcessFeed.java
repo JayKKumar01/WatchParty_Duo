@@ -22,10 +22,12 @@ public class ProcessFeed {
 
     private final AtomicBoolean isProcessingImage = new AtomicBoolean(false);
     private final AtomicBoolean stopImageProcessing = new AtomicBoolean(false);
+    private final TextureRenderer textureRenderer;
 
     public ProcessFeed(FeedListener feedListener) {
         this.feedListener = feedListener;
         this.audioPlayer = new AudioPlayer(feedListener);
+        this.textureRenderer = new TextureRenderer(feedListener,false);
     }
 
     public void setTextureView(TextureView textureView){
@@ -64,7 +66,7 @@ public class ProcessFeed {
         if (models.isEmpty() || stopImageProcessing.get()) return;
 
         long firstTimestamp = models.get(0).getTimestamp(); // Reference timestamp
-
+        int i=0;
         for (FeedModel model : models) {
             long delay = model.getTimestamp() - firstTimestamp; // Calculate delay based on the first frame
             if (delay <= 0){
@@ -100,7 +102,7 @@ public class ProcessFeed {
                 byte[] imageBytes = model.getBase64Bytes();
                 if (imageBytes == null || imageBytes.length == 0) return;
 
-                TextureRenderer.updateTexture(textureView, imageBytes);
+                textureRenderer.updateTexture(textureView, imageBytes);
             } catch (Exception e) {
                 Log.e("ProcessFeed", "Error processing image feed", e);
             } finally {

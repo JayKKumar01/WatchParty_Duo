@@ -118,7 +118,6 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
 
     @Override
     public void onImageAvailable(ImageReader reader) {
-
         imageProcessor.onProcessImage(reader);
     }
 

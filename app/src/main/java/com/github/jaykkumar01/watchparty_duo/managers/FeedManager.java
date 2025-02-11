@@ -210,8 +210,14 @@ public class FeedManager implements FeedListener,WebFeedListener{
                             break;
                     }
                 }
-                Executors.newCachedThreadPool().execute(() -> processFeed.processImageFeed(imageFeeds));
-                Executors.newCachedThreadPool().execute(() -> processFeed.processAudioFeed(audioFeeds));
+                if (packetExecutor.isShutdown()){
+                    packetExecutor = Executors.newCachedThreadPool();
+                }
+                packetExecutor.execute(() -> processFeed.processImageFeed(imageFeeds));
+                if (packetExecutor.isShutdown()){
+                    packetExecutor = Executors.newCachedThreadPool();
+                }
+                packetExecutor.execute(() -> processFeed.processAudioFeed(audioFeeds));
 
             } catch (Exception e) {
                 Log.e("WebSocketReceiver", "Error processing batch", e);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -27,7 +28,6 @@
             android:id="@+id/logTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
             android:textColor="@color/theme_color"
             android:textSize="14sp"
             android:typeface="monospace" />
@@ -66,7 +66,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/remotePeerName"
-                android:text="Friend"
+                android:text="@string/friend"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp"
                 android:textStyle="bold"
@@ -117,9 +117,10 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <ImageView
-            android:layout_width="45dp"
+            android:layout_width="48dp"
             android:layout_height="0dp"
             android:id="@+id/deafenBtn"
+            android:contentDescription="@string/deafen_description"
             android:onClick="deafen"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintHorizontal_bias="0"
@@ -147,9 +148,10 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent">
             <ImageView
-                android:layout_width="0dp"
+                android:layout_width="48dp"
                 android:layout_height="0dp"
                 android:id="@+id/videoBtn"
+                android:contentDescription="@string/video_btn_description"
                 android:onClick="video"
                 android:elevation="2dp"
                 app:layout_constraintHorizontal_bias="0"
@@ -169,6 +171,7 @@
                 android:layout_height="0dp"
                 android:id="@+id/callBtn"
                 android:onClick="endCall"
+                android:contentDescription="@string/call_btn_description"
                 app:layout_constraintDimensionRatio="1:1"
                 android:elevation="2dp"
                 android:background="@drawable/big_button_bg"
@@ -179,15 +182,14 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"/>
             <ImageView
-                android:layout_width="0dp"
+                android:layout_width="48dp"
                 android:layout_height="0dp"
                 android:id="@+id/micBtn"
                 android:onClick="mic"
                 android:elevation="2dp"
+                android:contentDescription="@string/todo"
                 app:layout_constraintDimensionRatio="1:1"
                 android:layout_marginStart="20dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp"
                 android:padding="7dp"
                 android:src="@drawable/mic_off"
                 android:background="@drawable/small_button_bg"
