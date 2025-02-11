@@ -104,7 +104,7 @@ public class FeedService extends Service implements ForegroundNotifier {
     }
 
     public void onActivityStateChanged(boolean isRestarting) {
-        feedManager.restartImageFeed(isRestarting);
+        feedManager.onActivityStateChanged(isRestarting);
     }
 
 

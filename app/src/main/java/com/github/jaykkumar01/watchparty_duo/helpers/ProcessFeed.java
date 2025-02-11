@@ -1,5 +1,7 @@
 package com.github.jaykkumar01.watchparty_duo.helpers;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
@@ -7,10 +9,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProcessFeed {
@@ -24,15 +23,21 @@ public class ProcessFeed {
     private final AtomicBoolean stopImageProcessing = new AtomicBoolean(false);
     private final TextureRenderer textureRenderer;
 
+    private int framesDrawn = 0;
+    private int framesSkipped = 0;
+    private int framesReturned = 0;
+    private final Handler logHandler = new Handler(Looper.getMainLooper());
+
     public ProcessFeed(FeedListener feedListener) {
         this.feedListener = feedListener;
         this.audioPlayer = new AudioPlayer(feedListener);
-        this.textureRenderer = new TextureRenderer(feedListener,false);
+        this.textureRenderer = new TextureRenderer(feedListener, false);
     }
 
     public void setTextureView(TextureView textureView){
         this.textureView = textureView;
     }
+
     public void startAudioProcess() {
         audioPlayer.start();
     }
@@ -48,7 +53,7 @@ public class ProcessFeed {
 
     public void stopImageProcess() {
         stopImageProcessing.set(true);
-        imageScheduler.shutdownNow();  // Cancel all scheduled tasks
+        imageScheduler.shutdownNow();
         imageProcessingExecutor.shutdownNow();
         updateListener("Image processing stopped");
     }
@@ -63,17 +68,16 @@ public class ProcessFeed {
 
     public void processImageFeed(List<FeedModel> models) {
 
-        if (models.isEmpty() || stopImageProcessing.get()) return;
+        // this is the entry point so check how many are here count
+        if (models.isEmpty() || stopImageProcessing.get()) return; //
 
-        long firstTimestamp = models.get(0).getTimestamp(); // Reference timestamp
-        int i=0;
+        long firstTimestamp = models.get(0).getTimestamp();
+
         for (FeedModel model : models) {
-            long delay = model.getTimestamp() - firstTimestamp; // Calculate delay based on the first frame
-            if (delay <= 0){
-                continue;
-            }
+            long delay = model.getTimestamp() - firstTimestamp;
+            if (delay <= 0) continue;
 
-            synchronized (this) {  // Ensures only one thread checks/reinitializes at a time
+            synchronized (this) {
                 if (imageScheduler.isShutdown()) {
                     imageScheduler = Executors.newSingleThreadScheduledExecutor();
                 }
@@ -84,11 +88,13 @@ public class ProcessFeed {
 
     private void renderImage(FeedModel model) {
         if (stopImageProcessing.get()) {
-            return; // Drop frame if processing is stopped or another image is in process
+            return;
         }
 
         synchronized (isProcessingImage) {
-            if (isProcessingImage.get()) return; // Double-check within sync block
+            if (isProcessingImage.get()) {
+                return;
+            }
             isProcessingImage.set(true);
         }
 
@@ -100,7 +106,9 @@ public class ProcessFeed {
         imageProcessingExecutor.execute(() -> {
             try {
                 byte[] imageBytes = model.getBase64Bytes();
-                if (imageBytes == null || imageBytes.length == 0) return;
+                if (imageBytes == null || imageBytes.length == 0) {
+                    return;
+                }
 
                 textureRenderer.updateTexture(textureView, imageBytes);
             } catch (Exception e) {
@@ -109,6 +117,21 @@ public class ProcessFeed {
                 isProcessingImage.set(false);
             }
         });
+    }
+
+    private void startLogging() {
+        logHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                updateListener("ProcessFeed - Drawn: " + framesDrawn +
+                        " | Skipped: " + framesSkipped +
+                        " | Returned: " + framesReturned);
+                framesDrawn = 0;
+                framesSkipped = 0;
+                framesReturned = 0;
+                logHandler.postDelayed(this, 1000);
+            }
+        }, 1000);
     }
 
     private void updateListener(String logMessage) {

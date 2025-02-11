@@ -35,7 +35,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final Context context;
     private final WebSocketSender webSocketSender;
     private final ProcessFeed processFeed;
-    private ExecutorService packetExecutor = Executors.newCachedThreadPool();
+    private ExecutorService packetExecutor = Executors.newSingleThreadExecutor();
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
@@ -52,12 +52,22 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.processFeed = new ProcessFeed(this);
     }
 
-    public void restartImageFeed(boolean isRestarting) {
+    public void onActivityStateChanged(boolean isRestarting) {
         if (isRestarting){
             startImageFeed();
+            startProcessFeed();
         }else {
             stopImageFeed();
+            stopProcessFeed();
         }
+    }
+
+    private void stopProcessFeed() {
+        processFeed.stopImageProcess();
+    }
+
+    private void startProcessFeed() {
+        processFeed.startImageProcess();
     }
 
 
