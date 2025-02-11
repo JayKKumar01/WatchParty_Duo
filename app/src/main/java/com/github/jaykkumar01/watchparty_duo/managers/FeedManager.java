@@ -9,6 +9,7 @@ import android.view.TextureView;
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
@@ -17,7 +18,7 @@ import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
 import com.github.jaykkumar01.watchparty_duo.helpers.WebSocketSender;
 import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeed;
-import com.github.jaykkumar01.watchparty_duo.webfeed.WebFeedListener;
+import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -35,7 +36,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final Context context;
     private final WebSocketSender webSocketSender;
     private final ProcessFeed processFeed;
-    private ExecutorService packetExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService packetExecutor = Executors.newCachedThreadPool();
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
@@ -213,17 +214,25 @@ public class FeedManager implements FeedListener,WebFeedListener{
                         case FeedType.IMAGE_FEED:
                             packetModel.imageFeedReceived();
                             imageFeeds.add(model);
+                            synchronized (this) {
+                                Packets.imagePacketReceived++;
+                            }
                             break;
                         case FeedType.AUDIO_FEED:
                             packetModel.audioFeedReceived();
                             audioFeeds.add(model);
+                            synchronized (this) {
+                                Packets.audioPacketReceived++;
+                            }
                             break;
                     }
                 }
+
                 if (packetExecutor.isShutdown()){
                     packetExecutor = Executors.newCachedThreadPool();
                 }
                 packetExecutor.execute(() -> processFeed.processImageFeed(imageFeeds));
+
                 if (packetExecutor.isShutdown()){
                     packetExecutor = Executors.newCachedThreadPool();
                 }

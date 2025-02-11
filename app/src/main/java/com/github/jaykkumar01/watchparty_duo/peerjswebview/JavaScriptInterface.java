@@ -3,7 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.peerjswebview;
 import android.content.Context;
 import android.webkit.JavascriptInterface;
 
-import com.github.jaykkumar01.watchparty_duo.webviewutils.PeerListener;
+import com.github.jaykkumar01.watchparty_duo.listeners.PeerListener;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -140,19 +140,23 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     public void mic(View view) {
+        if(isDeafen && !isMute){
+            isMute = true;
+        }
         isMute = !isMute;
-        updateMicState();
+        updateMicState(isMute);
     }
 
     public void deafen(View view) {
         isDeafen = !isDeafen;
-        updateDeafenState();
+        updateDeafenState(isDeafen);
     }
 
-    private void updateMicState() {
+    private void updateMicState(boolean isMute) {
+
         if (!isMute && isDeafen) {
             isDeafen = false;
-            updateDeafenState();
+            updateDeafenState(false);
         }
 
         micImageView.setImageResource(isMute ? R.drawable.mic_off : R.drawable.mic_on);
@@ -162,13 +166,16 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    private void updateDeafenState() {
+    private void updateDeafenState(boolean isDeafen) {
+
         if (isDeafen) {
-            isMute = true;
-            updateMicState();
+            if (!isMute) {
+                updateMicState(true);
+            }
         } else if (!isMute) {
-            updateMicState();
+            updateMicState(false);
         }
+
 
         deafenImageView.setImageResource(isDeafen ? R.drawable.deafen_on : R.drawable.deafen_off);
         FeedService feedService = FeedService.getInstance();

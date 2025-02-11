@@ -3,6 +3,8 @@ package com.github.jaykkumar01.watchparty_duo.audiofeed;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
+
+import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -47,6 +49,9 @@ public class AudioPlayer {
 
         try {
             audioTrack.write(audioData, 0, audioData.length);
+            synchronized (this){
+                Packets.audioPacketExecuted++;
+            }
         } catch (IllegalStateException e) {
             Log.e("AudioPlayer", "Error writing audio data: ", e);
             reset();

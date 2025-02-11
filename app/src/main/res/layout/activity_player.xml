@@ -30,7 +30,10 @@
             android:layout_height="wrap_content"
             android:textColor="@color/theme_color"
             android:textSize="14sp"
-            android:typeface="monospace" />
+            android:typeface="monospace"
+            android:letterSpacing="0"
+            android:includeFontPadding="false" />
+
     </ScrollView>
 
     <androidx.constraintlayout.widget.ConstraintLayout

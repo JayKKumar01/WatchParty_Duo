@@ -4,10 +4,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
+
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
+import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
+
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,9 +35,10 @@ public class ProcessFeed {
         this.feedListener = feedListener;
         this.audioPlayer = new AudioPlayer(feedListener);
         this.textureRenderer = new TextureRenderer(feedListener, false);
+        startLogging();
     }
 
-    public void setTextureView(TextureView textureView){
+    public void setTextureView(TextureView textureView) {
         this.textureView = textureView;
     }
 
@@ -66,16 +70,15 @@ public class ProcessFeed {
         }
     }
 
-    public void processImageFeed(List<FeedModel> models) {
 
-        // this is the entry point so check how many are here count
-        if (models.isEmpty() || stopImageProcessing.get()) return; //
+    public void processImageFeed(List<FeedModel> models) {
+        if (models.isEmpty() || stopImageProcessing.get()) return;
 
         long firstTimestamp = models.get(0).getTimestamp();
 
         for (FeedModel model : models) {
             long delay = model.getTimestamp() - firstTimestamp;
-            if (delay <= 0) continue;
+            if (delay < 0) continue;
 
             synchronized (this) {
                 if (imageScheduler.isShutdown()) {
@@ -98,8 +101,8 @@ public class ProcessFeed {
             isProcessingImage.set(true);
         }
 
-        synchronized (this){
-            if (imageProcessingExecutor.isShutdown()){
+        synchronized (this) {
+            if (imageProcessingExecutor.isShutdown()) {
                 imageProcessingExecutor = Executors.newCachedThreadPool();
             }
         }
@@ -109,13 +112,14 @@ public class ProcessFeed {
                 if (imageBytes == null || imageBytes.length == 0) {
                     return;
                 }
-
                 textureRenderer.updateTexture(textureView, imageBytes);
+
             } catch (Exception e) {
                 Log.e("ProcessFeed", "Error processing image feed", e);
             } finally {
                 isProcessingImage.set(false);
             }
+
         });
     }
 
@@ -123,12 +127,8 @@ public class ProcessFeed {
         logHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                updateListener("ProcessFeed - Drawn: " + framesDrawn +
-                        " | Skipped: " + framesSkipped +
-                        " | Returned: " + framesReturned);
-                framesDrawn = 0;
-                framesSkipped = 0;
-                framesReturned = 0;
+                updateListener("Image Packet Wasted: "+ (Packets.imagePacketReceived - Packets.imagePacketExecuted));
+                updateListener("Audio Packet Wasted: "+ (Packets.audioPacketReceived - Packets.audioPacketExecuted));
                 logHandler.postDelayed(this, 1000);
             }
         }, 1000);

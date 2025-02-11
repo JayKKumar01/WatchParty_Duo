@@ -2,6 +2,8 @@ package com.github.jaykkumar01.watchparty_duo.webfeed;
 
 import android.webkit.JavascriptInterface;
 
+import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
+
 public class WebBridge {
     private final WebFeedListener webFeedListener;
 

@@ -12,6 +12,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 
 @SuppressLint("StaticFieldLeak")

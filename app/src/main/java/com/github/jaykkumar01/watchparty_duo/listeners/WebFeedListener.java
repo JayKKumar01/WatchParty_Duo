@@ -1,4 +1,4 @@
-package com.github.jaykkumar01.watchparty_duo.webfeed;
+package com.github.jaykkumar01.watchparty_duo.listeners;
 
 public interface WebFeedListener {
     void onPeerOpen(String peerId);

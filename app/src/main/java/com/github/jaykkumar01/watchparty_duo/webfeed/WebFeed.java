@@ -3,6 +3,8 @@ package com.github.jaykkumar01.watchparty_duo.webfeed;
 import android.content.Context;
 import android.webkit.WebView;
 
+import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
+
 public class WebFeed{
     private final WebFeedListener webFeedListener;
     private final WebFeedHelper helper;
