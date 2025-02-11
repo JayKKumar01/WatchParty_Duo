@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.view.TextureView;
-import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
@@ -45,6 +44,10 @@ public class FeedService extends Service implements ForegroundNotifier {
         feedManager.connect(remoteId);
     }
 
+    public void isVideo(boolean isVideo) {
+        feedManager.isVideo(isVideo);
+    }
+
     public void muteAudio(boolean mute){
         feedManager.muteAudio(mute);
     }
@@ -64,7 +67,6 @@ public class FeedService extends Service implements ForegroundNotifier {
 
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "FeedService: onDestroy", Toast.LENGTH_SHORT).show();
         RefHelper.reset(instanceRef);
         feedManager.stopFeeds();
         notificationHelper.cancelNotification();
@@ -104,4 +106,6 @@ public class FeedService extends Service implements ForegroundNotifier {
     public void onActivityStateChanged(boolean isRestarting) {
         feedManager.restartImageFeed(isRestarting);
     }
+
+
 }

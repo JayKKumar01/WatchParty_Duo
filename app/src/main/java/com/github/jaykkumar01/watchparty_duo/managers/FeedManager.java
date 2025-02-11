@@ -111,6 +111,14 @@ public class FeedManager implements FeedListener,WebFeedListener{
         audioFeed.stop();
     }
 
+    public void isVideo(boolean isVideo) {
+        if (isVideo){
+            imageFeed.initializeCamera();
+        }else {
+            imageFeed.releaseResources();
+        }
+    }
+
     public void muteAudio(boolean mute) {
         if (mute) {
             audioFeed.stop();
@@ -211,4 +219,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
         });
 
     }
+
+
 }

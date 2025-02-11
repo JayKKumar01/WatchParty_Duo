@@ -8,7 +8,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -22,119 +21,96 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.helpers.CircularOutlineProvider;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
-import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
-import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
 import java.lang.ref.WeakReference;
 
-public class PlayerActivity extends AppCompatActivity implements FeedListener {
+public class PlayerActivity extends AppCompatActivity {
 
+    // Static reference to the activity
     private static WeakReference<PlayerActivity> instanceRef;
-    private ImageFeed imageFeed;
-    private ImageView micImageView;
-    private ImageView deafenImageView;
 
     public static PlayerActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
     }
 
-
-    private PlayerView playerView;
-    private TextView userName;
-    private ExoPlayer player;
-    private ActivityResultLauncher<String> pickVideoLauncher;
-
-    private PeerModel peerModel;
-    private TextureView peerFeedTextureView,remoteFeedTextureView;
-
+    // UI Components
+    private ImageView micImageView, videoImageView, deafenImageView;
+    private TextView friendName, logTextView;
+    private TextureView peerFeedTextureView, remoteFeedTextureView;
     private ScrollView logScrollView;
-    private TextView logTextView;
-    private LogUpdater logUpdater;
 
-    boolean isMute = true;
-    boolean isDeafen;
+    // Other components
+    private LogUpdater logUpdater;
+    private ActivityResultLauncher<String> pickVideoLauncher;
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    // State variables
+    private boolean isMute = true;
+    private boolean isDeafen = false;
+    private boolean isVideo = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_player);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-
         instanceRef = new WeakReference<>(this);
 
-        initViews();
+        setupUI();
+        setupListeners();
+        setupPickVideoLauncher();
 
-        peerFeedTextureView.setOutlineProvider(new CircularOutlineProvider());
-        peerFeedTextureView.setClipToOutline(true);
-
-        setupLogUpdater();
-        setupScrollListener();
-
-        // Retrieve extras from the intent
+        // Retrieve peer info
         Intent intent = getIntent();
         if (intent != null) {
-            peerModel = (PeerModel) intent.getSerializableExtra(Constants.PEER);
+            PeerModel peerModel = (PeerModel) intent.getSerializableExtra(Constants.PEER);
             if (peerModel != null) {
-                userName.setText(peerModel.getName());
+                friendName.setText(peerModel.getName());
             }
         }
 
-
-        setupPickVideoLauncher();
-
+        // Connect feed surfaces to FeedService
         FeedService feedService = FeedService.getInstance();
-        if (feedService != null){
-            feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
+        if (feedService != null) {
+            feedService.setFeedSurfaces(peerFeedTextureView, remoteFeedTextureView);
         }
-
     }
 
-    private void setupLogUpdater() {
+    private void setupUI() {
+        logScrollView = findViewById(R.id.logScrollView);
+        logTextView = findViewById(R.id.logTextView);
+        friendName = findViewById(R.id.remotePeerName);
+        peerFeedTextureView = findViewById(R.id.peerFeed);
+        remoteFeedTextureView = findViewById(R.id.remoteFeed);
+        micImageView = findViewById(R.id.micBtn);
+        deafenImageView = findViewById(R.id.deafenBtn);
+        videoImageView = findViewById(R.id.videoBtn);
+
         logUpdater = new LogUpdater(logTextView, logScrollView);
         logUpdater.addLogMessage("Check logs here...");
     }
 
-    private void setupScrollListener() {
+    private void setupListeners() {
         logScrollView.getViewTreeObserver().addOnScrollChangedListener(() -> {
             boolean isUserScrolling = logScrollView.getScrollY() < logTextView.getHeight() - logScrollView.getHeight();
             logUpdater.setUserScrolling(isUserScrolling);
         });
     }
 
-    public void addLog(String message) {
-        if (logUpdater != null) {
-            logUpdater.addLogMessage(message);
-        }
-    }
-
-    private void initViews() {
-        logScrollView = findViewById(R.id.logScrollView);
-        logTextView = findViewById(R.id.logTextView);
-//        playerView = findViewById(R.id.player_view);
-        userName = findViewById(R.id.userName);
-        peerFeedTextureView = findViewById(R.id.peerFeed);
-        remoteFeedTextureView = findViewById(R.id.remoteFeed);
-
-        micImageView = findViewById(R.id.micBtn);
-        deafenImageView = findViewById(R.id.deafenBtn);
-    }
     private void setupPickVideoLauncher() {
         pickVideoLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -143,69 +119,60 @@ public class PlayerActivity extends AppCompatActivity implements FeedListener {
     }
 
     private void initializePlayer(Uri uri) {
-    }
-
-
-
-
-    public void refreshLayout(View view) {
-    }
-
-    public void offlineAddLayout(View view) {
-    }
-
-    public void onlineAddLayout(View view) {
+        // TODO: Implement video player initialization
     }
 
     public void selectVideo(View view) {
         pickVideoLauncher.launch("video/*");
     }
 
-    public void startSyncPlay(View view) {
+    public void video(View view) {
+        isVideo = !isVideo;
+        updateVideoState();
     }
 
-    public void createYouTubeUrl(View view) {
-    }
-
-    public void joinYouTubeVideo(View view) {
-    }
-
-    public void toggleLayout(View view) {
-    }
-
-    public void closeLive(View view) {
+    private void updateVideoState() {
+        videoImageView.setImageResource(isVideo ? R.mipmap.video_on_foreground : R.mipmap.video_off_foreground);
+        FeedService feedService = FeedService.getInstance();
+        if (feedService != null) {
+            feedService.isVideo(isVideo);
+        }
     }
 
     public void mic(View view) {
         isMute = !isMute;
-        setIsMute(isMute);
+        updateMicState();
     }
+
     public void deafen(View view) {
         isDeafen = !isDeafen;
-        setIsDeafen(isDeafen);
+        updateDeafenState();
     }
-    private void setIsMute(boolean isMute){
-        if (!isMute && isDeafen){
+
+    private void updateMicState() {
+        if (!isMute && isDeafen) {
             isDeafen = false;
-            setIsDeafen(false);
+            updateDeafenState();
         }
 
         micImageView.setImageResource(isMute ? R.drawable.mic_off : R.drawable.mic_on);
         FeedService feedService = FeedService.getInstance();
-        if (feedService != null){
+        if (feedService != null) {
             feedService.muteAudio(isMute);
         }
     }
 
-    private void setIsDeafen(boolean isDeafen){
-        if (isDeafen){
-            setIsMute(true);
-        }else if (!isMute){
-            setIsMute(false);
+    private void updateDeafenState() {
+        if (isDeafen) {
+            isMute = true;
+            updateMicState();
+        } else if (!isMute) {
+            updateMicState();
         }
+
         deafenImageView.setImageResource(isDeafen ? R.drawable.deafen_on : R.drawable.deafen_off);
         FeedService feedService = FeedService.getInstance();
-        if (feedService != null){
+        if (feedService != null) {
             feedService.deafenAudio(isDeafen);
         }
     }
@@ -226,7 +193,7 @@ public class PlayerActivity extends AppCompatActivity implements FeedListener {
             @Override
             public void run() {
                 if (secondsLeft > 0) {
-                    addLog("Returning to Homepage in " + secondsLeft + (secondsLeft == 1 ? " second..." : " seconds..."));
+                    addLog("Returning to Homepage in " + secondsLeft + " second(s)...");
                     secondsLeft--;
                     handler.postDelayed(this, 1000);
                 } else {
@@ -234,40 +201,25 @@ public class PlayerActivity extends AppCompatActivity implements FeedListener {
                 }
             }
         };
-
         handler.post(countdownRunnable);
     }
 
-
-    public void sendMessage(View view) {
-    }
-
-
-    @Override
-    public void onFeed(byte[] bytes, long millis, int feedType) {
-
-    }
-
-    @Override
-    public void onError(String err) {
-
-    }
-
-    @Override
-    public void onUpdate(String logMessage) {
-
+    public void addLog(String message) {
+        if (logUpdater != null) {
+            logUpdater.addLogMessage(message);
+        }
     }
 
     @Override
     protected void onDestroy() {
-        if (FeedService.getInstance() != null){
-            FeedService.getInstance().stopService();
+        FeedService feedService = FeedService.getInstance();
+        if (feedService != null) {
+            feedService.stopService();
         }
         RefHelper.reset(instanceRef);
         super.onDestroy();
         Log.d("PlayerActivity", "onDestroy called! Is finishing: " + isFinishing());
     }
-
 
     @Override
     protected void onRestart() {
@@ -287,6 +239,4 @@ public class PlayerActivity extends AppCompatActivity implements FeedListener {
             feedService.onActivityStateChanged(isRestarting);
         }
     }
-
-
 }
