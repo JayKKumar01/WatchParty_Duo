@@ -2,6 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.helpers;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Base64;
 import android.util.Log;
 import android.view.TextureView;
 
@@ -52,14 +53,19 @@ public class ProcessFeed {
 
     public void stopImageProcess() {
         stopImageProcessing.set(true);
-        imageScheduler.shutdownNow();
-        imageProcessingExecutor.shutdownNow();
+        if (imageScheduler != null && !imageScheduler.isShutdown()){
+            imageScheduler.shutdownNow();
+        }
+        if (imageProcessingExecutor != null && !imageScheduler.isShutdown()){
+            imageProcessingExecutor.shutdownNow();
+        }
         updateListener("Image processing stopped");
     }
 
     public void processAudioFeed(List<FeedModel> models) {
         for (FeedModel model : models) {
-            byte[] audioBytes = model.getBase64Bytes();
+            String base64 = model.getAudioFeedModel().getBase64Data();
+            byte[] audioBytes = Base64.decode(base64,Base64.NO_WRAP);
             if (audioBytes == null || audioBytes.length == 0) continue;
             audioPlayer.play(audioBytes);
         }
@@ -103,7 +109,8 @@ public class ProcessFeed {
         }
         imageProcessingExecutor.execute(() -> {
             try {
-                byte[] imageBytes = model.getBase64Bytes();
+                String base64 = model.getImageFeedModel().getBase64Data();
+                byte[] imageBytes = Base64.decode(base64, Base64.NO_WRAP);
                 if (imageBytes == null || imageBytes.length == 0) {
                     return;
                 }
@@ -131,6 +138,7 @@ public class ProcessFeed {
     }
     public void stop(){
         logHandler.removeCallbacks(logRunnable);
+        stopImageProcess();
     }
 
     private void updateListener(String logMessage) {

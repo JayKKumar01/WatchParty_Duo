@@ -19,6 +19,7 @@ import com.github.jaykkumar01.watchparty_duo.converters.YUVConverter;
 import com.github.jaykkumar01.watchparty_duo.helpers.DisplayHelper;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
+import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
@@ -99,7 +100,9 @@ public class ImageProcessor {
                 if (imageQueue.size() >= Feed.IMAGE_READER_BUFFER) {
                     imageQueue.poll();
                 }
-                imageQueue.offer(new FeedModel(finalBytes, timestamp));
+                FeedModel feedModel = new FeedModel(new ImageFeedModel(finalBytes));
+                feedModel.setTimestamp(timestamp);
+                imageQueue.offer(feedModel);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -138,7 +141,7 @@ public class ImageProcessor {
 
         if (middleModel == null) return;
 
-        byte[] bytes = middleModel.getBytes();
+        byte[] bytes = middleModel.getImageFeedModel().getRawData();
         long timeStamp = middleModel.getTimestamp();
 
         if (feedListener != null) {

@@ -1,15 +1,17 @@
 package com.github.jaykkumar01.watchparty_duo.helpers;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
 import android.webkit.WebView;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
+import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
+import com.github.jaykkumar01.watchparty_duo.models.AudioFeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.FeedSizeTracker;
+import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -24,19 +26,13 @@ import java.util.concurrent.TimeUnit;
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
     private final Queue<FeedModel> base64Queue = new ConcurrentLinkedQueue<FeedModel>();
-    private Context context;
-    private ForegroundNotifier foregroundNotifier;
+    private final ForegroundNotifier foregroundNotifier;
     private final Gson gson = new Gson();
     private final FeedSizeTracker feedSizeTracker = new FeedSizeTracker(); // Instance of tracker
     private ExecutorService dataExecutor = Executors.newCachedThreadPool();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    public WebSocketSender(Context context, ForegroundNotifier foregroundNotifier) {
-        this.context = context;
-        this.foregroundNotifier = foregroundNotifier;
-    }
-
-    public void setForegroundNotifier(ForegroundNotifier foregroundNotifier) {
+    public WebSocketSender(ForegroundNotifier foregroundNotifier) {
         this.foregroundNotifier = foregroundNotifier;
     }
 
@@ -85,13 +81,15 @@ public class WebSocketSender {
             }
 
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
-            FeedModel feedModel = new FeedModel(base64, timestamp);
-            feedModel.setFeedType(feedType);
+
+            FeedModel feedModel = new FeedModel(feedType);
+            feedModel.setTimestamp(timestamp);
+            if (feedType == FeedType.IMAGE_FEED){
+                feedModel.setImageFeedModel(new ImageFeedModel(base64));
+            }else if (feedType == FeedType.AUDIO_FEED){
+                feedModel.setAudioFeedModel(new AudioFeedModel(base64));
+            }
             base64Queue.add(feedModel);
         });
-    }
-
-    public void addSignalData(FeedModel feedModel) {
-        base64Queue.add(feedModel);
     }
 }

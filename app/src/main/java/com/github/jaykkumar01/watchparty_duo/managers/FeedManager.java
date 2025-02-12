@@ -118,11 +118,15 @@ public class FeedManager implements FeedListener,WebFeedListener{
     public void startFeeds() {
         webFeed.start();
         audioFeed.start();
-        imageFeed.initializeCamera();
+        if (imageFeed != null) {
+            imageFeed.initializeCamera();
+        }
     }
 
     public void stopFeeds() {
-        imageFeed.releaseResources();
+        if (imageFeed != null) {
+            imageFeed.releaseResources();
+        }
         webFeed.stop();
         audioFeed.stop();
     }
@@ -226,7 +230,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
         this.audioFeed = new AudioFeed(context,this);
         this.imageFeed = new ImageFeed(context,this);
-        this.webSocketSender = new WebSocketSender(context,foregroundNotifier);
+        this.webSocketSender = new WebSocketSender(foregroundNotifier);
         this.processFeed.start();
 
         updateConnectionStatus(peerId,remoteId);
@@ -326,6 +330,10 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
 
     public void destroy() {
+        if (packetExecutor != null && !packetExecutor.isShutdown()){
+            packetExecutor.shutdownNow();
+        }
+        offset = -1;
         stopFeeds();
         stopLoggingUpdates();
         processFeed.stop();

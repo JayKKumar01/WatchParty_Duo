@@ -1,61 +1,51 @@
 package com.github.jaykkumar01.watchparty_duo.models;
 
-import android.util.Base64;
-
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
 
 public class FeedModel implements Serializable {
-    private String base64ImageBytes;
-    private final long timestamp;
-    private byte[] bytes;
+    private ImageFeedModel imageFeedModel;
+    private AudioFeedModel audioFeedModel;
+    private SignalFeedModel signalFeedModel;
+
     private int feedType;
-    private String signalMessage;
+    private long timestamp;
 
-    private List<HashMap<String,String>> configList;
-
-    public FeedModel(String base64ImageBytes, long timestamp) {
-        this.base64ImageBytes = base64ImageBytes;
-        this.timestamp = timestamp;
+    public FeedModel(ImageFeedModel imageFeedModel, AudioFeedModel audioFeedModel, SignalFeedModel signalFeedModel) {
+        this.imageFeedModel = imageFeedModel;
+        this.audioFeedModel = audioFeedModel;
+        this.signalFeedModel = signalFeedModel;
     }
 
-    public FeedModel(byte[] bytes, long timestamp) {
-        this.timestamp = timestamp;
-        this.bytes = bytes;
+    public FeedModel(ImageFeedModel imageFeedModel) {
+        this.imageFeedModel = imageFeedModel;
     }
 
-    public FeedModel(int feedType,long timestamp) {
+    public FeedModel(int feedType) {
         this.feedType = feedType;
-        this.timestamp = timestamp;
     }
 
-    public List<HashMap<String, String>> getConfigList() {
-        return configList;
+    public ImageFeedModel getImageFeedModel() {
+        return imageFeedModel;
     }
 
-    public void setConfigList(List<HashMap<String, String>> configList) {
-        this.configList = configList;
+    public void setImageFeedModel(ImageFeedModel imageFeedModel) {
+        this.imageFeedModel = imageFeedModel;
     }
 
-    public String getSignalMessage() {
-        return signalMessage;
+    public AudioFeedModel getAudioFeedModel() {
+        return audioFeedModel;
     }
 
-    public void setSignalMessage(String signalMessage) {
-        this.signalMessage = signalMessage;
+    public void setAudioFeedModel(AudioFeedModel audioFeedModel) {
+        this.audioFeedModel = audioFeedModel;
     }
 
-    public byte[] getBytes() {
-        return bytes;
+    public SignalFeedModel getSignalFeedModel() {
+        return signalFeedModel;
     }
 
-    public byte[] getBase64Bytes() {
-        return Base64.decode(base64ImageBytes,Base64.NO_WRAP);
-    }
-
-    public long getTimestamp() {
-        return timestamp;
+    public void setSignalFeedModel(SignalFeedModel signalFeedModel) {
+        this.signalFeedModel = signalFeedModel;
     }
 
     public int getFeedType() {
@@ -64,5 +54,13 @@ public class FeedModel implements Serializable {
 
     public void setFeedType(int feedType) {
         this.feedType = feedType;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }
