@@ -17,8 +17,8 @@ public class WebBridge {
     }
 
     @JavascriptInterface
-    public void onConnectionOpen(String peerId, String remoteId) {
-        webFeedListener.onConnectionOpen(peerId, remoteId);
+    public void onConnectionOpen(String peerId, String remoteId,int count) {
+        webFeedListener.onConnectionOpen(peerId, remoteId,count);
     }
 
     @JavascriptInterface

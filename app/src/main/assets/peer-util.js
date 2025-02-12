@@ -7,6 +7,8 @@ let conn = null;
 let isPeerOpen = false;
 let isConnectionOpen = false;
 
+let count = 0;
+
 //initPeer
 
 function initPeer() {
@@ -50,7 +52,7 @@ function setupConnection(connection) {
     conn.on('open', () => {
         isConnectionOpen = true;
         remoteId = conn.peer.replace(peerBranch, ""); // Remove the prefix
-        Android.onConnectionOpen(peerId, remoteId);
+        Android.onConnectionOpen(peerId, remoteId, count++);
         onConnectionOpen();
     });
 
@@ -80,6 +82,35 @@ function connect(otherPeerId) {
         }, 4000);
     }
 }
+
+
+function connectRemotePeer(otherPeerId, metadataJson) {
+    const targetPeerId = byteArrayToString(otherPeerId);
+    if (targetPeerId !== '') {
+        try {
+            const metadata = JSON.stringify(metadataJson);
+            
+            // Establish a connection with metadata
+            const connection = peer.connect(peerBranch + targetPeerId, { 
+                reliable: true, 
+                metadata: metadata // Pass metadata while connecting 
+            });
+
+            setupConnection(connection);
+
+            // Check if the connection is still closed after 4 seconds
+            setTimeout(() => {
+                if (!connection.open) {
+                    connection.close();
+                }
+            }, 4000);
+        } catch (error) {
+            console.error("Failed to parse metadata JSON:", error);
+        }
+    }
+}
+
+
 
 function sendData(data) {
     if (conn && conn.open) {

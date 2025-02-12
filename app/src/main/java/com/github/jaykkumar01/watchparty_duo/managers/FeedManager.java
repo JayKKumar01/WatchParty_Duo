@@ -40,6 +40,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
+    private boolean isSender;
 
 
     public FeedManager(Context context, ForegroundNotifier foregroundNotifier) {
@@ -53,21 +54,21 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.processFeed = new ProcessFeed(this);
     }
 
-    public void onActivityStateChanged(boolean isRestarting) {
-        if (isRestarting){
+    public void onActivityStateChanged(boolean isRestarting, boolean isVideo) {
+        if (isRestarting && isVideo){
             startImageFeed();
-            startProcessFeed();
+            startImageProcessFeed();
         }else {
             stopImageFeed();
-            stopProcessFeed();
+            stopImageProcessFeed();
         }
     }
 
-    private void stopProcessFeed() {
+    private void stopImageProcessFeed() {
         processFeed.stopImageProcess();
     }
 
-    private void startProcessFeed() {
+    private void startImageProcessFeed() {
         processFeed.startImageProcess();
     }
 
@@ -89,6 +90,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
     public void connect(String remoteId) {
+        isSender = true;
         webFeed.connect(remoteId);
     }
 
@@ -180,7 +182,15 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
     @Override
-    public void onConnectionOpen(String peerId, String remoteId) {
+    public void onConnectionOpen(String peerId, String remoteId, int count) {
+        if (count > 0){
+            foregroundNotifier.onUpdateLogs("Already Connected: "+count);
+            return;
+        }
+        updateConnectionStatus(peerId,remoteId);
+    }
+
+    private void updateConnectionStatus(String peerId, String remoteId){
         startLoggingUpdates();
         foregroundNotifier.updateNotification(true);
         FeedActivity feedActivity = FeedActivity.getInstance();
@@ -225,6 +235,8 @@ public class FeedManager implements FeedListener,WebFeedListener{
                                 Packets.audioPacketReceived++;
                             }
                             break;
+
+
                     }
                 }
 

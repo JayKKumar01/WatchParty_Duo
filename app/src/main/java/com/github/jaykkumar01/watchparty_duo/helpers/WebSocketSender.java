@@ -90,5 +90,7 @@ public class WebSocketSender {
         });
     }
 
-
+    public void addSignalData(FeedModel feedModel) {
+        base64Queue.add(feedModel);
+    }
 }

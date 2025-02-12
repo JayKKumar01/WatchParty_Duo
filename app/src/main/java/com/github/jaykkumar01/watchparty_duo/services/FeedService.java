@@ -103,8 +103,8 @@ public class FeedService extends Service implements ForegroundNotifier {
         return feedManager;
     }
 
-    public void onActivityStateChanged(boolean isRestarting) {
-        feedManager.onActivityStateChanged(isRestarting);
+    public void onActivityStateChanged(boolean isRestarting, boolean isVideo) {
+        feedManager.onActivityStateChanged(isRestarting,isVideo);
     }
 
 

@@ -204,7 +204,9 @@ public class PlayerActivity extends AppCompatActivity {
                     secondsLeft--;
                     handler.postDelayed(this, 1000);
                 } else {
-                    endCall(null);
+                    if (instanceRef.get() != null) {
+                        endCall(null);
+                    }
                 }
             }
         };
@@ -230,20 +232,20 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onRestart() {
-        notifyFeedService(true);
+        notifyImageFeedService(true);
         super.onRestart();
     }
 
     @Override
     protected void onStop() {
-        notifyFeedService(false);
+        notifyImageFeedService(false);
         super.onStop();
     }
 
-    private void notifyFeedService(boolean isRestarting) {
+    private void notifyImageFeedService(boolean isRestarting) {
         FeedService feedService = FeedService.getInstance();
         if (feedService != null) {
-            feedService.onActivityStateChanged(isRestarting);
+            feedService.onActivityStateChanged(isRestarting,isVideo);
         }
     }
 }

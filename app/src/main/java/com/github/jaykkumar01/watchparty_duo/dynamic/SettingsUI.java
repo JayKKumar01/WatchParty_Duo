@@ -33,6 +33,7 @@ public class SettingsUI {
         LinearLayout layout = new LinearLayout(context);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(50, 30, 50, 30);
+        layout.setBackgroundColor(ContextCompat.getColor(context,R.color.discord_bg));
 
         LinearLayout topLayout = new LinearLayout(context);
         topLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -41,7 +42,7 @@ public class SettingsUI {
         TextView title = new TextView(context);
         title.setText(R.string.video_call_settings);
         title.setTextSize(18);
-        title.setTextColor(context.getResources().getColor(R.color.white));
+        title.setTextColor(ContextCompat.getColor(context,R.color.white));
         title.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
         ImageButton btnReset = new ImageButton(context);
@@ -117,7 +118,7 @@ public class SettingsUI {
         TextView textView = new TextView(context);
         textView.setText(text);
         textView.setTextSize(18);
-        textView.setTextColor(context.getResources().getColor(R.color.white));
+        textView.setTextColor(ContextCompat.getColor(context,R.color.white));
         return textView;
     }
 

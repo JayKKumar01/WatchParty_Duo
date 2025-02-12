@@ -2,7 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.listeners;
 
 public interface WebFeedListener {
     void onPeerOpen(String peerId);
-    void onConnectionOpen(String peerId, String remoteId);
+    void onConnectionOpen(String peerId, String remoteId, int count);
     void onBatchReceived(String jsonData);
 
     void onUpdate(String message);
