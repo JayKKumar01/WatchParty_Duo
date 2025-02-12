@@ -14,4 +14,6 @@
     <string name="name">Name</string>
     <string name="user_code">User - Code</string>
     <string name="room_code_optional">Room Code (Optional)</string>
+    <string name="video_call_settings">Video Call Settings</string>
+    <string name="submit">Submit</string>
 </resources>

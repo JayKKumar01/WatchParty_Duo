@@ -19,6 +19,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.dynamic.SettingsUI;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
@@ -273,5 +274,20 @@ public class FeedActivity extends AppCompatActivity {
             }
         }
         super.onDestroy();
+    }
+
+    SettingsUI.SettingsUICallback callback = new SettingsUI.SettingsUICallback() {
+        @Override
+        public void onSubmit(String result) {
+            addLog(result);
+        }
+    };
+    public void settings(View view) {
+        SettingsUI.showSettingsDialog(this,callback);
+    }
+
+
+    public void changeVideoSettings(View view) {
+        SettingsUI.showSettingsDialog(this, this::addLog);
     }
 }
