@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
-import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
@@ -39,12 +38,12 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
     private final Context context;
     private WebSocketSender webSocketSender;
-    private ProcessFeed processFeed;
+    private final ProcessFeed processFeed;
     private ExecutorService packetExecutor = Executors.newCachedThreadPool();
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
-    private boolean isSender;
+    private long offset = -1;
 
 
     public FeedManager(Context context, ForegroundNotifier foregroundNotifier) {
@@ -95,7 +94,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
     public void connect(String remoteId) {
-        isSender = true;
         webFeed.connect(remoteId);
     }
 
@@ -229,7 +227,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.audioFeed = new AudioFeed(context,this);
         this.imageFeed = new ImageFeed(context,this);
         this.webSocketSender = new WebSocketSender(context,foregroundNotifier);
-        this.processFeed.startLogging();
+        this.processFeed.start();
 
         updateConnectionStatus(peerId,remoteId);
     }
@@ -250,22 +248,43 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
     @Override
     public void onBatchReceived(String jsonData) {
-        if (packetExecutor.isShutdown()){
+        if (packetExecutor.isShutdown()) {
             packetExecutor = Executors.newCachedThreadPool();
         }
+
         packetExecutor.execute(() -> {
             try {
-
                 List<FeedModel> batch = gson.fromJson(
                         jsonData,
                         new TypeToken<List<FeedModel>>(){}.getType()
                 );
 
+                if (batch.isEmpty()){
+                    return;
+                }
+
+                long firstTimestamp = batch.get(0).getTimestamp();
+
+                synchronized (this) {
+                    if (offset == -1) {
+                        offset = System.currentTimeMillis() - firstTimestamp;
+                    }
+                }
+
+                long adjustedTime = firstTimestamp + offset;
+                long delay = System.currentTimeMillis() - adjustedTime;
+
+                // Skip processing if delay exceeds 1000ms
+                if (delay > 250) {
+                    return;
+                }
+
                 List<FeedModel> imageFeeds = new ArrayList<>();
                 List<FeedModel> audioFeeds = new ArrayList<>();
 
-                for (FeedModel model: batch){
-                    switch (model.getFeedType()){
+                for (FeedModel model : batch) {
+
+                    switch (model.getFeedType()) {
                         case FeedType.IMAGE_FEED:
                             packetModel.imageFeedReceived();
                             imageFeeds.add(model);
@@ -280,32 +299,35 @@ public class FeedManager implements FeedListener,WebFeedListener{
                                 Packets.audioPacketReceived++;
                             }
                             break;
-
-
                     }
                 }
 
-                if (packetExecutor.isShutdown()){
-                    packetExecutor = Executors.newCachedThreadPool();
+                // Process only if there are valid feeds to handle
+                if (!imageFeeds.isEmpty()) {
+                    if (packetExecutor.isShutdown()){
+                        packetExecutor = Executors.newCachedThreadPool();
+                    }
+                    packetExecutor.execute(() -> processFeed.processImageFeed(imageFeeds));
                 }
-                packetExecutor.execute(() -> processFeed.processImageFeed(imageFeeds));
 
-                if (packetExecutor.isShutdown()){
-                    packetExecutor = Executors.newCachedThreadPool();
+                if (!audioFeeds.isEmpty()) {
+                    if (packetExecutor.isShutdown()){
+                        packetExecutor = Executors.newCachedThreadPool();
+                    }
+                    packetExecutor.execute(() -> processFeed.processAudioFeed(audioFeeds));
                 }
-                packetExecutor.execute(() -> processFeed.processAudioFeed(audioFeeds));
 
             } catch (Exception e) {
                 Log.e("WebSocketReceiver", "Error processing batch", e);
             }
         });
-
     }
+
 
 
     public void destroy() {
         stopFeeds();
         stopLoggingUpdates();
-        processFeed.stopLogging();
+        processFeed.stop();
     }
 }

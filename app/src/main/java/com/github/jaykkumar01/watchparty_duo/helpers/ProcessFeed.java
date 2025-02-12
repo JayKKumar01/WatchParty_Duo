@@ -65,7 +65,6 @@ public class ProcessFeed {
         }
     }
 
-
     public void processImageFeed(List<FeedModel> models) {
         if (models.isEmpty() || stopImageProcessing.get()) return;
 
@@ -83,6 +82,7 @@ public class ProcessFeed {
             imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
         }
     }
+
 
     private void renderImage(FeedModel model) {
         if (stopImageProcessing.get()) {
@@ -126,10 +126,10 @@ public class ProcessFeed {
             logHandler.postDelayed(this, 1000);
         }
     };
-    public void startLogging() {
+    public void start() {
         logHandler.post(logRunnable);
     }
-    public void stopLogging(){
+    public void stop(){
         logHandler.removeCallbacks(logRunnable);
     }
 
