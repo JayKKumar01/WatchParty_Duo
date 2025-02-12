@@ -275,7 +275,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
                 long delay = System.currentTimeMillis() - adjustedTime;
 
                 // Skip processing if delay exceeds 1000ms
-                if (delay > 250) {
+                if (delay > Feed.LATENCY+100) {
                     return;
                 }
 
