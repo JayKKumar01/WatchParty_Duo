@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
-import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
@@ -30,6 +29,7 @@ public class ProcessFeed {
     private final AtomicBoolean stopImageProcessing = new AtomicBoolean(false);
     private final TextureRenderer textureRenderer;
     private final Handler logHandler = new Handler(Looper.getMainLooper());
+
 
     public ProcessFeed(FeedListener feedListener, FeedManager feedManager) {
         this.feedListener = feedListener;
@@ -75,34 +75,71 @@ public class ProcessFeed {
         }
     }
 
-    private long firstTimestamp = 0;
+    private long firstPacketTime = 0;
+    private long firstArrival = 0;
 
-    private long expectedTimeOfArrival = 0;
+
     public void processImageFeed(List<FeedModel> models) {
         if (models.isEmpty() || stopImageProcessing.get()) return;
 
         long currentTime = System.currentTimeMillis();
 
-
-
-        synchronized (this){
-            if (firstTimestamp == 0){
-                firstTimestamp = models.get(0).getTimestamp(); // 100
-            }
-            if (expectedTimeOfArrival == 0){
-                expectedTimeOfArrival = currentTime;
+        synchronized (this) {
+            if (firstPacketTime == 0) {
+                // Initialize with the first model's timestamp and current time
+                firstPacketTime = models.get(0).getTimestamp();
+                firstArrival = currentTime;
             }
         }
 
+        for (FeedModel model : models) {
+            // Calculate expected display time based on initial references
+            long expectedDisplayTime = firstArrival + (model.getTimestamp() - firstPacketTime);
+            long delay = expectedDisplayTime - currentTime;
 
-        long packetDelay = currentTime - expectedTimeOfArrival;
-        feedManager.onUpdate("packet delay: "+packetDelay);
+            feedManager.onUpdate("Frame Schedule: [" + delay + "," + (model.getTimestamp() - firstPacketTime) + "]");
+
+            // Schedule immediately if delay is negative (late)
+            if (delay < 0) {
+                delay = 0;
+            }
+
+            synchronized (this) {
+                if (imageScheduler.isShutdown()) {
+                    imageScheduler = Executors.newSingleThreadScheduledExecutor();
+                }
+            }
+            imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
+        }
+    }
+
+
+    public void processImageFeed0(List<FeedModel> models) {
+        if (models.isEmpty() || stopImageProcessing.get()) return;
+
+        long currentTime = System.currentTimeMillis();
+        long packetTime = models.get(0).getTimestamp();
+
+        synchronized (this){
+            if (firstPacketTime == 0){
+                firstPacketTime = packetTime;
+                firstArrival = currentTime;
+            }
+        }
+
+        long expectedDelay = packetTime - firstPacketTime;
+        long actualDelay = currentTime - firstArrival;
+
+        long packetDelay = actualDelay - expectedDelay;
+
+
+        feedManager.onUpdate("\nPacket Delay: ["+actualDelay+","+expectedDelay+"] = "+packetDelay);
 
         for (FeedModel model : models) {
 
-            long delay = model.getTimestamp() - firstTimestamp - packetDelay;
+            long delay = model.getTimestamp() - firstPacketTime - packetDelay;
 
-            feedManager.onUpdate("Delay: "+delay +", expected: "+(model.getTimestamp() - firstTimestamp));
+            feedManager.onUpdate("Frame Schedule: ["+delay +","+(model.getTimestamp() - firstPacketTime)+"]");
 
             if (delay < 0) continue;
 
@@ -113,8 +150,6 @@ public class ProcessFeed {
             }
             imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
         }
-
-        expectedTimeOfArrival += Feed.LATENCY;
     }
 
 
@@ -146,6 +181,7 @@ public class ProcessFeed {
 
             } catch (Exception e) {
                 Log.e("ProcessFeed", "Error processing image feed", e);
+                feedManager.onUpdate("Error: "+e);
             } finally {
                 isProcessingImage.set(false);
             }
