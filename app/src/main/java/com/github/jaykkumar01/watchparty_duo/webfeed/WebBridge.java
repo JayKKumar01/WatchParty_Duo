@@ -17,6 +17,11 @@ public class WebBridge {
     }
 
     @JavascriptInterface
+    public void onMetaData(String jsonData){
+        webFeedListener.onMetaData(jsonData);
+    }
+
+    @JavascriptInterface
     public void onConnectionOpen(String peerId, String remoteId,int count) {
         webFeedListener.onConnectionOpen(peerId, remoteId,count);
     }

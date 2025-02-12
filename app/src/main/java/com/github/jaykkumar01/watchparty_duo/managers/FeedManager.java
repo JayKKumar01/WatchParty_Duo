@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
@@ -24,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -173,6 +175,32 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
     @Override
+    public void onMetaData(String jsonData) {
+        Toast.makeText(context, jsonData, Toast.LENGTH_SHORT).show();
+        if (jsonData == null || jsonData.isEmpty()) {
+            updateLogHandler.postDelayed(() -> foregroundNotifier.onUpdateLogs("Metadata: " + jsonData),3000);
+            return;
+        }
+
+        // Convert JSON string to a Map
+        Map<String, Object> map = gson.fromJson(
+                jsonData,
+                new TypeToken<Map<String, Object>>() {}.getType()
+        );
+
+        // Build log message with key-value pairs
+        StringBuilder logMessage = new StringBuilder("Metadata received: \n");
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            logMessage.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+        }
+
+        // Handler to delay log update by 3 seconds
+        updateLogHandler.postDelayed(() -> foregroundNotifier.onUpdateLogs(logMessage.toString()), 3000); // 3000 milliseconds = 3 seconds
+    }
+
+
+
+    @Override
     public void onPeerOpen(String peerId) {
         FeedActivity feedActivity = FeedActivity.getInstance();
         if (feedActivity != null){
@@ -187,6 +215,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
             foregroundNotifier.onUpdateLogs("Already Connected: "+count);
             return;
         }
+        Toast.makeText(context, "onConnectionOpen", Toast.LENGTH_SHORT).show();
         updateConnectionStatus(peerId,remoteId);
     }
 

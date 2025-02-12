@@ -14,10 +14,13 @@ import android.webkit.WebViewClient;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
+import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressLint("StaticFieldLeak")
@@ -79,6 +82,8 @@ public class WebFeedHelper {
         metadata.put("latency", Feed.LATENCY_DELAY);
         metadata.put("imageHeight", Feed.IMAGE_HEIGHT);
         metadata.put("fps", Feed.FPS);
+
+
 
         // Convert metadata to JSON string
         String jsonString = new Gson().toJson(metadata);

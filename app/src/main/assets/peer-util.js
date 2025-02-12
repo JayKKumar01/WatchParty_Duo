@@ -33,6 +33,13 @@ function handlePeer(peer) {
     });
 
     peer.on('connection', (incomingConn) => {
+        if (incomingConn.metadata) {
+            try {
+                Android.onMetaData(incomingConn.metadata); // Send metadata to Android
+            } catch (error) {
+                console.error("Failed to stringify metadata:", error);
+            }
+        }
         setupConnection(incomingConn);
     });
 

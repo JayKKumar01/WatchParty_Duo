@@ -8,4 +8,6 @@ public interface WebFeedListener {
     void onUpdate(String message);
 
     void onConnectionClosed();
+
+    void onMetaData(String jsonData);
 }
