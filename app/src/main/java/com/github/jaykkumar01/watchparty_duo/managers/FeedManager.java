@@ -43,7 +43,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
-    private long offset = -1;
+//    private long offset = -1;
 
 
     public FeedManager(Context context, ForegroundNotifier foregroundNotifier) {
@@ -52,7 +52,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.webFeed = new WebFeed(context,this);
 
 
-        this.processFeed = new ProcessFeed(this);
+        this.processFeed = new ProcessFeed(this, this);
     }
 
     public void onActivityStateChanged(boolean isRestarting, boolean isVideo) {
@@ -83,7 +83,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     };
 
     private void startLoggingUpdates() {
-        updateLogHandler.post(logUpdater); // Start the loop
+//        updateLogHandler.post(logUpdater); // Start the loop
     }
     private void stopLoggingUpdates() {
         updateLogHandler.removeCallbacks(logUpdater); // Stop only this specific task
@@ -250,8 +250,17 @@ public class FeedManager implements FeedListener,WebFeedListener{
         startImageFeed();
     }
 
+
+    private long offset = 0;
+
+    public long getOffset() {
+        return offset;
+    }
+
     @Override
     public void onBatchReceived(String jsonData) {
+
+
         if (packetExecutor.isShutdown()) {
             packetExecutor = Executors.newCachedThreadPool();
         }
@@ -267,21 +276,28 @@ public class FeedManager implements FeedListener,WebFeedListener{
                     return;
                 }
 
-                long firstTimestamp = batch.get(0).getTimestamp();
+//                synchronized (this){
+//                    if (offset == 0){
+//                        offset = System.currentTimeMillis() - batch.get(0).getTimestamp();
+//                    }
+//                }
 
-                synchronized (this) {
-                    if (offset == -1) {
-                        offset = System.currentTimeMillis() - firstTimestamp;
-                    }
-                }
 
-                long adjustedTime = firstTimestamp + offset;
-                long delay = System.currentTimeMillis() - adjustedTime; // s time - fist time - s time + first time = 0
-
-                // Skip processing if delay exceeds 1000ms
-                if (delay > Math.max(300,Feed.LATENCY+50)) {
-                    return;
-                }
+//                long firstTimestamp = batch.get(0).getTimestamp();
+//
+//                synchronized (this) {
+//                    if (offset == -1) {
+//                        offset = System.currentTimeMillis() - firstTimestamp;
+//                    }
+//                }
+//
+//                long adjustedTime = firstTimestamp + offset;
+//                long delay = System.currentTimeMillis() - adjustedTime; // s time - fist time - s time + first time = 0
+//
+//                // Skip processing if delay exceeds 1000ms
+//                if (delay > Math.max(300,Feed.LATENCY+50)) {
+//                    return;
+//                }
 
                 List<FeedModel> imageFeeds = new ArrayList<>();
                 List<FeedModel> audioFeeds = new ArrayList<>();
@@ -333,7 +349,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         if (packetExecutor != null && !packetExecutor.isShutdown()){
             packetExecutor.shutdownNow();
         }
-        offset = -1;
+//        offset = -1;
         stopFeeds();
         stopLoggingUpdates();
         processFeed.stop();

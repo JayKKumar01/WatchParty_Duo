@@ -7,8 +7,10 @@ import android.util.Log;
 import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
+import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 
@@ -17,6 +19,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProcessFeed {
+    private final FeedManager feedManager;
     private TextureView textureView;
     private final FeedListener feedListener;
     private final AudioPlayer audioPlayer;
@@ -28,8 +31,9 @@ public class ProcessFeed {
     private final TextureRenderer textureRenderer;
     private final Handler logHandler = new Handler(Looper.getMainLooper());
 
-    public ProcessFeed(FeedListener feedListener) {
+    public ProcessFeed(FeedListener feedListener, FeedManager feedManager) {
         this.feedListener = feedListener;
+        this.feedManager = feedManager;
         this.audioPlayer = new AudioPlayer(feedListener);
         this.textureRenderer = new TextureRenderer(feedListener, false);
     }
@@ -71,13 +75,35 @@ public class ProcessFeed {
         }
     }
 
+    private long firstTimestamp = 0;
+
+    private long expectedTimeOfArrival = 0;
     public void processImageFeed(List<FeedModel> models) {
         if (models.isEmpty() || stopImageProcessing.get()) return;
 
-        long firstTimestamp = models.get(0).getTimestamp();
+        long currentTime = System.currentTimeMillis();
+
+
+
+        synchronized (this){
+            if (firstTimestamp == 0){
+                firstTimestamp = models.get(0).getTimestamp(); // 100
+            }
+            if (expectedTimeOfArrival == 0){
+                expectedTimeOfArrival = currentTime;
+            }
+        }
+
+
+        long packetDelay = currentTime - expectedTimeOfArrival;
+        feedManager.onUpdate("packet delay: "+packetDelay);
 
         for (FeedModel model : models) {
-            long delay = model.getTimestamp() - firstTimestamp;
+
+            long delay = model.getTimestamp() - firstTimestamp - packetDelay;
+
+            feedManager.onUpdate("Delay: "+delay +", expected: "+(model.getTimestamp() - firstTimestamp));
+
             if (delay < 0) continue;
 
             synchronized (this) {
@@ -87,6 +113,8 @@ public class ProcessFeed {
             }
             imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
         }
+
+        expectedTimeOfArrival += Feed.LATENCY;
     }
 
 
