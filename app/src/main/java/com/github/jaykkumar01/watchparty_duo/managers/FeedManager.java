@@ -276,10 +276,10 @@ public class FeedManager implements FeedListener,WebFeedListener{
                 }
 
                 long adjustedTime = firstTimestamp + offset;
-                long delay = System.currentTimeMillis() - adjustedTime;
+                long delay = System.currentTimeMillis() - adjustedTime; // s time - fist time - s time + first time = 0
 
                 // Skip processing if delay exceeds 1000ms
-                if (delay > Math.max(200,Feed.LATENCY-50)) {
+                if (delay > Math.max(300,Feed.LATENCY+50)) {
                     return;
                 }
 
