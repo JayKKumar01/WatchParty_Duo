@@ -25,17 +25,12 @@ public class ProcessFeed {
     private final AtomicBoolean isProcessingImage = new AtomicBoolean(false);
     private final AtomicBoolean stopImageProcessing = new AtomicBoolean(false);
     private final TextureRenderer textureRenderer;
-
-    private int framesDrawn = 0;
-    private int framesSkipped = 0;
-    private int framesReturned = 0;
     private final Handler logHandler = new Handler(Looper.getMainLooper());
 
     public ProcessFeed(FeedListener feedListener) {
         this.feedListener = feedListener;
         this.audioPlayer = new AudioPlayer(feedListener);
         this.textureRenderer = new TextureRenderer(feedListener, false);
-        startLogging();
     }
 
     public void setTextureView(TextureView textureView) {
@@ -123,15 +118,19 @@ public class ProcessFeed {
         });
     }
 
-    private void startLogging() {
-        logHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateListener("Image Packet Wasted: "+ (Packets.imagePacketReceived - Packets.imagePacketExecuted));
-                updateListener("Audio Packet Wasted: "+ (Packets.audioPacketReceived - Packets.audioPacketExecuted));
-                logHandler.postDelayed(this, 1000);
-            }
-        }, 1000);
+    private final Runnable logRunnable = new Runnable() {
+        @Override
+        public void run() {
+            updateListener("Image Packet Wasted: "+ (Packets.imagePacketReceived - Packets.imagePacketExecuted));
+            updateListener("Audio Packet Wasted: "+ (Packets.audioPacketReceived - Packets.audioPacketExecuted));
+            logHandler.postDelayed(this, 1000);
+        }
+    };
+    public void startLogging() {
+        logHandler.post(logRunnable);
+    }
+    public void stopLogging(){
+        logHandler.removeCallbacks(logRunnable);
     }
 
     private void updateListener(String logMessage) {

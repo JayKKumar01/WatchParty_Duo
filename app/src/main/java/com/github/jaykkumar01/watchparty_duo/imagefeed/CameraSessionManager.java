@@ -50,7 +50,7 @@ public class CameraSessionManager implements ImageReader.OnImageAvailableListene
 
         Size previewSize = CameraUtil.chooseOptimalSize(
                 cameraModel.getOutputSizes(),
-                Feed.IMAGE_HEIGHT
+                Feed.RESOLUTION
         );
         @SuppressLint("DefaultLocale")
         String format = String.format("Optimal Size: %s, Ratio: %.2f", previewSize.toString(), (float) previewSize.getWidth() / previewSize.getHeight());

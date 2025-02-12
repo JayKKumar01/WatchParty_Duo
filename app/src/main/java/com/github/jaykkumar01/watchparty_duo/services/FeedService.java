@@ -68,7 +68,7 @@ public class FeedService extends Service implements ForegroundNotifier {
     @Override
     public void onDestroy() {
         RefHelper.reset(instanceRef);
-        feedManager.stopFeeds();
+        feedManager.destroy();
         notificationHelper.cancelNotification();
         stopForeground(true);
         super.onDestroy();

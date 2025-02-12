@@ -9,7 +9,9 @@ import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
+import com.github.jaykkumar01.watchparty_duo.constants.Metadata;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
@@ -32,12 +34,12 @@ import java.util.concurrent.Executors;
 public class FeedManager implements FeedListener,WebFeedListener{
     private final ForegroundNotifier foregroundNotifier;
     private final WebFeed webFeed;
-    private final AudioFeed audioFeed;
-    private final ImageFeed imageFeed;
+    private AudioFeed audioFeed;
+    private ImageFeed imageFeed;
 
     private final Context context;
-    private final WebSocketSender webSocketSender;
-    private final ProcessFeed processFeed;
+    private WebSocketSender webSocketSender;
+    private ProcessFeed processFeed;
     private ExecutorService packetExecutor = Executors.newCachedThreadPool();
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
@@ -49,10 +51,8 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.context = context;
         this.foregroundNotifier = foregroundNotifier;
         this.webFeed = new WebFeed(context,this);
-        this.audioFeed = new AudioFeed(context,this);
-        this.imageFeed = new ImageFeed(context,this);
-        this.webSocketSender = new WebSocketSender(context);
-        this.webSocketSender.setForegroundNotifier(foregroundNotifier);
+
+
         this.processFeed = new ProcessFeed(this);
     }
 
@@ -74,17 +74,20 @@ public class FeedManager implements FeedListener,WebFeedListener{
         processFeed.startImageProcess();
     }
 
+    private final Runnable logUpdater = new Runnable() {
+        @Override
+        public void run() {
+            foregroundNotifier.onUpdateLogs(packetModel.toString());
+            packetModel.reset();
+            updateLogHandler.postDelayed(this, 1000); // Continue updating every second
+        }
+    };
 
     private void startLoggingUpdates() {
-        updateLogHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                foregroundNotifier.onUpdateLogs(packetModel.toString());
-                packetModel.reset();
-                // Continue updating every second
-                updateLogHandler.postDelayed(this, 1000);
-            }
-        }, 1000);
+        updateLogHandler.post(logUpdater); // Start the loop
+    }
+    private void stopLoggingUpdates() {
+        updateLogHandler.removeCallbacks(logUpdater); // Stop only this specific task
     }
 
     public void startWebFeed(){
@@ -176,27 +179,33 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
     @Override
     public void onMetaData(String jsonData) {
-        Toast.makeText(context, jsonData, Toast.LENGTH_SHORT).show();
         if (jsonData == null || jsonData.isEmpty()) {
-            updateLogHandler.postDelayed(() -> foregroundNotifier.onUpdateLogs("Metadata: " + jsonData),3000);
             return;
         }
 
         // Convert JSON string to a Map
-        Map<String, Object> map = gson.fromJson(
+        Map<String, Integer> map = gson.fromJson(
                 jsonData,
-                new TypeToken<Map<String, Object>>() {}.getType()
+                new TypeToken<Map<String, Integer>>() {}.getType()
         );
 
-        // Build log message with key-value pairs
-        StringBuilder logMessage = new StringBuilder("Metadata received: \n");
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            logMessage.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-        }
+        // Extract values safely
+        Integer latency = map.get(Metadata.LATENCY);
+        Integer resolution = map.get(Metadata.RESOLUTION);
+        Integer fps = map.get(Metadata.FPS);
 
-        // Handler to delay log update by 3 seconds
-        updateLogHandler.postDelayed(() -> foregroundNotifier.onUpdateLogs(logMessage.toString()), 3000); // 3000 milliseconds = 3 seconds
+        // Assign values to Feed class
+        if (latency != null) {
+            Feed.LATENCY = latency;
+        }
+        if (resolution != null) {
+            Feed.RESOLUTION = resolution;
+        }
+        if (fps != null) {
+            Feed.FPS = fps;
+        }
     }
+
 
 
 
@@ -215,7 +224,13 @@ public class FeedManager implements FeedListener,WebFeedListener{
             foregroundNotifier.onUpdateLogs("Already Connected: "+count);
             return;
         }
-        Toast.makeText(context, "onConnectionOpen", Toast.LENGTH_SHORT).show();
+
+
+        this.audioFeed = new AudioFeed(context,this);
+        this.imageFeed = new ImageFeed(context,this);
+        this.webSocketSender = new WebSocketSender(context,foregroundNotifier);
+        this.processFeed.startLogging();
+
         updateConnectionStatus(peerId,remoteId);
     }
 
@@ -227,6 +242,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
             feedActivity.onConnectionOpen(peerId,remoteId);
         }
         webFeed.onConnectionOpen(peerId,remoteId);
+
         webSocketSender.initializeSender(webFeed.getWebView());
         processFeed.startAudioProcess();
         startImageFeed();
@@ -287,4 +303,9 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
 
+    public void destroy() {
+        stopFeeds();
+        stopLoggingUpdates();
+        processFeed.stopLogging();
+    }
 }

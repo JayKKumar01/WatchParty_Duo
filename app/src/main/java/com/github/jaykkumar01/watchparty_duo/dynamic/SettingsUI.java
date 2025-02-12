@@ -23,8 +23,8 @@ public class SettingsUI {
     private static final int[] latencyValues = {1000, 750, 500, 250};
     private static final int[] resolutionValues = {144, 240, 360, 480};
     private static final int[] fpsValues = {5, 12, 20, 30};
-    private static final int DEFAULT_LATENCY = Feed.LATENCY_DELAY;
-    private static final int DEFAULT_RESOLUTION = Feed.IMAGE_HEIGHT;
+    private static final int DEFAULT_LATENCY = Feed.LATENCY;
+    private static final int DEFAULT_RESOLUTION = Feed.RESOLUTION;
     private static final int DEFAULT_FPS = Feed.FPS;
 
     public static void showSettingsDialog(Context context, SettingsUICallback callback) {
@@ -54,10 +54,10 @@ public class SettingsUI {
         topLayout.addView(btnReset);
 
         TextView tvLatency = createTextView(context, "Latency");
-        RadioGroup rgLatency = createRadioGroup(context, latencyValues, Feed.LATENCY_DELAY);
+        RadioGroup rgLatency = createRadioGroup(context, latencyValues, Feed.LATENCY);
 
         TextView tvResolution = createTextView(context, "Resolution");
-        RadioGroup rgResolution = createRadioGroup(context, resolutionValues, Feed.IMAGE_HEIGHT);
+        RadioGroup rgResolution = createRadioGroup(context, resolutionValues, Feed.RESOLUTION);
 
         TextView tvFps = createTextView(context, "FPS");
         RadioGroup rgFps = createRadioGroup(context, fpsValues, Feed.FPS);
@@ -81,12 +81,12 @@ public class SettingsUI {
         AlertDialog dialog = builder.create();
 
         btnSubmit.setOnClickListener(v -> {
-            Feed.LATENCY_DELAY = getSelectedValue(rgLatency, DEFAULT_LATENCY);
-            Feed.IMAGE_HEIGHT = getSelectedValue(rgResolution, DEFAULT_RESOLUTION);
+            Feed.LATENCY = getSelectedValue(rgLatency, DEFAULT_LATENCY);
+            Feed.RESOLUTION = getSelectedValue(rgResolution, DEFAULT_RESOLUTION);
             Feed.FPS = getSelectedValue(rgFps, DEFAULT_FPS);
             if (callback != null) {
-                callback.onSubmit("Latency: " + Feed.LATENCY_DELAY + " ms\n" +
-                        "Resolution: " + Feed.IMAGE_HEIGHT + "p\n" +
+                callback.onSubmit("Latency: " + Feed.LATENCY + " ms\n" +
+                        "Resolution: " + Feed.RESOLUTION + "p\n" +
                         "FPS: " + Feed.FPS + " fps");
             }
 
@@ -98,8 +98,8 @@ public class SettingsUI {
             fade.setDuration(300);
             btnReset.startAnimation(fade);
 
-            Feed.LATENCY_DELAY = DEFAULT_LATENCY;
-            Feed.IMAGE_HEIGHT = DEFAULT_RESOLUTION;
+            Feed.LATENCY = DEFAULT_LATENCY;
+            Feed.RESOLUTION = DEFAULT_RESOLUTION;
             Feed.FPS = DEFAULT_FPS;
 
             updateRadioGroupSelection(rgLatency, latencyValues, DEFAULT_LATENCY);

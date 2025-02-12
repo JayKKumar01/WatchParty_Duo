@@ -31,8 +31,9 @@ public class WebSocketSender {
     private ExecutorService dataExecutor = Executors.newCachedThreadPool();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    public WebSocketSender(Context context) {
+    public WebSocketSender(Context context, ForegroundNotifier foregroundNotifier) {
         this.context = context;
+        this.foregroundNotifier = foregroundNotifier;
     }
 
     public void setForegroundNotifier(ForegroundNotifier foregroundNotifier) {
@@ -62,7 +63,7 @@ public class WebSocketSender {
                     }
                 },
                 0,
-                Feed.LATENCY_DELAY,
+                Feed.LATENCY,
                 TimeUnit.MILLISECONDS
         );
     }
