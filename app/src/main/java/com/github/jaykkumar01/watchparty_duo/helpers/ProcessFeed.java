@@ -14,7 +14,6 @@ import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -94,8 +93,7 @@ public class ProcessFeed {
                 finalArrival = firstArrival; // Initialize final arrival
             }
 
-            packetNumber++;
-            if (packetNumber <= (1000/Feed.LATENCY)) {
+            if (++packetNumber <= (1000/Feed.LATENCY)) {
                 // Efficient O(1) update for average interval
                 averageInterval += (currentTime - finalArrival - averageInterval) / packetNumber;
                 // Correct finalArrival calculation
@@ -103,15 +101,14 @@ public class ProcessFeed {
             }
         }
 
-        long packetDelay = currentTime - finalArrival;
-        feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
+        long actualArrival = currentTime - finalArrival;
 
         for (FeedModel model : models) {
-            long expectedDelay = model.getTimestamp() - firstPacketTime;
-            long scheduleAfter = expectedDelay - packetDelay;
+            long expectedArrival = model.getTimestamp() - firstPacketTime;
+            long scheduleAfter = expectedArrival - actualArrival;
+            feedManager.onUpdate("Expected Delay: " + expectedArrival + ", Scheduled After: " + scheduleAfter);
 
             if (scheduleAfter < 0){
-                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
                 continue;
             }
 
