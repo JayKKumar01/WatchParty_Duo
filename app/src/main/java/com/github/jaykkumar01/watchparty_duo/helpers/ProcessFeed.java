@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
-import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
@@ -79,6 +78,9 @@ public class ProcessFeed {
 
     private long firstPacketTime = 0;
     long firstArrival = 0;
+
+    long averageInterval = 0;
+    private final List<Long> arrivals = new ArrayList<Long>();
     private int packetNumber = 0;
 
     public void processImageFeed(List<FeedModel> models) {
@@ -92,12 +94,19 @@ public class ProcessFeed {
                 firstPacketTime = models.get(0).getTimestamp(); // Set first packet time once
                 firstArrival = currentTime;
             }
+            if (arrivals.size() < 4){
+                arrivals.add(currentTime);
+
+                averageInterval = calculateAverageInterval(arrivals);
+                feedManager.onUpdate("Current Average Interval: "+averageInterval);
+            }
+
             packetNumber++;
         }
 
 
 
-        long packetDelay = currentTime - firstArrival;
+        long packetDelay = currentTime - (firstArrival + averageInterval);
         feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
 
         for (FeedModel model : models) {
@@ -119,6 +128,20 @@ public class ProcessFeed {
             }
             imageScheduler.schedule(() -> renderImage(model), scheduleAfter, TimeUnit.MILLISECONDS);
         }
+    }
+
+    private long calculateAverageInterval(List<Long> arrivals) {
+        if (arrivals.size() < 2) {
+            return 0;
+        }
+
+        long sumOfIntervals = 0;
+
+        for (int i = 1; i < arrivals.size(); i++) {
+            sumOfIntervals += arrivals.get(i) - arrivals.get(i - 1);
+        }
+
+        return sumOfIntervals / (arrivals.size() - 1); // Correct division
     }
 
 
