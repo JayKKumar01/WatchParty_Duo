@@ -77,9 +77,8 @@ public class ProcessFeed {
         }
     }
 
-    private final List<Long> firstPacketTimes = new ArrayList<>();
-    private final List<Long> firstArrivals = new ArrayList<>();
-    private static final int INITIAL_PACKETS = 4; // Consider first 4 packets for average
+    private long firstPacketTime = 0;
+    long firstArrival = 0;
     private int packetNumber = 0;
 
     public void processImageFeed(List<FeedModel> models) {
@@ -87,28 +86,32 @@ public class ProcessFeed {
 
         long currentTime = System.currentTimeMillis();
 
+        // Only synchronize necessary operations
         synchronized (this) {
-            if (firstPacketTimes.size() < INITIAL_PACKETS) {
-                firstPacketTimes.add(models.get(0).getTimestamp());
-                firstArrivals.add(currentTime);
+            if (firstPacketTime == 0 && firstArrival == 0) {
+                firstPacketTime = models.get(0).getTimestamp(); // Set first packet time once
+                firstArrival = currentTime;
             }
             packetNumber++;
         }
 
-        long avgPacketTime = firstPacketTimes.stream().mapToLong(Long::longValue).sum() / firstPacketTimes.size();
-        long avgArrivalTime = firstArrivals.stream().mapToLong(Long::longValue).sum() / firstArrivals.size();
 
-        long packetDelay = currentTime - avgArrivalTime;
+
+        long packetDelay = currentTime - firstArrival;
         feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
 
         for (FeedModel model : models) {
-            long expectedDelay = model.getTimestamp() - avgPacketTime;
+            long expectedDelay = model.getTimestamp() - firstPacketTime;
             long scheduleAfter = expectedDelay - packetDelay;
 
             feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
 
-            if (scheduleAfter < 0) continue;
+            if (scheduleAfter < 0) {
+//                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
+                continue;
+            }
 
+            // Synchronize only if the scheduler needs to be restarted
             synchronized (this) {
                 if (imageScheduler.isShutdown()) {
                     imageScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -117,7 +120,6 @@ public class ProcessFeed {
             imageScheduler.schedule(() -> renderImage(model), scheduleAfter, TimeUnit.MILLISECONDS);
         }
     }
-
 
 
 
