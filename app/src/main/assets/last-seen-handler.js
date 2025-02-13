@@ -58,6 +58,9 @@ const LastSeenHandler = (() => {
             const timeSinceLastSeen = Date.now() - lastSeen;
             const isAlive = timeSinceLastSeen <= 1500; // ✅ Faster detection
 
+            Android.onUpdate(`Queued data size: ${conn.bufferSize} bytes`);
+
+
             if (lastConnectionStatus !== isAlive) {
                 console.log("📡 Connection status changed:", isAlive);
                 Android.onConnectionAlive(isAlive);
