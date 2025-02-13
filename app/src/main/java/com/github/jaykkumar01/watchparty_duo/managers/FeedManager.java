@@ -83,7 +83,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     };
 
     private void startLoggingUpdates() {
-//        updateLogHandler.post(logUpdater); // Start the loop
+        updateLogHandler.post(logUpdater); // Start the loop
     }
     private void stopLoggingUpdates() {
         updateLogHandler.removeCallbacks(logUpdater); // Stop only this specific task

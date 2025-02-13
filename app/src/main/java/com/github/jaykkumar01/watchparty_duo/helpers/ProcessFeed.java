@@ -7,12 +7,14 @@ import android.util.Log;
 import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,81 +78,55 @@ public class ProcessFeed {
     }
 
     private long firstPacketTime = 0;
-    private long firstArrival = 0;
-
+    long averageArrival = 0;
+    private final List<Long> arrivalTimes = new ArrayList<>();
+    private int packetNumber = 0;
 
     public void processImageFeed(List<FeedModel> models) {
         if (models.isEmpty() || stopImageProcessing.get()) return;
 
         long currentTime = System.currentTimeMillis();
 
+        // Only synchronize necessary operations
         synchronized (this) {
             if (firstPacketTime == 0) {
-                // Initialize with the first model's timestamp and current time
-                firstPacketTime = models.get(0).getTimestamp();
-                firstArrival = currentTime;
+                firstPacketTime = models.get(0).getTimestamp(); // Set first packet time once
             }
+
+            if (arrivalTimes.size() < (1000/ Feed.LATENCY)) {
+                arrivalTimes.add(currentTime); // Store first 5 arrival times
+                // Compute average arrival time outside synchronization block
+                averageArrival = arrivalTimes.stream().mapToLong(Long::longValue).sum() / arrivalTimes.size();
+            }
+            packetNumber++;
         }
 
+
+
+        long packetDelay = currentTime - averageArrival;
+        feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
+
         for (FeedModel model : models) {
-            // Calculate expected display time based on initial references
-            long expectedDisplayTime = firstArrival + (model.getTimestamp() - firstPacketTime);
-            long delay = expectedDisplayTime - currentTime;
+            long expectedDelay = model.getTimestamp() - firstPacketTime;
+            long scheduleAfter = expectedDelay - packetDelay;
 
-            feedManager.onUpdate("Frame Schedule: [" + delay + "," + (model.getTimestamp() - firstPacketTime) + "]");
+            feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
 
-            // Schedule immediately if delay is negative (late)
-            if (delay < 0) {
-                delay = 0;
+            if (scheduleAfter < 0) {
+                scheduleAfter = 0;
+//                continue;
             }
 
+            // Synchronize only if the scheduler needs to be restarted
             synchronized (this) {
                 if (imageScheduler.isShutdown()) {
                     imageScheduler = Executors.newSingleThreadScheduledExecutor();
                 }
             }
-            imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
+            imageScheduler.schedule(() -> renderImage(model), scheduleAfter, TimeUnit.MILLISECONDS);
         }
     }
 
-
-    public void processImageFeed0(List<FeedModel> models) {
-        if (models.isEmpty() || stopImageProcessing.get()) return;
-
-        long currentTime = System.currentTimeMillis();
-        long packetTime = models.get(0).getTimestamp();
-
-        synchronized (this){
-            if (firstPacketTime == 0){
-                firstPacketTime = packetTime;
-                firstArrival = currentTime;
-            }
-        }
-
-        long expectedDelay = packetTime - firstPacketTime;
-        long actualDelay = currentTime - firstArrival;
-
-        long packetDelay = actualDelay - expectedDelay;
-
-
-        feedManager.onUpdate("\nPacket Delay: ["+actualDelay+","+expectedDelay+"] = "+packetDelay);
-
-        for (FeedModel model : models) {
-
-            long delay = model.getTimestamp() - firstPacketTime - packetDelay;
-
-            feedManager.onUpdate("Frame Schedule: ["+delay +","+(model.getTimestamp() - firstPacketTime)+"]");
-
-            if (delay < 0) continue;
-
-            synchronized (this) {
-                if (imageScheduler.isShutdown()) {
-                    imageScheduler = Executors.newSingleThreadScheduledExecutor();
-                }
-            }
-            imageScheduler.schedule(() -> renderImage(model), delay, TimeUnit.MILLISECONDS);
-        }
-    }
 
 
     private void renderImage(FeedModel model) {
