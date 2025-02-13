@@ -104,17 +104,17 @@ public class ProcessFeed {
 
 
         long packetDelay = currentTime - averageArrival;
-        feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
+//        feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
 
         for (FeedModel model : models) {
             long expectedDelay = model.getTimestamp() - firstPacketTime;
             long scheduleAfter = expectedDelay - packetDelay;
 
-            feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
+            //feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
 
             if (scheduleAfter < 0) {
-                scheduleAfter = 0;
-//                continue;
+                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
+                continue;
             }
 
             // Synchronize only if the scheduler needs to be restarted
