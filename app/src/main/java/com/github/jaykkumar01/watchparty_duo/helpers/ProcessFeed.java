@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.TextureView;
 
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioPlayer;
+import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
@@ -76,12 +77,9 @@ public class ProcessFeed {
         }
     }
 
-    private long firstPacketTime = 0;
-    long firstArrival = 0;
-
-    long averageInterval = 0;
-    private final List<Long> arrivals = new ArrayList<Long>();
+    private long firstPacketTime = 0, firstArrival = 0, finalArrival = 0, averageInterval = 0;
     private int packetNumber = 0;
+
 
     public void processImageFeed(List<FeedModel> models) {
         if (models.isEmpty() || stopImageProcessing.get()) return;
@@ -91,32 +89,29 @@ public class ProcessFeed {
         // Only synchronize necessary operations
         synchronized (this) {
             if (firstPacketTime == 0 && firstArrival == 0) {
-                firstPacketTime = models.get(0).getTimestamp(); // Set first packet time once
-                firstArrival = currentTime;
-            }
-            if (arrivals.size() < 4){
-                arrivals.add(currentTime);
-
-                averageInterval = calculateAverageInterval(arrivals);
-                feedManager.onUpdate("Current Average Interval: "+averageInterval);
+                firstPacketTime = models.get(0).getTimestamp(); // Set first packet timestamp
+                firstArrival = currentTime; // Set initial arrival time
+                finalArrival = firstArrival; // Initialize final arrival
             }
 
             packetNumber++;
+            if (packetNumber <= (1000/Feed.LATENCY)) {
+                // Efficient O(1) update for average interval
+                averageInterval += (currentTime - finalArrival - averageInterval) / packetNumber;
+                // Correct finalArrival calculation
+                finalArrival = firstArrival + averageInterval;
+            }
         }
 
-
-
-        long packetDelay = currentTime - (firstArrival + averageInterval);
+        long packetDelay = currentTime - finalArrival;
         feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
 
         for (FeedModel model : models) {
             long expectedDelay = model.getTimestamp() - firstPacketTime;
             long scheduleAfter = expectedDelay - packetDelay;
 
-            feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
-
-            if (scheduleAfter < 0) {
-//                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
+            if (scheduleAfter < 0){
+                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
                 continue;
             }
 
@@ -128,20 +123,6 @@ public class ProcessFeed {
             }
             imageScheduler.schedule(() -> renderImage(model), scheduleAfter, TimeUnit.MILLISECONDS);
         }
-    }
-
-    private long calculateAverageInterval(List<Long> arrivals) {
-        if (arrivals.size() < 2) {
-            return 0;
-        }
-
-        long sumOfIntervals = 0;
-
-        for (int i = 1; i < arrivals.size(); i++) {
-            sumOfIntervals += arrivals.get(i) - arrivals.get(i - 1);
-        }
-
-        return sumOfIntervals / (arrivals.size() - 1); // Correct division
     }
 
 

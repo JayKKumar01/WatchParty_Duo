@@ -128,7 +128,9 @@ public class FeedManager implements FeedListener,WebFeedListener{
             imageFeed.releaseResources();
         }
         webFeed.stop();
-        audioFeed.stop();
+        if (audioFeed != null) {
+            audioFeed.stop();
+        }
     }
 
     public void isVideo(boolean isVideo) {
