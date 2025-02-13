@@ -23,6 +23,7 @@ const LastSeenHandler = (() => {
         lastSeenConn = connection;
 
         lastSeenConn.on('open', () => {
+            Android.onUpdate("Last Seen opened: "+Date.now());
             isLastSeenConnected = true;
             console.log("✅ LastSeen connection established.");
             start();
@@ -79,6 +80,14 @@ const LastSeenHandler = (() => {
         lastConnectionStatus = false;
     }
 
+    function close(){
+        lastSeenConn.close();
+    }
+
+    function isConnectionOpen(){
+        return lastSeenConn && lastSeenConn.open;
+    }
+
     // Send lastSeen updates separately
     function sendLastSeen() {
         if (lastSeenConn && lastSeenConn.open) {
@@ -86,5 +95,5 @@ const LastSeenHandler = (() => {
         }
     }
 
-    return { initLastSeenConnection, setupLastSeenConnection };
+    return { initLastSeenConnection, setupLastSeenConnection , isConnectionOpen, close};
 })();

@@ -58,9 +58,27 @@ function setupConnection(connection) {
     conn = connection;
 
     conn.on('open', () => {
-        isConnectionOpen = true;
-        remoteId = conn.peer.replace(peerBranch, ""); // Remove the prefix
-        Android.onConnectionOpen(peerId, remoteId, count++);
+
+        if (LastSeenHandler.isConnectionOpen()) {
+            Android.onUpdate("Main Opened: " + Date.now());
+            isConnectionOpen = true;
+            remoteId = conn.peer.replace(peerBranch, ""); // Remove the prefix
+            Android.onConnectionOpen(peerId, remoteId, count++);
+
+        } else {
+            Android.onUpdate("Last Seen Not opened!");
+            try {
+                conn.close();
+                Android.onUpdate("Main closed");
+                LastSeenHandler.close();
+                Android.onUpdate("Last seen closed");
+            }
+            catch (error) {
+                Android.onUpdate(error);
+            }
+            
+        }
+
     });
 
     conn.on('data', (data) => {
@@ -81,6 +99,9 @@ function connectRemotePeer(otherPeerId, metadataJson) {
     const targetPeerId = byteArrayToString(otherPeerId);
     if (targetPeerId !== '') {
         try {
+
+            LastSeenHandler.initLastSeenConnection(peer, targetPeerId);
+
             const metadata = JSON.stringify(metadataJson);
 
             // Establish a connection with metadata
@@ -90,8 +111,6 @@ function connectRemotePeer(otherPeerId, metadataJson) {
             });
 
             setupConnection(connection);
-
-            LastSeenHandler.initLastSeenConnection(peer, targetPeerId);
 
 
             // Check if the connection is still closed after 4 seconds

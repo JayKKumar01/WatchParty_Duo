@@ -1,5 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.webfeed;
 
+import android.os.Handler;
 import android.webkit.JavascriptInterface;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
@@ -33,7 +34,7 @@ public class WebBridge {
 
     @JavascriptInterface
     public void onUpdate(String message){
-        webFeedListener.onUpdate("From Javascript bridge: "+message);
+        new Handler().postDelayed(() -> webFeedListener.onUpdate("From Javascript bridge: "+message),5000);
     }
 
     @JavascriptInterface
