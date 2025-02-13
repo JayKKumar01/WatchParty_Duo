@@ -77,9 +77,9 @@ public class ProcessFeed {
         }
     }
 
-    private long firstPacketTime = 0;
-    long averageArrival = 0;
-    private final List<Long> arrivalTimes = new ArrayList<>(); /// new idea close the video output if remote peer is disconnected
+    private final List<Long> firstPacketTimes = new ArrayList<>();
+    private final List<Long> firstArrivals = new ArrayList<>();
+    private static final int INITIAL_PACKETS = 4; // Consider first 4 packets for average
     private int packetNumber = 0;
 
     public void processImageFeed(List<FeedModel> models) {
@@ -87,37 +87,28 @@ public class ProcessFeed {
 
         long currentTime = System.currentTimeMillis();
 
-        // Only synchronize necessary operations
         synchronized (this) {
-            if (firstPacketTime == 0) {
-                firstPacketTime = models.get(0).getTimestamp(); // Set first packet time once
-            }
-
-            if (arrivalTimes.size() < (1000/ Feed.LATENCY)) {
-                arrivalTimes.add(currentTime); // Store first 5 arrival times
-                // Compute average arrival time outside synchronization block
-                averageArrival = arrivalTimes.stream().mapToLong(Long::longValue).sum() / arrivalTimes.size();
+            if (firstPacketTimes.size() < INITIAL_PACKETS) {
+                firstPacketTimes.add(models.get(0).getTimestamp());
+                firstArrivals.add(currentTime);
             }
             packetNumber++;
         }
 
+        long avgPacketTime = firstPacketTimes.stream().mapToLong(Long::longValue).sum() / firstPacketTimes.size();
+        long avgArrivalTime = firstArrivals.stream().mapToLong(Long::longValue).sum() / firstArrivals.size();
 
-
-        long packetDelay = currentTime - averageArrival;
+        long packetDelay = currentTime - avgArrivalTime;
         feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
 
         for (FeedModel model : models) {
-            long expectedDelay = model.getTimestamp() - firstPacketTime;
+            long expectedDelay = model.getTimestamp() - avgPacketTime;
             long scheduleAfter = expectedDelay - packetDelay;
 
             feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
 
-            if (scheduleAfter < 0) {
-//                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
-                continue;
-            }
+            if (scheduleAfter < 0) continue;
 
-            // Synchronize only if the scheduler needs to be restarted
             synchronized (this) {
                 if (imageScheduler.isShutdown()) {
                     imageScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -126,6 +117,7 @@ public class ProcessFeed {
             imageScheduler.schedule(() -> renderImage(model), scheduleAfter, TimeUnit.MILLISECONDS);
         }
     }
+
 
 
 

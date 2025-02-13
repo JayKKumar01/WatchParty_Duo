@@ -41,14 +41,7 @@ public class WebSocketSender {
     public void start(WebView webView) {
         this.webView = webView;
 
-        // Immediately check and act
-        if (base64Queue.size() >= (1000 / Feed.LATENCY)) {
-            initializeSender();
-            return;
-        }
-
-        // Schedule a retry after 500ms if queue size is still less than 4
-        mainHandler.postDelayed(() -> start(webView), 100);
+        initializeSender();
     }
 
 
