@@ -215,11 +215,12 @@ public class FeedActivity extends AppCompatActivity {
     private void updateUI(String peerId) {
         addLog("Peer Opened: " + peerId);
         hideKeyboard();
-        tvName.setText(String.format("Welcome %s, Your ID: %s", userName, peerId));
+        tvName.setText(String.format("Welcome %s, Your ID: %s-%s", userName, peerId.substring(0, 3), peerId.substring(3, 6)));
         layoutConnect.setVisibility(View.GONE);
         layoutJoin.setVisibility(View.VISIBLE);
         resetConnectButton();
     }
+
 
 
     public void onConnectionOpen(String peerId, String remoteId) {

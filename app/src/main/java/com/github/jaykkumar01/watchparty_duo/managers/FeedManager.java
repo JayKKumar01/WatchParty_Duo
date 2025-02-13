@@ -16,6 +16,7 @@ import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
+import com.github.jaykkumar01.watchparty_duo.managers.helpers.MetadataHelper;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
 import com.github.jaykkumar01.watchparty_duo.helpers.WebSocketSender;
@@ -82,7 +83,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     };
 
     private void startLoggingUpdates() {
-        updateLogHandler.post(logUpdater); // Start the loop
+//        updateLogHandler.post(logUpdater); // Start the loop
     }
     private void stopLoggingUpdates() {
         updateLogHandler.removeCallbacks(logUpdater); // Stop only this specific task
@@ -180,31 +181,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
     @Override
     public void onMetaData(String jsonData) {
-        if (jsonData == null || jsonData.isEmpty()) {
-            return;
-        }
-
-        // Convert JSON string to a Map
-        Map<String, Integer> map = gson.fromJson(
-                jsonData,
-                new TypeToken<Map<String, Integer>>() {}.getType()
-        );
-
-        // Extract values safely
-        Integer latency = map.get(Metadata.LATENCY);
-        Integer resolution = map.get(Metadata.RESOLUTION);
-        Integer fps = map.get(Metadata.FPS);
-
-        // Assign values to Feed class
-        if (latency != null) {
-            Feed.LATENCY = latency;
-        }
-        if (resolution != null) {
-            Feed.RESOLUTION = resolution;
-        }
-        if (fps != null) {
-            Feed.FPS = fps;
-        }
+        MetadataHelper.set(jsonData);
     }
 
 
@@ -229,7 +206,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
         this.audioFeed = new AudioFeed(context,this);
         this.imageFeed = new ImageFeed(context,this);
-        this.webSocketSender = new WebSocketSender(foregroundNotifier);
+        this.webSocketSender = new WebSocketSender(this);
         this.processFeed.start();
 
         updateConnectionStatus(peerId,remoteId);
@@ -244,7 +221,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         }
         webFeed.onConnectionOpen(peerId,remoteId);
 
-        webSocketSender.initializeSender(webFeed.getWebView());
+        webSocketSender.start(webFeed.getWebView());
         processFeed.startAudioProcess();
         startImageFeed();
     }

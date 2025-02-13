@@ -8,6 +8,7 @@ import android.webkit.WebView;
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
+import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 import com.github.jaykkumar01.watchparty_duo.models.AudioFeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.FeedSizeTracker;
@@ -26,17 +27,32 @@ import java.util.concurrent.TimeUnit;
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
     private final Queue<FeedModel> base64Queue = new ConcurrentLinkedQueue<FeedModel>();
-    private final ForegroundNotifier foregroundNotifier;
+    private final FeedManager feedManager;
     private final Gson gson = new Gson();
     private final FeedSizeTracker feedSizeTracker = new FeedSizeTracker(); // Instance of tracker
     private ExecutorService dataExecutor = Executors.newCachedThreadPool();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private WebView webView;
 
-    public WebSocketSender(ForegroundNotifier foregroundNotifier) {
-        this.foregroundNotifier = foregroundNotifier;
+    public WebSocketSender(FeedManager feedManager) {
+        this.feedManager = feedManager;
     }
 
-    public void initializeSender(WebView webView) {
+    public void start(WebView webView) {
+        this.webView = webView;
+
+        // Immediately check and act
+        if (base64Queue.size() >= (1000 / Feed.LATENCY)) {
+            initializeSender();
+            return;
+        }
+
+        // Schedule a retry after 500ms if queue size is still less than 4
+        mainHandler.postDelayed(() -> start(webView), 100);
+    }
+
+
+    public void initializeSender() {
         if (senderExecutor.isShutdown()){
             senderExecutor = Executors.newSingleThreadScheduledExecutor();
         }
@@ -75,9 +91,7 @@ public class WebSocketSender {
 
             // Update size tracking
             if (feedSizeTracker.updateSize(lenKB, feedType)){
-                if (foregroundNotifier != null){
-                    foregroundNotifier.onUpdateLogs(feedSizeTracker.toString());
-                }
+                feedManager.onUpdate(feedSizeTracker.toString());
             }
 
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);

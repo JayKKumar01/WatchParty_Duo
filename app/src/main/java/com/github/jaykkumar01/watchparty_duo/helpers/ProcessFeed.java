@@ -79,7 +79,7 @@ public class ProcessFeed {
 
     private long firstPacketTime = 0;
     long averageArrival = 0;
-    private final List<Long> arrivalTimes = new ArrayList<>();
+    private final List<Long> arrivalTimes = new ArrayList<>(); /// new idea close the video output if remote peer is disconnected
     private int packetNumber = 0;
 
     public void processImageFeed(List<FeedModel> models) {
@@ -104,16 +104,16 @@ public class ProcessFeed {
 
 
         long packetDelay = currentTime - averageArrival;
-//        feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
+        feedManager.onUpdate("\n" + packetNumber + ". Packet Delay: " + packetDelay);
 
         for (FeedModel model : models) {
             long expectedDelay = model.getTimestamp() - firstPacketTime;
             long scheduleAfter = expectedDelay - packetDelay;
 
-            //feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
+            feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
 
             if (scheduleAfter < 0) {
-                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
+//                feedManager.onUpdate("Expected Delay: " + expectedDelay + ", Scheduled After: " + scheduleAfter);
                 continue;
             }
 

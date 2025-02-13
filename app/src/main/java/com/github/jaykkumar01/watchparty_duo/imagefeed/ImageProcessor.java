@@ -21,6 +21,7 @@ import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.ImageFeedModel;
 import com.github.jaykkumar01.watchparty_duo.renderers.TextureRenderer;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.BitmapUtils;
 
 import java.util.concurrent.ConcurrentLinkedQueue;

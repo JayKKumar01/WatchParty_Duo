@@ -10,6 +10,7 @@ import android.os.Process;
 import androidx.core.app.ActivityCompat;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 
 public class AudioRecorder {
     private AudioRecord audioRecord;
