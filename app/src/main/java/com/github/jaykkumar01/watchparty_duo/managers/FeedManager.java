@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
@@ -44,6 +45,8 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
+
+    private boolean isConnectionAlive;
 
 
     public FeedManager(Context context, ForegroundNotifier foregroundNotifier) {
@@ -158,6 +161,9 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
     @Override
     public void onFeed(byte[] bytes, long millis, int feedType) {
+        if (!isConnectionAlive){
+            return;
+        }
         webSocketSender.addData(bytes,millis,feedType);
         if (feedType == FeedType.IMAGE_FEED) {
             packetModel.imageFeedSent();
@@ -186,7 +192,11 @@ public class FeedManager implements FeedListener,WebFeedListener{
         MetadataHelper.set(jsonData);
     }
 
-
+    @Override
+    public void onConnectionAlive(boolean isConnectionAlive) {
+        this.isConnectionAlive = isConnectionAlive;
+        foregroundNotifier.onUpdateLogs("Connection Status, isAlive: "+isConnectionAlive);
+    }
 
 
     @Override

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.view.TextureView;
 
+import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
@@ -81,6 +82,10 @@ public class FeedService extends Service implements ForegroundNotifier {
 
     @Override
     public void onUpdateLogs(String logMessage) {
+        FeedActivity feedActivity = FeedActivity.getInstance();
+        if (feedActivity != null){
+            feedActivity.addLog(logMessage);
+        }
         PlayerActivity playerActivity = PlayerActivity.getInstance();
         if (playerActivity != null){
             playerActivity.addLog(logMessage);

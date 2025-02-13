@@ -16,4 +16,8 @@
     <string name="room_code_optional">Room Code (Optional)</string>
     <string name="video_call_settings">Video Call Settings</string>
     <string name="submit">Submit</string>
+    <string name="exit_confirmation">Exit Confirmation</string>
+    <string name="are_you_sure_you_want_to_exit">Are you sure you want to exit?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

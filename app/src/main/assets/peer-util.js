@@ -33,14 +33,15 @@ function handlePeer(peer) {
     });
 
     peer.on('connection', (incomingConn) => {
-        if (incomingConn.metadata) {
-            try {
-                Android.onMetaData(incomingConn.metadata); // Send metadata to Android
-            } catch (error) {
-                console.error("Failed to stringify metadata:", error);
-            }
+        const connType = incomingConn.metadata?.type || "main"; // ✅ Get type safely
+
+        if (connType === "main") {
+            Android.onMetaData(incomingConn.metadata.metadata); // ✅ Send metadata to Android
+            setupConnection(incomingConn);
+        } else if (connType === "lastSeen") {
+            console.log("🔄 Incoming lastSeen connection.");
+            LastSeenHandler.setupLastSeenConnection(incomingConn); // ✅ Handle separately
         }
-        setupConnection(incomingConn);
     });
 
     peer.on('disconnected', () => {
@@ -60,7 +61,6 @@ function setupConnection(connection) {
         isConnectionOpen = true;
         remoteId = conn.peer.replace(peerBranch, ""); // Remove the prefix
         Android.onConnectionOpen(peerId, remoteId, count++);
-        onConnectionOpen();
     });
 
     conn.on('data', (data) => {
@@ -76,34 +76,23 @@ function setupConnection(connection) {
     });
 }
 
-function connect(otherPeerId) {
-    const targetPeerId = byteArrayToString(otherPeerId);
-    if (targetPeerId !== '') {
-        const connection = peer.connect(peerBranch + targetPeerId, { reliable: true });
-        setupConnection(connection);
-        // Check if the connection is still closed after 5 seconds
-        setTimeout(() => {
-            if (!connection.open) {
-                connection.close();
-            }
-        }, 4000);
-    }
-}
-
 
 function connectRemotePeer(otherPeerId, metadataJson) {
     const targetPeerId = byteArrayToString(otherPeerId);
     if (targetPeerId !== '') {
         try {
             const metadata = JSON.stringify(metadataJson);
-            
+
             // Establish a connection with metadata
-            const connection = peer.connect(peerBranch + targetPeerId, { 
-                reliable: true, 
-                metadata: metadata // Pass metadata while connecting 
+            const connection = peer.connect(peerBranch + targetPeerId, {
+                reliable: true,
+                metadata: { type: 'main', metadata: metadata }
             });
 
             setupConnection(connection);
+
+            LastSeenHandler.initLastSeenConnection(peer, targetPeerId);
+
 
             // Check if the connection is still closed after 4 seconds
             setTimeout(() => {
@@ -127,20 +116,9 @@ function sendData(data) {
     }
 }
 
-function closeConnectionAndDestroyPeer() {
-    if (conn) {
-        conn.close();
-        console.log("Connection closed.");
+function handleData(data) {
+    if (data.type === "rawData") {
+        handleRawData(data);
     }
-    
-    if (peer) {
-        peer.destroy();
-        console.log("Peer destroyed.");
-    }
-
-    isPeerOpen = false;
-    isConnectionOpen = false;
-    remoteId = null;
-    conn = null;
-    peer = null;
 }
+

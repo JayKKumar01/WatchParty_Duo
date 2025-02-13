@@ -10,4 +10,6 @@ public interface WebFeedListener {
     void onConnectionClosed();
 
     void onMetaData(String jsonData);
+
+    void onConnectionAlive(boolean isAlive);
 }

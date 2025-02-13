@@ -40,4 +40,9 @@ public class WebBridge {
     public void onConnectionClosed(){
         webFeedListener.onConnectionClosed();
     }
+
+    @JavascriptInterface
+    public void onConnectionAlive(boolean isConnectionAlive){
+        webFeedListener.onConnectionAlive(isConnectionAlive);
+    }
 }

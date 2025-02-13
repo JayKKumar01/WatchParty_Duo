@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="24dp"
+    android:orientation="vertical"
+    android:background="@drawable/exit_dialog_bg"
+    android:elevation="6dp"
+    android:layout_margin="16dp">
+
+    <!-- Message Text -->
+    <TextView
+        android:id="@+id/dialogMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/are_you_sure_you_want_to_exit"
+        android:textStyle="bold"
+        android:fontFamily="@font/istok_web_regular"
+        android:textSize="16sp"
+        android:paddingBottom="16dp"
+        android:textColor="@color/theme_color"/>
+
+    <!-- Button Layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <!-- Yes Button -->
+        <Button
+            android:id="@+id/btnYes"
+            style="?attr/materialButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/yes"
+            android:fontFamily="@font/istok_web_regular"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/theme_color"
+            android:textColor="@color/white"/>
+
+        <!-- No Button -->
+        <Button
+            android:id="@+id/btnNo"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no"
+            android:fontFamily="@font/istok_web_regular"
+            android:backgroundTint="@color/white"
+            android:textColor="@color/black"/>
+
+
+    </LinearLayout>
+</LinearLayout>

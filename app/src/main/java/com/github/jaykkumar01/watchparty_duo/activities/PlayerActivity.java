@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,6 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcher;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
@@ -23,6 +26,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.gesturehelpers.BackPressHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
@@ -68,6 +72,8 @@ public class PlayerActivity extends AppCompatActivity {
             return insets;
         });
 
+        BackPressHandler.registerBackPressHandler(this,getOnBackPressedDispatcher(), Gravity.CENTER);
+
         instanceRef = new WeakReference<>(this);
 
         setupUI();
@@ -89,6 +95,8 @@ public class PlayerActivity extends AppCompatActivity {
             feedService.setFeedSurfaces(peerFeedTextureView, remoteFeedTextureView);
         }
     }
+
+
 
     private void setupUI() {
         logScrollView = findViewById(R.id.logScrollView);
@@ -248,4 +256,9 @@ public class PlayerActivity extends AppCompatActivity {
             feedService.onActivityStateChanged(isRestarting,isVideo);
         }
     }
+
+
+
+
+
 }
