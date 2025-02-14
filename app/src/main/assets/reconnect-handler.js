@@ -80,6 +80,7 @@ const ReconnectHandler = (() => {
                 if (retryCount >= maxRetryAttempts) {
                     Android.onUpdate("❌ Peer initialization failed after max attempts.");
                     clearInterval(retryInterval);
+                    Android.onPeerRetryLimitReached();
                 }
             }
 
@@ -103,6 +104,7 @@ const ReconnectHandler = (() => {
                 if (retryCount >= maxRetryAttempts) {
                     Android.onUpdate("❌ Peer initialization failed after max attempts.");
                     clearInterval(retryInterval);
+                    Android.onPeerRetryLimitReached();
                 }
             }
 

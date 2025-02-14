@@ -21,7 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.dynamic.SettingsUI;
-import com.github.jaykkumar01.watchparty_duo.gesturehelpers.BackPressHandler;
+import com.github.jaykkumar01.watchparty_duo.dialogs.BackPressHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;

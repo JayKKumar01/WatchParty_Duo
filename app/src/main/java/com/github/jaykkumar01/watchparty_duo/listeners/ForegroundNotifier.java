@@ -5,5 +5,13 @@ public interface ForegroundNotifier {
     void onUpdateLogs(String logMessage);
 
     void onConnectionClosed();
+
+    void onConnectionStatus(boolean isConnectionAlive);
+
+    void onRestartPeer();
+
+    void onRestartConnection();
+
+    void onPeerRetryLimitReached();
 }
 

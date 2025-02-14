@@ -13,6 +13,7 @@ import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.constants.Metadata;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
+import com.github.jaykkumar01.watchparty_duo.dialogs.ConnectionDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
@@ -196,16 +197,24 @@ public class FeedManager implements FeedListener,WebFeedListener{
     public void onConnectionAlive(boolean isConnectionAlive) {
         this.isConnectionAlive = isConnectionAlive;
         foregroundNotifier.onUpdateLogs("Connection Status, isAlive: "+isConnectionAlive);
+        foregroundNotifier.onConnectionStatus(isConnectionAlive);
     }
 
     @Override
     public void onRestartPeer() {
         foregroundNotifier.onUpdateLogs("Peer Restarted");
+        foregroundNotifier.onRestartPeer();
     }
 
     @Override
     public void onRestartConnection() {
         foregroundNotifier.onUpdateLogs("Connections Restarted");
+        foregroundNotifier.onRestartConnection();
+    }
+
+    @Override
+    public void onPeerRetryLimitReached() {
+        foregroundNotifier.onPeerRetryLimitReached();
     }
 
 

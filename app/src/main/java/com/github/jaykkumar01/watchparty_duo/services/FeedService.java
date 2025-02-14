@@ -100,6 +100,42 @@ public class FeedService extends Service implements ForegroundNotifier {
         }
     }
 
+    @Override
+    public void onConnectionStatus(boolean isConnectionAlive) {
+        if (playerActivity() == null){
+            return;
+        }
+        playerActivity().onConnectionStatus(isConnectionAlive);
+    }
+
+    @Override
+    public void onRestartPeer() {
+        if (playerActivity() == null){
+            return;
+        }
+        playerActivity().onRestartPeer();
+    }
+
+    @Override
+    public void onRestartConnection() {
+        if (playerActivity() == null){
+            return;
+        }
+        playerActivity().onRestartConnection();
+    }
+
+    @Override
+    public void onPeerRetryLimitReached() {
+        if (playerActivity() == null){
+            return;
+        }
+        playerActivity().onPeerRetryLimitReached();
+    }
+
+    private PlayerActivity playerActivity() {
+        return PlayerActivity.getInstance();
+    }
+
     public void setFeedSurfaces(TextureView peerFeed, TextureView remoteFeed) {
         feedManager.setFeedSurfaces(peerFeed,remoteFeed);
     }

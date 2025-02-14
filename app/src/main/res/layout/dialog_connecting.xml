@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/dialog_background"
+    android:elevation="10dp"
+    android:gravity="center">
+
+    <!-- Animated Progress Indicator -->
+    <ProgressBar
+        android:id="@+id/loading_spinner"
+        style="@android:style/Widget.Material.ProgressBar.Large"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:indeterminate="true"
+        android:layout_marginBottom="10dp"
+        android:indeterminateTint="@color/theme_color" />
+
+    <!-- Connection Status Text -->
+    <TextView
+        android:id="@+id/progress_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Connecting... (Step 0/2)"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:padding="10dp" />
+
+    <!-- Go to Homepage Button -->
+    <Button
+        android:id="@+id/home_button"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Go to Homepage"
+        android:backgroundTint="@color/theme_color"
+        android:fontFamily="@font/istok_web_regular"
+        android:textColor="@color/white"
+        android:layout_marginTop="10dp"
+        android:padding="12dp"/>
+</LinearLayout>

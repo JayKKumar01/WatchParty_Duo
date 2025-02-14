@@ -12,11 +12,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.OnBackPressedCallback;
-import androidx.activity.OnBackPressedDispatcher;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
@@ -26,7 +23,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.gesturehelpers.BackPressHandler;
+import com.github.jaykkumar01.watchparty_duo.dialogs.BackPressHandler;
+import com.github.jaykkumar01.watchparty_duo.dialogs.ConnectionDialogHandler;
+import com.github.jaykkumar01.watchparty_duo.dialogs.ExitDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
@@ -39,6 +38,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     // Static reference to the activity
     private static WeakReference<PlayerActivity> instanceRef;
+    private ExitDialogHandler exitDialogHandler;
 
     public static PlayerActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
@@ -59,6 +59,8 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean isMute = true;
     private boolean isDeafen = false;
     private boolean isVideo = true;
+
+    private ConnectionDialogHandler connectionDialogHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,6 +96,9 @@ public class PlayerActivity extends AppCompatActivity {
         if (feedService != null) {
             feedService.setFeedSurfaces(peerFeedTextureView, remoteFeedTextureView);
         }
+
+        connectionDialogHandler = new ConnectionDialogHandler(this);
+        exitDialogHandler = new ExitDialogHandler(this);
     }
 
 
@@ -192,33 +197,14 @@ public class PlayerActivity extends AppCompatActivity {
         }
     }
 
-    public void endCall(View view) {
+    public void goToHomepage(View view) {
         Intent intent = new Intent(this, FeedActivity.class);
         finish();
         startActivity(intent);
     }
 
     public void onConnectionClosed() {
-        addLog("Connection Closed. Returning to Homepage in 3 seconds...");
-        Toast.makeText(this, "Connection Closed", Toast.LENGTH_SHORT).show();
-
-        Runnable countdownRunnable = new Runnable() {
-            int secondsLeft = 3;
-
-            @Override
-            public void run() {
-                if (secondsLeft > 0) {
-                    addLog("Returning to Homepage in " + secondsLeft + " second(s)...");
-                    secondsLeft--;
-                    handler.postDelayed(this, 1000);
-                } else {
-                    if (instanceRef.get() != null) {
-                        endCall(null);
-                    }
-                }
-            }
-        };
-        handler.post(countdownRunnable);
+        exitDialogHandler.showExitDialog();
     }
 
     public void addLog(String message) {
@@ -229,6 +215,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        exitDialogHandler.dismissExitDialog();
         FeedService feedService = FeedService.getInstance();
         if (feedService != null) {
             feedService.stopService();
@@ -258,7 +245,24 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
 
+    public void onConnectionStatus(boolean isConnectionAlive) {
+        if (isConnectionAlive){
+            connectionDialogHandler.dismissConnectingDialog();
+        }else {
+            connectionDialogHandler.showConnectingDialog();
+        }
+    }
 
+    public void onRestartPeer() {
+        connectionDialogHandler.updateConnectingDialog(1);
+    }
 
+    public void onRestartConnection() {
+        connectionDialogHandler.updateConnectingDialog(2);
+    }
 
+    public void onPeerRetryLimitReached() {
+        connectionDialogHandler.dismissConnectingDialog();
+        goToHomepage(null);
+    }
 }

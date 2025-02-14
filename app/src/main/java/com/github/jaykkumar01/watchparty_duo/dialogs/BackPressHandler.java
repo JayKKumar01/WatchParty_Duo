@@ -1,8 +1,7 @@
-package com.github.jaykkumar01.watchparty_duo.gesturehelpers;
+package com.github.jaykkumar01.watchparty_duo.dialogs;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +10,9 @@ import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.OnBackPressedDispatcher;
-import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 
 public class BackPressHandler {
 

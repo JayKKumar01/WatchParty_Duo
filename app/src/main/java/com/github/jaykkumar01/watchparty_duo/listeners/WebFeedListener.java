@@ -16,4 +16,6 @@ public interface WebFeedListener {
     void onRestartPeer();
 
     void onRestartConnection();
+
+    void onPeerRetryLimitReached();
 }

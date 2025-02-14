@@ -60,4 +60,9 @@ public class WebBridge {
     public void onRestartConnection(){
         webFeedListener.onRestartConnection();
     }
+
+    @JavascriptInterface
+    public void onPeerRetryLimitReached(){
+        webFeedListener.onPeerRetryLimitReached();
+    }
 }
