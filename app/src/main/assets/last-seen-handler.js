@@ -2,6 +2,7 @@ const LastSeenHandler = (() => {
     let lastSeen = Date.now();
     let lastSeenConn = null;
     let connectionCheckInterval = null;
+    let lastIsAliveStatus = null;
 
     // Initialize LastSeen connection
     function initLastSeenConnection(peer, targetPeerId) {
@@ -19,6 +20,8 @@ const LastSeenHandler = (() => {
     // Setup last-seen-specific connection
     function setupLastSeenConnection(connection) {
         lastSeenConn = connection;
+        lastIsAliveStatus = null;
+        
         Android.onUpdate("Last Seen opened: " + Date.now());
         console.log("✅ LastSeen connection established.");
         start();
@@ -52,10 +55,16 @@ const LastSeenHandler = (() => {
             const timeSinceLastSeen = Date.now() - lastSeen;
             const isAlive = timeSinceLastSeen <= 1500; // ✅ Faster detection
 
+            // ✅ Only notify Android if status changed
+            if (lastIsAliveStatus !== isAlive) {
+                Android.onConnectionAlive(isAlive);
+                lastIsAliveStatus = isAlive;
+            }
+
+            // ✅ If connection is lost, restart peer
             if (!isAlive) {
-                Android.onConnectionAlive(false);
-                Android.onUpdate("⛔ Main connection lost, closing...");
-                resetPeerAndConnections();
+                Android.onUpdate("⛔ Main connection lost, restarting peer...");
+                restartPeer();
                 stop();
             }
 
