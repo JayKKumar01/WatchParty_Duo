@@ -30,7 +30,7 @@ function initPeer() {
 function handlePeerEvents(peer) {
     peer.on('open', () => {
         isPeerOpen = true;
-        peerId = peer.id.replace(peerBranch, "");
+        peerId = peer.id.replace(peerBranch, "").split("-")[0]; 
         Android.onPeerOpen(peerId);
         Android.onUpdate(`✅ Peer opened with ID: ${peerId}`);
     });
@@ -101,7 +101,7 @@ function setupConnection(connection) {
         }
     }
 
-    remoteId = mainConnection.peer.replace(peerBranch, "");
+    remoteId = mainConnection.peer.replace(peerBranch, "").split("-")[0]; 
     Android.onUpdate(`🔗 Connected with: ${remoteId}`);
 
     Android.onConnectionOpen(peerId, remoteId, count++);

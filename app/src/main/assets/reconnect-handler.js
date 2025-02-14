@@ -1,4 +1,8 @@
 const ReconnectHandler = (() => {
+    let restartCount = 0;
+    const retryIntervalMs = 2000; // Wait 2 sec before retrying
+    const maxRetryAttempts = 30;  // Retry for 1 minute max
+
     function resetAllConnections() {
         Android.onUpdate("⚠️ Resetting peer and all connections...");
 
@@ -34,6 +38,18 @@ const ReconnectHandler = (() => {
         resetAllConnections();
         Android.onUpdate("🔄 Restarting peer with the same ID...");
 
+
+
+        restartCount++; // 🔄 Increment restart count
+
+        // ✅ Generate a new peer ID to avoid "peer ID already taken" error
+        let newPeerId = `${peerId}-${restartCount}`;
+        Android.onUpdate(`🔄 Assigning new Peer ID: ${newPeerId}`);
+
+        // ✅ Update remoteId similarly (assuming the remote peer follows same logic)
+        let newRemoteId = `${remoteId}-${restartCount}`;
+        Android.onUpdate(`🔄 Assigning new Remote ID: ${newRemoteId}`);
+
         // ✅ Destroy existing peer safely
         if (peer) {
             try {
@@ -52,39 +68,36 @@ const ReconnectHandler = (() => {
         let retryCount = 0;
         const retryInterval = setInterval(() => {
             if (!isPeerOpen) {
-                Android.onUpdate(`🔄 Initializing peer (Attempt ${retryCount + 1})...`);
+                Android.onUpdate(`🔄 Retrying Peer Initialization (${retryCount + 1}/${maxRetryAttempts})...`);
                 try {
-                    peer = new Peer(`${peerBranch}${peerId}`);
+                    peer = new Peer(`${peerBranch}${newPeerId}`);
                     handlePeerEvents(peer);
                 } catch (error) {
                     Android.onUpdate(`❌ Error initializing peer: ${error.message}`);
                 }
 
                 retryCount++;
-                if (retryCount >= 1000) {
-                    Android.onUpdate("❌ Peer initialization failed after 1000 attempts.");
+                if (retryCount >= maxRetryAttempts) {
+                    Android.onUpdate("❌ Peer initialization failed after max attempts.");
                     clearInterval(retryInterval);
                 }
-            } 
+            }
 
             if (isPeerOpen && !isAllConnectionsOpen) {
                 Android.onUpdate("✅ Peer successfully opened, waiting for connections...");
-
-                // ✅ Keep retrying connection to remote peer
-                if (!isReceiver && remoteId) {
-                    Android.onUpdate(`🔄 Reconnecting to remote peer: ${remoteId}`);
-                    connectRemotePeer(remoteId, { message: "Reconnecting..." }, true);
+                if (!isReceiver && newRemoteId) {
+                    Android.onUpdate(`🔄 Reconnecting to remote peer: ${newRemoteId}`);
+                    connectRemotePeer(newRemoteId, { message: "Reconnecting..." }, true);
                 } else {
                     Android.onUpdate("📥 In receiver mode. Waiting for incoming connections...");
                 }
             }
 
-            // ✅ Ensure all connections are fully established before clearing the interval
             if (isPeerOpen && isAllConnectionsOpen) {
                 Android.onUpdate("✅ All connections successfully restored.");
                 clearInterval(retryInterval);
             }
-        }, 1000);
+        }, retryIntervalMs);  // Retry every 2 seconds        
     }
 
     return { restartPeer };
