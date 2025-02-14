@@ -23,4 +23,5 @@
     <color name="bg_color">#3A3A3A</color>
     <color name="bg">#775C87</color>
     <color name="reply_bg">#44658A</color>
+    <color name="theme_related">#6B98AD</color>
 </resources>

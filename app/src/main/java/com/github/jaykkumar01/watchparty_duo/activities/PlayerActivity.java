@@ -53,7 +53,6 @@ public class PlayerActivity extends AppCompatActivity {
     // Other components
     private LogUpdater logUpdater;
     private ActivityResultLauncher<String> pickVideoLauncher;
-    private final Handler handler = new Handler(Looper.getMainLooper());
 
     // State variables
     private boolean isMute = true;

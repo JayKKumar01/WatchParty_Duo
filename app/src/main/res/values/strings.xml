@@ -20,4 +20,7 @@
     <string name="are_you_sure_you_want_to_exit">Are you sure you want to exit?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="it_will_reset_option_layout">it will reset option layout</string>
+    <string name="archive">Archive</string>
+    <string name="celestial">Celestial</string>
 </resources>

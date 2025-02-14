@@ -6,210 +6,344 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/discord_bg"
+    android:background="@color/purple_200"
     android:keepScreenOn="true"
     tools:context=".activities.PlayerActivity">
     <ScrollView
-       android:id="@+id/logScrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/bg_color"
-        android:fillViewport="true"
-        android:layout_marginBottom="10dp"
-        android:padding="10dp"
-        app:flow_lastVerticalBias="0"
-        app:layout_constraintBottom_toTopOf="@id/imageFeedLayout"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0">
-
-        <TextView
-            android:id="@+id/logTextView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/theme_color"
-            android:textSize="14sp"
-            android:typeface="monospace"
-            android:letterSpacing="0"
-            android:includeFontPadding="false" />
+            android:layout_gravity="bottom">
+
+            <ScrollView
+                android:id="@+id/logScrollView"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintHeight_percent=".3"
+                android:background="@color/bg_color"
+                android:fillViewport="true"
+                android:padding="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias=".8"
+                tools:ignore="NestedScrolling">
+
+                <TextView
+                    android:id="@+id/logTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/theme_color"
+                    android:textSize="14sp"
+                    android:typeface="monospace"
+                    android:letterSpacing="0"
+                    android:includeFontPadding="false" />
+
+            </ScrollView>
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/playerLayout"
+                android:layout_margin="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/imageFeedLayout"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/optionLayout"
+                    android:layout_marginBottom="10dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/exoplayerLayout"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/offlineOptionLayout"
+                        app:layout_constraintHorizontal_bias="0"
+                        android:layout_marginEnd="5dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toLeftOf="@id/youtubeOptionLayout">
+                        <TextView
+                            android:id="@+id/tvArchive"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/archive"
+                            android:background="@drawable/big_button_bg"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-light"
+                            android:textColor="@color/theme_color"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"/>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/youtubeOptionLayout"
+                        app:layout_constraintHorizontal_bias="1"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginEnd="10dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/offlineOptionLayout"
+                        app:layout_constraintRight_toLeftOf="@id/btnRefresh">
+
+                        <TextView
+                            android:id="@+id/tvCelestial"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="@string/celestial"
+                            android:background="@drawable/video_player_feed_background"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-light"
+                            android:textColor="@android:color/white"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"/>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <ImageView
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/btnRefresh"
+                        android:background="@drawable/big_button_bg"
+                        android:src="@drawable/refresh"
+                        android:padding="10dp"
+                        app:layout_constraintDimensionRatio="1"
+                        app:layout_constraintHorizontal_bias="1"
+                        android:contentDescription="@string/it_will_reset_option_layout"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:id="@+id/exoplayerLayout"
+                    android:background="@drawable/video_player_feed_background"
+                    app:layout_constraintDimensionRatio="16:9"
+                    app:layout_constraintVertical_bias="1"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent">
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:id="@+id/imageFeedLayout"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintVertical_bias="1"
+                android:layout_margin="10dp"
+                android:background="@drawable/image_feed_background"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:id="@+id/remoteFeedLayout"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent">
+                    <com.github.jaykkumar01.watchparty_duo.custom_designs.RemoteFeedCustomTextureView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <TextureView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:id="@+id/remoteFeed"/>
+
+                    </com.github.jaykkumar01.watchparty_duo.custom_designs.RemoteFeedCustomTextureView>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/remotePeerName"
+                        android:text="@string/friend"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:padding="2dp"
+                        android:shadowColor="#000000"
+                        android:shadowRadius="1"
+                        android:gravity="center"
+                        android:shadowDx="1"
+                        android:shadowDy="1"
+                        android:fontFamily="sans-serif-light"
+                        app:layout_constraintVertical_bias="0"
+                        android:layout_marginTop="10dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+
+
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:id="@+id/peerFeedLayout"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintVertical_bias="0"
+                    app:layout_constraintHorizontal_bias="1"
+                    app:layout_constraintWidth_percent=".25"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/peer_feed_background"
+                    android:elevation="4dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent">
+                    <com.github.jaykkumar01.watchparty_duo.custom_designs.PeerFeedCustomTextureView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <TextureView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:id="@+id/peerFeed"/>
+
+                    </com.github.jaykkumar01.watchparty_duo.custom_designs.PeerFeedCustomTextureView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="0dp"
+                    android:id="@+id/deafenBtn"
+                    android:contentDescription="@string/deafen_description"
+                    android:onClick="deafen"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintVertical_bias="0"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:elevation="2dp"
+                    android:background="@drawable/big_button_bg"
+                    android:padding="5dp"
+                    android:src="@drawable/deafen_off"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"/>
+
+
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    app:layout_constraintVertical_bias="1"
+                    android:layout_marginBottom="15dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent">
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/videoBtn"
+                        android:contentDescription="@string/video_btn_description"
+                        android:onClick="video"
+                        android:elevation="2dp"
+                        app:layout_constraintHorizontal_bias="0"
+                        android:layout_marginEnd="20dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        app:layout_constraintDimensionRatio="1:1"
+                        android:src="@mipmap/video_on_foreground"
+                        android:background="@drawable/small_button_bg"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toLeftOf="@id/callBtn"
+                        app:tint="@color/white" />
+                    <ImageView
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/callBtn"
+                        android:onClick="goToHomepage"
+                        android:contentDescription="@string/call_btn_description"
+                        app:layout_constraintDimensionRatio="1:1"
+                        android:elevation="2dp"
+                        android:background="@drawable/big_button_bg"
+                        android:padding="8dp"
+                        android:src="@drawable/call_end"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/micBtn"
+                        android:onClick="mic"
+                        android:elevation="2dp"
+                        android:contentDescription="@string/todo"
+                        app:layout_constraintDimensionRatio="1:1"
+                        android:layout_marginStart="20dp"
+                        android:padding="7dp"
+                        android:src="@drawable/mic_off"
+                        android:background="@drawable/small_button_bg"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toRightOf="@id/callBtn"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:tint="@color/white" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:id="@+id/imageFeedLayout"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintVertical_bias="1"
-        android:layout_margin="10dp"
-        android:background="@drawable/image_feed_background"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:id="@+id/remoteFeedLayout"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent">
-            <com.github.jaykkumar01.watchparty_duo.custom_designs.RemoteFeedCustomTextureView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <TextureView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/remoteFeed"/>
 
-            </com.github.jaykkumar01.watchparty_duo.custom_designs.RemoteFeedCustomTextureView>
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/remotePeerName"
-                android:text="@string/friend"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:padding="2dp"
-                android:shadowColor="#000000"
-                android:shadowRadius="1"
-                android:gravity="center"
-                android:shadowDx="1"
-                android:shadowDy="1"
-                app:layout_constraintVertical_bias="0"
-                android:layout_marginTop="10dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"/>
-
-
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:id="@+id/peerFeedLayout"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintVertical_bias="0"
-            app:layout_constraintHorizontal_bias="1"
-            app:layout_constraintWidth_percent=".25"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/peer_feed_background"
-            android:elevation="4dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent">
-            <com.github.jaykkumar01.watchparty_duo.custom_designs.PeerFeedCustomTextureView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <TextureView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/peerFeed"/>
-
-            </com.github.jaykkumar01.watchparty_duo.custom_designs.PeerFeedCustomTextureView>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="0dp"
-            android:id="@+id/deafenBtn"
-            android:contentDescription="@string/deafen_description"
-            android:onClick="deafen"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintVertical_bias="0"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
-            android:elevation="2dp"
-            android:background="@drawable/big_button_bg"
-            android:padding="5dp"
-            android:src="@drawable/deafen_off"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"/>
-
-
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            app:layout_constraintVertical_bias="1"
-            android:layout_marginBottom="15dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent">
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="0dp"
-                android:id="@+id/videoBtn"
-                android:contentDescription="@string/video_btn_description"
-                android:onClick="video"
-                android:elevation="2dp"
-                app:layout_constraintHorizontal_bias="0"
-                android:layout_marginEnd="20dp"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp"
-                app:layout_constraintDimensionRatio="1:1"
-                android:src="@mipmap/video_on_foreground"
-                android:background="@drawable/small_button_bg"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/callBtn"
-                app:tint="@color/white" />
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:id="@+id/callBtn"
-                android:onClick="goToHomepage"
-                android:contentDescription="@string/call_btn_description"
-                app:layout_constraintDimensionRatio="1:1"
-                android:elevation="2dp"
-                android:background="@drawable/big_button_bg"
-                android:padding="8dp"
-                android:src="@drawable/call_end"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"/>
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="0dp"
-                android:id="@+id/micBtn"
-                android:onClick="mic"
-                android:elevation="2dp"
-                android:contentDescription="@string/todo"
-                app:layout_constraintDimensionRatio="1:1"
-                android:layout_marginStart="20dp"
-                android:padding="7dp"
-                android:src="@drawable/mic_off"
-                android:background="@drawable/small_button_bg"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toRightOf="@id/callBtn"
-                app:layout_constraintRight_toRightOf="parent"
-                app:tint="@color/white" />
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 
