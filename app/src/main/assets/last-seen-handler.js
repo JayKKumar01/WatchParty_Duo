@@ -21,7 +21,7 @@ const LastSeenHandler = (() => {
     function setupLastSeenConnection(connection) {
         lastSeenConn = connection;
         lastIsAliveStatus = null;
-        
+
         Android.onUpdate("Last Seen opened: " + Date.now());
         console.log("✅ LastSeen connection established.");
         start();
@@ -64,7 +64,7 @@ const LastSeenHandler = (() => {
             // ✅ If connection is lost, restart peer
             if (!isAlive) {
                 Android.onUpdate("⛔ Main connection lost, restarting peer...");
-                restartPeer();
+                ReconnectHandler.restartPeer();
                 stop();
             }
 
