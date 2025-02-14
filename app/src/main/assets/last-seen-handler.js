@@ -1,8 +1,6 @@
 const LastSeenHandler = (() => {
     let lastSeen = Date.now();
-    let lastConnectionStatus = false;
     let lastSeenConn = null;
-    let isLastSeenConnected = false;
     let connectionCheckInterval = null;
 
     // Initialize LastSeen connection
@@ -11,23 +9,19 @@ const LastSeenHandler = (() => {
 
         console.log("🔗 Establishing LastSeen connection...");
         lastSeenConn = peer.connect(peerBranch + targetPeerId, {
-            reliable: false,
+            reliable: true,
             metadata: { type: "lastSeen" } // ✅ Pass type in metadata
         });
 
-        setupLastSeenConnection(lastSeenConn);
+        confirmConnection(lastSeenConn);
     }
 
     // Setup last-seen-specific connection
     function setupLastSeenConnection(connection) {
         lastSeenConn = connection;
-
-        lastSeenConn.on('open', () => {
-            Android.onUpdate("Last Seen opened: "+Date.now());
-            isLastSeenConnected = true;
-            console.log("✅ LastSeen connection established.");
-            start();
-        });
+        Android.onUpdate("Last Seen opened: " + Date.now());
+        console.log("✅ LastSeen connection established.");
+        start();
 
         lastSeenConn.on('data', (data) => {
             if (data.type === "lastSeen") {
@@ -58,14 +52,16 @@ const LastSeenHandler = (() => {
             const timeSinceLastSeen = Date.now() - lastSeen;
             const isAlive = timeSinceLastSeen <= 1500; // ✅ Faster detection
 
-            Android.onUpdate(`Queued data size: ${conn.bufferSize} bytes`);
-
-
-            if (lastConnectionStatus !== isAlive) {
-                console.log("📡 Connection status changed:", isAlive);
-                Android.onConnectionAlive(isAlive);
-                lastConnectionStatus = isAlive;
+            if (!isAlive) {
+                // Android.onConnectionAlive(false);
+                // Android.onUpdate("⛔ Main connection lost, closing...");
+                // closeMainConnection();
+                // stop();
+            }else{
+                Android.onConnectionAlive(true);
             }
+
+
         }, 1000); // ✅ Check every second
     }
 
@@ -80,14 +76,15 @@ const LastSeenHandler = (() => {
             clearInterval(connectionCheckInterval);
             connectionCheckInterval = null;
         }
-        lastConnectionStatus = false;
+        close();
     }
 
-    function close(){
+    function close() {
         lastSeenConn.close();
+        lastSeenConn = null;
     }
 
-    function isConnectionOpen(){
+    function isConnectionOpen() {
         return lastSeenConn && lastSeenConn.open;
     }
 
@@ -98,5 +95,5 @@ const LastSeenHandler = (() => {
         }
     }
 
-    return { initLastSeenConnection, setupLastSeenConnection , isConnectionOpen, close};
+    return { initLastSeenConnection, setupLastSeenConnection, isConnectionOpen, close };
 })();

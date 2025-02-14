@@ -1,6 +1,6 @@
 function closeConnectionAndDestroyPeer() {
-    if (conn) {
-        conn.close();
+    if (mainConnection) {
+        mainConnection.close();
         console.log("Connection closed.");
     }
     
@@ -10,8 +10,8 @@ function closeConnectionAndDestroyPeer() {
     }
 
     isPeerOpen = false;
-    isConnectionOpen = false;
+    
     remoteId = null;
-    conn = null;
+    mainConnection = null;
     peer = null;
 }
