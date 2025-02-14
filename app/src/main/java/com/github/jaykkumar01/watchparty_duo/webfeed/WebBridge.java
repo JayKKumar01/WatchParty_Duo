@@ -51,4 +51,13 @@ public class WebBridge {
     public void onPeerDisconnected(String peerId){
 
     }
+    @JavascriptInterface
+    public void onRestartPeer(){
+        webFeedListener.onRestartPeer();
+    }
+
+    @JavascriptInterface
+    public void onRestartConnection(){
+        webFeedListener.onRestartConnection();
+    }
 }

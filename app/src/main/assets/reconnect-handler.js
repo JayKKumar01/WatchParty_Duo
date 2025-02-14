@@ -2,6 +2,7 @@ const ReconnectHandler = (() => {
     let restartCount = 0;
     const retryIntervalMs = 2000; // Wait 2 sec before retrying
     const maxRetryAttempts = 30;  // Retry for 1 minute max
+    let hasRestarted = false; // ✅ Flag to track first peer open event
 
     function resetAllConnections() {
         Android.onUpdate("⚠️ Resetting peer and all connections...");
@@ -38,8 +39,6 @@ const ReconnectHandler = (() => {
         resetAllConnections();
         Android.onUpdate("🔄 Restarting peer with the same ID...");
 
-
-
         restartCount++; // 🔄 Increment restart count
 
         // ✅ Generate a new peer ID to avoid "peer ID already taken" error
@@ -64,6 +63,7 @@ const ReconnectHandler = (() => {
         peer = null;
         isPeerOpen = false;
         isAllConnectionsOpen = false;
+        hasRestarted = false; // ✅ Reset flag before retry loop starts
 
         let retryCount = 0;
         const retryInterval = setInterval(() => {
@@ -85,17 +85,31 @@ const ReconnectHandler = (() => {
 
             if (isPeerOpen && !isAllConnectionsOpen) {
                 Android.onUpdate("✅ Peer successfully opened, waiting for connections...");
+
+                // ✅ Call Android.onRestartPeer() only once when peer opens for the first time
+                if (!hasRestarted) {
+                    Android.onRestartPeer();
+                    hasRestarted = true; // ✅ Prevent multiple calls
+                }
+
                 if (!isReceiver && newRemoteId) {
                     Android.onUpdate(`🔄 Reconnecting to remote peer: ${newRemoteId}`);
                     connectRemotePeer(newRemoteId, { message: "Reconnecting..." }, true);
                 } else {
                     Android.onUpdate("📥 In receiver mode. Waiting for incoming connections...");
                 }
+
+                retryCount++;
+                if (retryCount >= maxRetryAttempts) {
+                    Android.onUpdate("❌ Peer initialization failed after max attempts.");
+                    clearInterval(retryInterval);
+                }
             }
 
             if (isPeerOpen && isAllConnectionsOpen) {
                 Android.onUpdate("✅ All connections successfully restored.");
                 clearInterval(retryInterval);
+                Android.onRestartConnection();
             }
         }, retryIntervalMs);  // Retry every 2 seconds        
     }

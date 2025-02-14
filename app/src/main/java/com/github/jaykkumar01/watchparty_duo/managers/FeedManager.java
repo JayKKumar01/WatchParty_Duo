@@ -198,6 +198,16 @@ public class FeedManager implements FeedListener,WebFeedListener{
         foregroundNotifier.onUpdateLogs("Connection Status, isAlive: "+isConnectionAlive);
     }
 
+    @Override
+    public void onRestartPeer() {
+        foregroundNotifier.onUpdateLogs("Peer Restarted");
+    }
+
+    @Override
+    public void onRestartConnection() {
+        foregroundNotifier.onUpdateLogs("Connections Restarted");
+    }
+
 
     @Override
     public void onPeerOpen(String peerId) {

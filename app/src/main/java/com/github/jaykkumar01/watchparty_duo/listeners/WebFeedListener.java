@@ -12,4 +12,8 @@ public interface WebFeedListener {
     void onMetaData(String jsonData);
 
     void onConnectionAlive(boolean isAlive);
+
+    void onRestartPeer();
+
+    void onRestartConnection();
 }
