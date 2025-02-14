@@ -53,12 +53,10 @@ const LastSeenHandler = (() => {
             const isAlive = timeSinceLastSeen <= 1500; // ✅ Faster detection
 
             if (!isAlive) {
-                // Android.onConnectionAlive(false);
-                // Android.onUpdate("⛔ Main connection lost, closing...");
-                // closeMainConnection();
-                // stop();
-            }else{
-                Android.onConnectionAlive(true);
+                Android.onConnectionAlive(false);
+                Android.onUpdate("⛔ Main connection lost, closing...");
+                resetPeerAndConnections();
+                stop();
             }
 
 

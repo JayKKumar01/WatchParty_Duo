@@ -46,7 +46,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private final PacketModel packetModel = new PacketModel();
     private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
 
-    private boolean isConnectionAlive;
+    private boolean isConnectionAlive = true;
 
 
     public FeedManager(Context context, ForegroundNotifier foregroundNotifier) {

@@ -1,41 +1,32 @@
 let peerId = getRandomId();
 let remoteId = null;
-let targetPeerId = null;
 
 let peer = null;
 let isPeerOpen = false;
-
 
 let mainConnection = null;
 let lastSeenConn = null;
 let signalConn = null;
 
-
-let isClosingForRestart = false;
-
-
-
 let count = 0;
-
 let isReceiver = null;
 
-// Initialize Peer
+// ✅ Initialize Peer
 function initPeer() {
-    const id = `${peerBranch}${peerId}`;
-    peer = new Peer(id);
-    handlePeer(peer);
+    peer = new Peer(`${peerBranch}${peerId}`);
+    handlePeerEvents(peer);
 
     // Close peer if it does not open within 9 seconds
     setTimeout(() => {
         if (!isPeerOpen) {
             peer.destroy();
-            Android.onUpdate("⚠️ Peer failed to open, closing peer.");
+            Android.onUpdate("⚠️ Peer failed to open, closing.");
         }
     }, 9000);
 }
 
-// Handle Peer Events
-function handlePeer(peer) {
+// ✅ Handle Peer Events
+function handlePeerEvents(peer) {
     peer.on('open', () => {
         isPeerOpen = true;
         peerId = peer.id.replace(peerBranch, "");
@@ -45,14 +36,10 @@ function handlePeer(peer) {
 
     peer.on('connection', (incomingConn) => {
         Android.onUpdate("🔄 Incoming connection detected.");
-        
         isReceiver = true;
         Android.onUpdate("📥 Marked as receiver.");
-    
         confirmConnection(incomingConn);
-        Android.onUpdate("✅ Connection confirmation initiated.");
     });
-    
 
     peer.on('disconnected', () => {
         Android.onUpdate("⚠️ Peer disconnected.");
@@ -60,16 +47,13 @@ function handlePeer(peer) {
     });
 
     peer.on('error', (err) => {
-        Android.onUpdate(`❌ Peer error: ${err}`);
+        Android.onUpdate(`❌ Peer error: ${err.message}`);
     });
 }
 
-
+// ✅ Confirm & Assign Connection
 function confirmConnection(incomingConn) {
-
     incomingConn.on('open', () => {
-        Android.onUpdate("✅ Connection opened successfully.");
-
         const connType = incomingConn.metadata?.type || "main";
         Android.onUpdate(`📌 Connection type detected: ${connType}`);
 
@@ -79,44 +63,35 @@ function confirmConnection(incomingConn) {
         } else if (connType === "lastSeen") {
             lastSeenConn = incomingConn;
             Android.onUpdate("👀 Assigned as lastSeen connection.");
+        } else if (connType === "signal") {
+            signalConn = incomingConn;
+            Android.onUpdate("📡 Assigned as signal connection.");
         }
 
-        if ((mainConnection && mainConnection.open) && (lastSeenConn && lastSeenConn.open)) {
-            Android.onUpdate("🔄 Both connections are active. Setting up...");
+        // ✅ Ensure all connections are active before setup
+        if (mainConnection?.open && lastSeenConn?.open && signalConn?.open) {
+            Android.onUpdate("🔄 All connections active. Setting up...");
             setupConnection(mainConnection);
             LastSeenHandler.setupLastSeenConnection(lastSeenConn);
+            SignalHandler.setupSignalConnection(signalConn);
             Android.onUpdate("✅ Connections setup complete.");
         } else {
-            Android.onUpdate("⚠️ Waiting for both connections to be active.");
+            Android.onUpdate("⚠️ Waiting for all connections to be active.");
         }
     });
 
-    incomingConn.on('close', () => {
-        Android.onUpdate("❌ Connection closed.");
-    });
-
-    incomingConn.on('error', (err) => {
-        Android.onUpdate(`⚠️ Connection error: ${err.message}`);
-    });
+    incomingConn.on('close', () => Android.onUpdate("❌ Connection closed."));
+    incomingConn.on('error', (err) => Android.onUpdate(`⚠️ Connection error: ${err.message}`));
 }
 
-
-
-
-
-
-
-// Setup Connection
+// ✅ Setup Main Connection
 function setupConnection(connection) {
     Android.onUpdate("🔧 Initializing connection setup...");
-
     mainConnection = connection;
-    Android.onUpdate("✅ Main connection assigned.");
 
     if (isReceiver) {
-        Android.onUpdate("📥 Device is in receiver mode.");
-        
-        if (!isClosingForRestart) {
+        Android.onUpdate("📥 Device in receiver mode.");
+        if (count === 0) {
             Android.onUpdate("📡 Receiving metadata...");
             Android.onMetaData(mainConnection.metadata.metadata);
         } else {
@@ -125,74 +100,17 @@ function setupConnection(connection) {
     }
 
     remoteId = mainConnection.peer.replace(peerBranch, "");
-    Android.onUpdate(`🔗 Connection established with: ${remoteId}`);
+    Android.onUpdate(`🔗 Connected with: ${remoteId}`);
 
     Android.onConnectionOpen(peerId, remoteId, count++);
 
-    mainConnection.on('data', (data) => {
-        handleData(data);
-    });
-
-    mainConnection.on('close', () => {
-        if (!isClosingForRestart) {
-            Android.onUpdate("⚠️ Connection closed.");
-            Android.onConnectionClosed();
-        } else {
-            Android.onUpdate("🔄 Connection closed but restart in progress.");
-        }
-    });
-
-    mainConnection.on('error', (err) => {
-        Android.onUpdate(`❌ Connection error: ${err.message}`);
-    });
+    mainConnection.on('data', handleData);
+    mainConnection.on('error', (err) => Android.onUpdate(`❌ Connection error: ${err.message}`));
 
     Android.onUpdate("✅ Connection setup complete.");
 }
 
-
-// Connect to Remote Peer
-function connectRemotePeer(otherPeerId, metadataJson) {
-    targetPeerId = byteArrayToString(otherPeerId);
-    if (targetPeerId !== '') {
-        try {
-            LastSeenHandler.initLastSeenConnection(peer, targetPeerId);
-
-            const metadata = JSON.stringify(metadataJson);
-
-            Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
-
-            const connection = peer.connect(peerBranch + targetPeerId, {
-                reliable: true,
-                metadata: { type: 'main', metadata: metadata }
-            });
-
-            confirmConnection(connection);
-
-            // Check if the connection is still closed after 4 seconds
-            setTimeout(() => {
-                if (!connection.open) {
-                    Android.onUpdate("⚠️ Connection did not open. Closing.");
-                    connection.close();
-                }
-            }, 4000);
-        } catch (error) {
-            Android.onUpdate(`❌ Failed to parse metadata JSON: ${error}`);
-        }
-    } else {
-        Android.onUpdate("⚠️ Invalid target peer ID.");
-    }
-}
-
-// Send Data
-function sendData(data) {
-    if (mainConnection && mainConnection.open) {
-        mainConnection.send(data);
-    } else {
-        Android.onUpdate("⚠️ Connection is not open. Unable to send data.");
-    }
-}
-
-// Handle Incoming Data
+// ✅ Handle Data
 function handleData(data) {
     if (data.type === "rawData") {
         handleRawData(data);
@@ -201,15 +119,94 @@ function handleData(data) {
     }
 }
 
-// Close Connection
-function closeMainConnection() {
-    if (mainConnection && mainConnection.open) {
-        isClosingForRestart = true;
-        targetPeerId = remoteId; // Store for reconnection
-        Android.onUpdate(`❌ Closing main connection with ${targetPeerId}`);
-        mainConnection.close();
-        mainConnection = null;
-    } else {
-        Android.onUpdate("⚠️ No active connection to close.");
+
+// ✅ Connect to Remote Peer
+function connectRemotePeer(otherPeerId, metadataJson) {
+    const targetPeerId = byteArrayToString(otherPeerId);
+    if (!targetPeerId) return Android.onUpdate("⚠️ Invalid target peer ID.");
+
+    try {
+        LastSeenHandler.initLastSeenConnection(peer, targetPeerId);
+        SignalHandler.initSignalConnection(peer, targetPeerId);
+
+        Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
+
+        const connection = peer.connect(peerBranch + targetPeerId, {
+            reliable: true,
+            metadata: { type: "main", metadata: JSON.stringify(metadataJson) }
+        });
+
+        confirmConnection(connection);
+
+        // ✅ Ensure connection opens within 4 seconds
+        setTimeout(() => {
+            if (!connection.open) {
+                Android.onUpdate("⚠️ Connection did not open. Closing.");
+                connection.close();
+            }
+        }, 4000);
+    } catch (error) {
+        Android.onUpdate(`❌ Failed to parse metadata JSON: ${error}`);
     }
 }
+
+// ✅ Send Data
+function sendData(data) {
+    if (mainConnection?.open) {
+        mainConnection.send(data);
+    }
+}
+
+
+function resetPeerAndConnections() {
+    Android.onUpdate("⚠️ Resetting peer and all connections...");
+
+    // ✅ Close all active connections
+    if (mainConnection?.open) {
+        Android.onUpdate("🔗 Closing main connection...");
+        mainConnection.close();
+    } else {
+        Android.onUpdate("⚠️ No active main connection to close.");
+    }
+    mainConnection = null;
+
+    if (lastSeenConn?.open) {
+        Android.onUpdate("👀 Closing lastSeen connection...");
+        lastSeenConn.close();
+    } else {
+        Android.onUpdate("⚠️ No active lastSeen connection to close.");
+    }
+    lastSeenConn = null;
+
+    if (signalConn?.open) {
+        Android.onUpdate("📡 Closing signal connection...");
+        signalConn.close();
+    } else {
+        Android.onUpdate("⚠️ No active signal connection to close.");
+    }
+    signalConn = null;
+
+    Android.onUpdate("✅ All connections closed.");
+
+    // ✅ Destroy the Peer Instance (with error handling)
+    if (peer) {
+        try {
+            Android.onUpdate("🛑 Destroying current peer instance...");
+            peer.destroy();
+            Android.onUpdate("✅ Peer instance destroyed successfully.");
+        } catch (error) {
+            Android.onUpdate(`❌ Error while destroying peer: ${error.message}`);
+        }
+    } else {
+        Android.onUpdate("⚠️ No active peer instance to destroy.");
+    }
+
+    // ✅ Reset only necessary variables (keeping peerId, remoteId, and count unchanged)
+    isPeerOpen = false;
+    peer = null;
+    isReceiver = null;
+
+    Android.onUpdate(`🔄 Restarting peer initialization with same ID: ${peerId}`);
+    // retryPeerInitialization();
+}
+

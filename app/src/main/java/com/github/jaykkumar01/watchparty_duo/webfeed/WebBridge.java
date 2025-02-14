@@ -46,4 +46,9 @@ public class WebBridge {
     public void onConnectionAlive(boolean isConnectionAlive){
         webFeedListener.onConnectionAlive(isConnectionAlive);
     }
+
+    @JavascriptInterface
+    public void onPeerDisconnected(String peerId){
+
+    }
 }
