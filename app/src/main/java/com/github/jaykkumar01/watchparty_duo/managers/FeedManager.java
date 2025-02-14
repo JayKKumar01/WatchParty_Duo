@@ -119,6 +119,14 @@ public class FeedManager implements FeedListener,WebFeedListener{
         processFeed.setTextureView(remoteFeed);
     }
 
+    public void setPeerSurface(TextureView textureView) {
+        imageFeed.setTextureView(textureView);
+    }
+    public void setRemoteSurface(TextureView textureView) {
+        processFeed.setTextureView(textureView);
+    }
+
+
     public void startFeeds() {
         webFeed.start();
         audioFeed.start();
@@ -330,4 +338,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
         stopLoggingUpdates();
         processFeed.stop();
     }
+
+
 }

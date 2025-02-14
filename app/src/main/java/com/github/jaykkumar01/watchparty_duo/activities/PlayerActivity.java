@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.TextureView;
@@ -100,16 +98,11 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
 
-        // Connect feed surfaces to FeedService
-        FeedService feedService = FeedService.getInstance();
-        if (feedService != null) {
-            feedService.setFeedSurfaces(peerFeedTextureView, remoteFeedTextureView);
-        }
 
         connectionDialogHandler = new ConnectionDialogHandler(this);
         exitDialogHandler = new ExitDialogHandler(this);
 
-        playerOrientationHandler = new PlayerOrientationHandler(this);
+        playerOrientationHandler = new PlayerOrientationHandler(this,remoteFeedTextureView,peerFeedTextureView);
         playerOrientationHandler.handleOrientationChange(getResources().getConfiguration().orientation);
     }
 

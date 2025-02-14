@@ -58,11 +58,11 @@ public class ExitDialogHandler {
             @Override
             public void run() {
                 if (exitDialog != null && exitDialog.isShowing() && progressText != null) {
-                    // Ensure UI update runs on the main thread
-                    progressText.post(() -> progressText.setText("Exiting... in " + countdown));
-                    countdown--;
 
-                    if (countdown >= 0) {
+                    if (countdown > 0) {
+                        // Ensure UI update runs on the main thread
+                        progressText.post(() -> progressText.setText("Exiting... in " + countdown));
+                        countdown--;
                         handler.postDelayed(this, 1000);
                     } else {
                         goToHomepage();

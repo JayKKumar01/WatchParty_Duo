@@ -139,6 +139,12 @@ public class FeedService extends Service implements ForegroundNotifier {
     public void setFeedSurfaces(TextureView peerFeed, TextureView remoteFeed) {
         feedManager.setFeedSurfaces(peerFeed,remoteFeed);
     }
+    public void setPeerSurface(TextureView textureView) {
+        feedManager.setPeerSurface(textureView);
+    }
+    public void setRemoteSurface(TextureView textureView) {
+        feedManager.setRemoteSurface(textureView);
+    }
 
     public FeedListener getFeedListener() {
         return feedManager;
@@ -147,6 +153,4 @@ public class FeedService extends Service implements ForegroundNotifier {
     public void onActivityStateChanged(boolean isRestarting, boolean isVideo) {
         feedManager.onActivityStateChanged(isRestarting,isVideo);
     }
-
-
 }

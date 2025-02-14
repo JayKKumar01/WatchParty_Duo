@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.playeractivityhelpers;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
+import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -12,6 +13,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 
 public class PlayerOrientationHandler {
     private final Activity activity;
@@ -21,13 +23,18 @@ public class PlayerOrientationHandler {
     private final ConstraintLayout smallRemoteFeedLayout;
     private final View LAYOUT1;
 
-    public PlayerOrientationHandler(Activity activity) {
+    private final TextureView remoteFeedTextureView,smallRemoteFeedTextureView,peerFeedTextureView;
+
+    public PlayerOrientationHandler(Activity activity, TextureView remoteFeedTextureView,TextureView peerFeedTextureView) {
         this.activity = activity;
+        this.remoteFeedTextureView = remoteFeedTextureView;
+        this.peerFeedTextureView = peerFeedTextureView;
         this.playerLayout = activity.findViewById(R.id.playerLayout);
         this.optionLayout = activity.findViewById(R.id.optionLayout);
         this.imageFeedLayout = activity.findViewById(R.id.imageFeedLayout);
         this.smallRemoteFeedLayout = activity.findViewById(R.id.smallRemoteFeedLayout);
         this.LAYOUT1 = activity.findViewById(R.id.LAYOUT1);
+        this.smallRemoteFeedTextureView = activity.findViewById(R.id.smallRemoteFeed);
     }
 
     private String getFullRatio(){
@@ -35,10 +42,20 @@ public class PlayerOrientationHandler {
         return displayMatrix.widthPixels + ":" + displayMatrix.heightPixels;
     }
     public void handleOrientationChange(int newOrientation) {
+        // Connect feed surfaces to FeedService
+        FeedService feedService = FeedService.getInstance();
+
         if (newOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (feedService != null) {
+                feedService.setRemoteSurface(smallRemoteFeedTextureView);
+                feedService.setPeerSurface(null);
+            }
             enableFullscreen();
             showPlayerOnly();
         } else {
+            if (feedService != null) {
+                feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
+            }
             disableFullscreen();
             restoreDefaultLayout();
         }
