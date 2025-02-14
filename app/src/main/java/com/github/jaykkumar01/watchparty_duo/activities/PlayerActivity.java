@@ -1,6 +1,7 @@
 package com.github.jaykkumar01.watchparty_duo.activities;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,8 +17,10 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,7 +32,9 @@ import com.github.jaykkumar01.watchparty_duo.dialogs.ExitDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
+import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.PlayerOrientationHandler;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
+import com.github.jaykkumar01.watchparty_duo.utils.AspectRatio;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 
 import java.lang.ref.WeakReference;
@@ -61,11 +66,16 @@ public class PlayerActivity extends AppCompatActivity {
 
     private ConnectionDialogHandler connectionDialogHandler;
 
+    private PlayerOrientationHandler playerOrientationHandler;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_player);
+
+        AspectRatio.set(this);
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.theme_related));
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -98,6 +108,9 @@ public class PlayerActivity extends AppCompatActivity {
 
         connectionDialogHandler = new ConnectionDialogHandler(this);
         exitDialogHandler = new ExitDialogHandler(this);
+
+        playerOrientationHandler = new PlayerOrientationHandler(this);
+        playerOrientationHandler.handleOrientationChange(getResources().getConfiguration().orientation);
     }
 
 
@@ -214,12 +227,12 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        exitDialogHandler.dismissExitDialog();
         FeedService feedService = FeedService.getInstance();
         if (feedService != null) {
             feedService.stopService();
         }
         RefHelper.reset(instanceRef);
+        exitDialogHandler.dismissExitDialog();
         super.onDestroy();
         Log.d("PlayerActivity", "onDestroy called! Is finishing: " + isFinishing());
     }
@@ -263,5 +276,11 @@ public class PlayerActivity extends AppCompatActivity {
     public void onPeerRetryLimitReached() {
         connectionDialogHandler.dismissConnectingDialog();
         goToHomepage(null);
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        playerOrientationHandler.handleOrientationChange(newConfig.orientation);
     }
 }

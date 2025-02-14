@@ -65,7 +65,6 @@ public class ExitDialogHandler {
                     if (countdown >= 0) {
                         handler.postDelayed(this, 1000);
                     } else {
-                        dismissExitDialog();
                         goToHomepage();
                     }
                 }
@@ -81,7 +80,8 @@ public class ExitDialogHandler {
 
     private void goToHomepage() {
         Intent intent = new Intent(context, FeedActivity.class);
-        ((Activity) context).finish();
         context.startActivity(intent);
+        ((Activity) context).finish();
+
     }
 }
