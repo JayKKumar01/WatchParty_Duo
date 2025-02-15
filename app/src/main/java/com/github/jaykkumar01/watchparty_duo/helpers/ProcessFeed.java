@@ -19,9 +19,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProcessFeed {
-    private final FeedManager feedManager;
     private TextureView textureView;
-    private final FeedListener feedListener;
     private final AudioPlayer audioPlayer;
     private ScheduledExecutorService imageScheduler = Executors.newSingleThreadScheduledExecutor();
     private ExecutorService imageProcessingExecutor = Executors.newCachedThreadPool();
@@ -32,11 +30,9 @@ public class ProcessFeed {
     private final Handler logHandler = new Handler(Looper.getMainLooper());
 
 
-    public ProcessFeed(FeedListener feedListener, FeedManager feedManager) {
-        this.feedListener = feedListener;
-        this.feedManager = feedManager;
-        this.audioPlayer = new AudioPlayer(feedListener);
-        this.textureRenderer = new TextureRenderer(feedListener, false);
+    public ProcessFeed() {
+        this.audioPlayer = new AudioPlayer();
+        this.textureRenderer = new TextureRenderer(false);
     }
 
     public void setTextureView(TextureView textureView) {
@@ -53,7 +49,6 @@ public class ProcessFeed {
 
     public void startImageProcess() {
         stopImageProcessing.set(false);
-        updateListener("Image processing started");
     }
 
     public void stopImageProcess() {
@@ -61,10 +56,9 @@ public class ProcessFeed {
         if (imageScheduler != null && !imageScheduler.isShutdown()){
             imageScheduler.shutdownNow();
         }
-        if (imageProcessingExecutor != null && !imageScheduler.isShutdown()){
+        if (imageProcessingExecutor != null && !imageProcessingExecutor.isShutdown()){
             imageProcessingExecutor.shutdownNow();
         }
-        updateListener("Image processing stopped");
     }
 
     public void processAudioFeed(List<FeedModel> models) {
@@ -109,7 +103,6 @@ public class ProcessFeed {
             long scheduleAfter = expectedArrival - actualArrival;
 
             if (scheduleAfter < 0){
-                feedManager.onUpdate("Packet: "+packetNumber+". Scheduled After: " + scheduleAfter);
                 continue;
             }
 
@@ -153,7 +146,6 @@ public class ProcessFeed {
 
             } catch (Exception e) {
                 Log.e("ProcessFeed", "Error processing image feed", e);
-                feedManager.onUpdate("Error: "+e);
             } finally {
                 isProcessingImage.set(false);
             }
@@ -161,25 +153,7 @@ public class ProcessFeed {
         });
     }
 
-    private final Runnable logRunnable = new Runnable() {
-        @Override
-        public void run() {
-            updateListener("Image Packet Wasted: "+ (Packets.imagePacketReceived - Packets.imagePacketExecuted));
-            updateListener("Audio Packet Wasted: "+ (Packets.audioPacketReceived - Packets.audioPacketExecuted));
-            logHandler.postDelayed(this, 1000);
-        }
-    };
-    public void start() {
-        logHandler.post(logRunnable);
-    }
     public void stop(){
-        logHandler.removeCallbacks(logRunnable);
         stopImageProcess();
-    }
-
-    private void updateListener(String logMessage) {
-        if (feedListener != null) {
-            feedListener.onUpdate(logMessage);
-        }
     }
 }

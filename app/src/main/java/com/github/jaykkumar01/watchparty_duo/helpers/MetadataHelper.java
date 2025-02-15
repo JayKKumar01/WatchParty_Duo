@@ -1,4 +1,4 @@
-package com.github.jaykkumar01.watchparty_duo.managers.helpers;
+package com.github.jaykkumar01.watchparty_duo.helpers;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.Metadata;

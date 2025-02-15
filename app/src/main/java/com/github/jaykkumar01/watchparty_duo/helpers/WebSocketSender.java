@@ -27,16 +27,13 @@ import java.util.concurrent.TimeUnit;
 public class WebSocketSender {
     private ScheduledExecutorService senderExecutor = Executors.newSingleThreadScheduledExecutor();
     private final Queue<FeedModel> base64Queue = new ConcurrentLinkedQueue<FeedModel>();
-    private final FeedManager feedManager;
     private final Gson gson = new Gson();
     private final FeedSizeTracker feedSizeTracker = new FeedSizeTracker(); // Instance of tracker
     private ExecutorService dataExecutor = Executors.newCachedThreadPool();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private WebView webView;
 
-    public WebSocketSender(FeedManager feedManager) {
-        this.feedManager = feedManager;
-    }
+    public WebSocketSender() {}
 
     public void start(WebView webView) {
         this.webView = webView;
@@ -79,13 +76,6 @@ public class WebSocketSender {
             dataExecutor = Executors.newCachedThreadPool();
         }
         dataExecutor.execute(() -> {
-
-            int lenKB = bytes.length / 1024;
-
-            // Update size tracking
-            if (feedSizeTracker.updateSize(lenKB, feedType)){
-                feedManager.onUpdate(feedSizeTracker.toString());
-            }
 
             String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
 

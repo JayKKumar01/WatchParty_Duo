@@ -14,11 +14,11 @@ import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
 import com.github.jaykkumar01.watchparty_duo.constants.Metadata;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.dialogs.ConnectionDialogHandler;
+import com.github.jaykkumar01.watchparty_duo.helpers.MetadataHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
-import com.github.jaykkumar01.watchparty_duo.managers.helpers.MetadataHelper;
 import com.github.jaykkumar01.watchparty_duo.models.FeedModel;
 import com.github.jaykkumar01.watchparty_duo.models.PacketModel;
 import com.github.jaykkumar01.watchparty_duo.helpers.WebSocketSender;
@@ -45,7 +45,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
     private ExecutorService packetExecutor = Executors.newCachedThreadPool();
     private final Gson gson = new Gson();
     private final PacketModel packetModel = new PacketModel();
-    private final Handler updateLogHandler = new Handler(Looper.getMainLooper());
 
     private boolean isConnectionAlive = true;
 
@@ -54,9 +53,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.context = context;
         this.foregroundNotifier = foregroundNotifier;
         this.webFeed = new WebFeed(context,this);
-
-
-        this.processFeed = new ProcessFeed(this, this);
+        this.processFeed = new ProcessFeed();
     }
 
     public void onActivityStateChanged(boolean isRestarting, boolean isVideo) {
@@ -75,22 +72,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
     private void startImageProcessFeed() {
         processFeed.startImageProcess();
-    }
-
-    private final Runnable logUpdater = new Runnable() {
-        @Override
-        public void run() {
-            foregroundNotifier.onUpdateLogs(packetModel.toString());
-            packetModel.reset();
-            updateLogHandler.postDelayed(this, 1000); // Continue updating every second
-        }
-    };
-
-    private void startLoggingUpdates() {
-        updateLogHandler.post(logUpdater); // Start the loop
-    }
-    private void stopLoggingUpdates() {
-        updateLogHandler.removeCallbacks(logUpdater); // Stop only this specific task
     }
 
     public void startWebFeed(){
@@ -250,14 +231,13 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
         this.audioFeed = new AudioFeed(context,this);
         this.imageFeed = new ImageFeed(context,this);
-        this.webSocketSender = new WebSocketSender(this);
-        this.processFeed.start();
+        this.webSocketSender = new WebSocketSender();
 
         updateConnectionStatus(peerId,remoteId);
     }
 
     private void updateConnectionStatus(String peerId, String remoteId){
-        startLoggingUpdates();
+//        startLoggingUpdates();
         foregroundNotifier.updateNotification(true);
         FeedActivity feedActivity = FeedActivity.getInstance();
         if (feedActivity != null){
@@ -340,7 +320,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
             packetExecutor.shutdownNow();
         }
         stopFeeds();
-        stopLoggingUpdates();
         processFeed.stop();
     }
 

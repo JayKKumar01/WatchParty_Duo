@@ -34,7 +34,7 @@ public class ImageFeedProcessor {
 
     public ImageFeedProcessor(FeedListener feedListener, FeedManager feedManager, TextureView textureView){
         this.feedManager = feedManager;
-        this.textureRenderer = new TextureRenderer(feedListener, false);
+        this.textureRenderer = new TextureRenderer(false);
         this.textureView = textureView;
     }
 

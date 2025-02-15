@@ -13,15 +13,12 @@ import com.github.jaykkumar01.watchparty_duo.constants.Packets;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 
 public class TextureRenderer {
-    private final FeedListener feedListener;
     private Bitmap reusableBitmap = null;
     private volatile boolean isDrawing = false;
     private final boolean isCamera;
-    private final Handler logHandler = new Handler(Looper.getMainLooper());
 
-    public TextureRenderer(FeedListener feedListener, boolean isCamera) {
+    public TextureRenderer(boolean isCamera) {
         this.isCamera = isCamera;
-        this.feedListener = feedListener;
     }
 
     public void updateTexture(TextureView textureView, byte[] imageData) {
@@ -73,13 +70,6 @@ public class TextureRenderer {
             synchronized (this) {
                 isDrawing = false;
             }
-        }
-    }
-
-
-    private void updateLogs(String logMessage) {
-        if (feedListener != null) {
-            feedListener.onUpdate(logMessage);
         }
     }
 }

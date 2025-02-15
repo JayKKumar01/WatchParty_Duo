@@ -12,10 +12,8 @@ public class AudioPlayer {
     private AudioTrack audioTrack;
     private boolean isPlaying = false;
     private final AtomicBoolean isWriting = new AtomicBoolean(false);
-    private final FeedListener feedListener;
 
-    public AudioPlayer(FeedListener feedListener) {
-        this.feedListener = feedListener;
+    public AudioPlayer() {
     }
 
     public void start() {
@@ -32,7 +30,6 @@ public class AudioPlayer {
             );
             audioTrack.play();
             isPlaying = true;
-            updateListener("Audio playback started");
             Log.d("AudioPlayer", "Audio playback started");
         } catch (Exception e) {
             Log.e("AudioPlayer", "Error initializing AudioTrack: ", e);
@@ -64,7 +61,6 @@ public class AudioPlayer {
     public void stop() {
         if (!isPlaying) return;
         reset();
-        updateListener("Audio playback stopped");
         Log.d("AudioPlayer", "Audio playback stopped");
     }
 
@@ -80,11 +76,5 @@ public class AudioPlayer {
             audioTrack = null;
         }
         isPlaying = false;
-    }
-
-    private void updateListener(String logMessage) {
-        if (feedListener != null) {
-            feedListener.onUpdate(logMessage);
-        }
     }
 }

@@ -15,6 +15,7 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.RemotePlaybackHandler;
 import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
 import com.google.gson.Gson;
@@ -45,7 +46,7 @@ public class PlayerManager {
         this.muteButton = activity.findViewById(R.id.exo_mute_unmute);
         this.captionButton = activity.findViewById(R.id.exo_caption);
         this.fullscreen = activity.findViewById(R.id.exo_screen);
-        remotePlaybackHandler = new RemotePlaybackHandler(this,playPauseButton);
+        remotePlaybackHandler = new RemotePlaybackHandler(activity,this,playPauseButton);
 
         setupControls();
     }

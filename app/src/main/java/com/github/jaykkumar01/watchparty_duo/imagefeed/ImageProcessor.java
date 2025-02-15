@@ -54,7 +54,7 @@ public class ImageProcessor {
         this.cameraModel = cameraModel;
         this.feedListener = feedListener;
         this.frameIntervalMs = (long) (1000.0 / Feed.FPS);
-        this.textureRenderer = new TextureRenderer(feedListener,true);
+        this.textureRenderer = new TextureRenderer(true);
     }
 
     public void setTextureView(TextureView textureView) {

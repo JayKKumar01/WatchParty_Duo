@@ -1,6 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.exoplayer;
 
-import android.media.Image;
+import android.app.Activity;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.ImageView;
@@ -8,22 +8,22 @@ import android.widget.ImageView;
 import androidx.media3.exoplayer.ExoPlayer;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
 import com.github.jaykkumar01.watchparty_duo.managers.PlayerManager;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.List;
-import java.util.Map;
-
 public class RemotePlaybackHandler {
     private ExoPlayer player;
     private final PlayerManager playerManager;
     private final ImageView playPauseButton;
     private final Gson gson = new Gson();
+    private final Activity activity;
 
-    public RemotePlaybackHandler(PlayerManager playerManager, ImageView playPauseButton) {
+    public RemotePlaybackHandler(Activity activity, PlayerManager playerManager, ImageView playPauseButton) {
+        this.activity = activity;
         this.playerManager = playerManager;
         this.playPauseButton = playPauseButton;
     }
@@ -41,7 +41,7 @@ public class RemotePlaybackHandler {
         // 🔹 Implement actual network logic here
     }
 
-    public void playbackFromRemote(int action, Object value) {
+    private void playbackFromRemote(int action, Object value) {
         Log.d("RemotePlayback", "Received action: " + action + " | Value: " + value);
 
         if (player == null) {
@@ -64,9 +64,7 @@ public class RemotePlaybackHandler {
                 break;
 
             case PlaybackActions.SEEK:
-                if (value instanceof Long) {
-                    playerManager.seekToRemote((Long) value);
-                }
+                playerManager.seekToRemote(((Double) value).longValue());
                 break;
 
             default:
@@ -85,7 +83,8 @@ public class RemotePlaybackHandler {
                 new TypeToken<Pair<Integer, Object>>() {}.getType()
         );
 
-        playbackFromRemote(pair.first,pair.second);
+        activity.runOnUiThread(() -> playbackFromRemote(pair.first,pair.second));
+
 
     }
 }
