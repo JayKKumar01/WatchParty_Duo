@@ -94,7 +94,7 @@ const SignalHandler = (() => {
         return signalConn && signalConn.open;
     }
 
-    return { initSignalConnection, setupSignalConnection, isConnectionOpen, sendMessage, sendDestroySignal, stop };
+    return { initSignalConnection, setupSignalConnection, isConnectionOpen, sendMessage, sendDestroySignal, stop, receivePlaybackUpdate };
 })();
 
 // **🔹 Expose to Android**
