@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.exoplayer;
 import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.view.View;
 
 import androidx.annotation.OptIn;
@@ -29,6 +30,7 @@ public class ExoPlayerHandler {
     private boolean isPaused = false;
     private boolean isClosed = true;
     private final ControlHandler controlHandler;
+    private final Handler handler = new Handler();
 
 
     public ExoPlayerHandler(Activity activity) {
@@ -73,6 +75,9 @@ public class ExoPlayerHandler {
 
     @OptIn(markerClass = UnstableApi.class)
     public void playMedia(Uri mediaUri) {
+
+
+        // declare here
         if (player == null) {
             player = new ExoPlayer.Builder(context).build();
             player.setRepeatMode(ExoPlayer.REPEAT_MODE_ONE);
@@ -95,19 +100,19 @@ public class ExoPlayerHandler {
         playerView.setVisibility(View.VISIBLE);
         playerView.setPlayer(player);
         playerView.hideController();
-        player.play();
-        if (isPaused) {
-            player.pause();
-        }
+
+        player.setPlayWhenReady(!isPaused);
+
+        ReadyEvent readyEvent = new ReadyEvent(playerManager,player);
         if (isClosed){
             isClosed = false;
-            Base.sleep(500);
-            playerManager.requestPlaybackState();
+            readyEvent.requestPlaybackState();
         }else {
-            Base.sleep(500);
-            playerManager.playbackToRemote(new PlaybackState(!isPaused,lastPosition));
+            readyEvent.playbackToRemote(!isPaused,lastPosition);
         }
     }
+
+
 
     public void releasePlayer() {
         if (player != null) {
