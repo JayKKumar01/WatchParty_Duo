@@ -162,7 +162,7 @@ public class FeedService extends Service implements ForegroundNotifier {
         feedManager.onActivityStateChanged(isRestarting,isVideo);
     }
 
-    public void playbackToRemote(int action, Object value) {
-        feedManager.playbackToRemote(action,value);
+    public void playbackToRemote(int action, Object object) {
+        feedManager.playbackToRemote(action,object);
     }
 }

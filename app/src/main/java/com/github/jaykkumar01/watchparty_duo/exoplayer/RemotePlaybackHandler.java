@@ -3,14 +3,14 @@ package com.github.jaykkumar01.watchparty_duo.exoplayer;
 import android.app.Activity;
 import android.util.Log;
 import android.util.Pair;
-import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.media3.exoplayer.ExoPlayer;
 
-import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
 import com.github.jaykkumar01.watchparty_duo.managers.PlayerManager;
+import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -18,54 +18,66 @@ import com.google.gson.reflect.TypeToken;
 public class RemotePlaybackHandler {
     private ExoPlayer player;
     private final PlayerManager playerManager;
-    private final ImageView playPauseButton;
     private final Gson gson = new Gson();
     private final Activity activity;
 
-    public RemotePlaybackHandler(Activity activity, PlayerManager playerManager, ImageView playPauseButton) {
+    public RemotePlaybackHandler(Activity activity, PlayerManager playerManager) {
         this.activity = activity;
         this.playerManager = playerManager;
-        this.playPauseButton = playPauseButton;
     }
 
     public void setPlayer(ExoPlayer player) {
         this.player = player;
     }
 
-    public void playbackToRemote(int action, Object value) {
+    public void playbackToRemote(int action, Object object) {
         FeedService feedService = FeedService.getInstance();
         if (feedService != null){
-            feedService.playbackToRemote(action, value);
+            feedService.playbackToRemote(action, object);
         }
-        Log.d("RemotePlayback", "Sending action: " + action + " | Value: " + value);
+        Log.d("RemotePlayback", "Sending action: " + action + " | Value: " + object);
         // 🔹 Implement actual network logic here
     }
 
-    private void playbackFromRemote(int action, Object value) {
-        Log.d("RemotePlayback", "Received action: " + action + " | Value: " + value);
+    private void playbackFromRemote(int action, Object object) {
+        Log.d("RemotePlayback", "Received action: " + action + " | Value: " + object);
 
         if (player == null) {
             Log.e("RemotePlayback", "Player instance is null!");
             return;
         }
+        PlayerActivity playerActivity = PlayerActivity.getInstance();
+        if (playerActivity == null){
+            return;
+        }
 
         switch (action) {
             case PlaybackActions.PLAY_PAUSE:
-                if (value instanceof Boolean) {
-                    boolean shouldPlay = (Boolean) value;
-                    if (shouldPlay) {
-                        player.play();
-                        playPauseButton.setImageResource(R.drawable.exo_pause);
-                    } else {
-                        player.pause();
-                        playPauseButton.setImageResource(R.drawable.exo_play);
-                    }
-                }
+                playerManager.updatePlayPauseUI((Boolean) object);
+                playerActivity.addLog("Received PLAY_PAUSE: "+object);
                 break;
 
             case PlaybackActions.SEEK:
-                playerManager.seekToRemote(((Double) value).longValue());
+                playerManager.seekFromRemote(((Double) object).longValue());
+                playerActivity.addLog("Received SEEK: "+object);
                 break;
+
+            case PlaybackActions.REQUEST_PLAYBACK_STATE:
+                playerManager.playbackToRemote(null);
+                playerActivity.addLog("Received REQUEST_PLAYBACK_STATE: "+object);
+                break;
+
+            case PlaybackActions.PLAYBACK_STATE:
+                if (object == null){
+                    return;
+                }
+
+                PlaybackState model = gson.fromJson(gson.toJson(object), PlaybackState.class);
+                playerManager.updatePlayPauseUI(model.isPlaying());
+                playerManager.seekFromRemote(model.getPosition());
+
+                playerActivity.addLog("Received PLAYBACK_STATE: "+model);
+
 
             default:
                 Log.w("RemotePlayback", "Unknown action received: " + action);
@@ -84,7 +96,6 @@ public class RemotePlaybackHandler {
         );
 
         activity.runOnUiThread(() -> playbackFromRemote(pair.first,pair.second));
-
 
     }
 }

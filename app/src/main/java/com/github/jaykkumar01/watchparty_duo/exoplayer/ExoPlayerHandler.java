@@ -16,6 +16,8 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.gestures.ControlHandler;
 import com.github.jaykkumar01.watchparty_duo.gestures.GestureHandler;
 import com.github.jaykkumar01.watchparty_duo.managers.PlayerManager;
+import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 
 public class ExoPlayerHandler {
     private final Context context;
@@ -24,8 +26,10 @@ public class ExoPlayerHandler {
     private final PlayerView playerView;
     private Uri lastMediaUri;
     private long lastPosition = 0;
-    private boolean wasPlaying = false;
+    private boolean isPaused = false;
+    private boolean isClosed = true;
     private final ControlHandler controlHandler;
+
 
     public ExoPlayerHandler(Activity activity) {
         this.context = activity;
@@ -50,7 +54,7 @@ public class ExoPlayerHandler {
         if (playerView.isControllerFullyVisible()){
             playerView.hideController();
         }else {
-            controlHandler.showControls(2500);
+            controlHandler.showControls();
         }
     }
 
@@ -86,20 +90,33 @@ public class ExoPlayerHandler {
         player.prepare();
         player.seekTo(lastPosition);  // Resume from last position
 
+
+
         playerView.setVisibility(View.VISIBLE);
         playerView.setPlayer(player);
         playerView.hideController();
         player.play();
+        if (isPaused) {
+            player.pause();
+        }
+        if (isClosed){
+            isClosed = false;
+            Base.sleep(500);
+            playerManager.requestPlaybackState();
+        }else {
+            Base.sleep(500);
+            playerManager.playbackToRemote(new PlaybackState(!isPaused,lastPosition));
+        }
     }
 
     public void releasePlayer() {
-        wasPlaying = false;
         if (player != null) {
-            wasPlaying = true;
+            isPaused = !player.isPlaying();
             lastPosition = player.getCurrentPosition(); // Save position before release
             if (playerManager.getSeekListener() != null) {
                 player.removeListener(playerManager.getSeekListener());
             }
+            playerManager.playbackToRemote(new PlaybackState(false,lastPosition));
             player.release();
             player = null;
         }
@@ -108,13 +125,15 @@ public class ExoPlayerHandler {
         }
     }
 
-    public void hidePlayer(boolean hidePlayer) {
+    public void resetPlayer(boolean hidePlayer) {
         playerView.setVisibility(hidePlayer ? View.GONE : View.VISIBLE);
         releasePlayer();
+        isClosed = true;
+        isPaused = false;
     }
 
     public void onRestart() {
-        if (lastMediaUri != null && wasPlaying) {
+        if (lastMediaUri != null && !isClosed) {
             playMedia(lastMediaUri); // Resume previous media
         }
     }

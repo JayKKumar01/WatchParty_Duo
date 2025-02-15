@@ -11,7 +11,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
@@ -38,7 +37,7 @@ public class MediaHandler {
         // Set click listeners
         imgAddMedia.setOnClickListener(view -> selectVideo());
         playOfflineVideo.setOnClickListener(view -> startSyncPlay());
-        btnRefresh.setOnClickListener(view -> hidePlayerLayout());
+        btnRefresh.setOnClickListener(view -> resetPlayerLayout());
 
 
         pickVideoLauncher = activity.registerForActivityResult(
@@ -64,8 +63,8 @@ public class MediaHandler {
     private void startSyncPlay() {
         exoPlayerHandler.playMedia(currentVideoUri);
     }
-    private void hidePlayerLayout(){
-        exoPlayerHandler.hidePlayer(true);
+    private void resetPlayerLayout(){
+        exoPlayerHandler.resetPlayer(true);
     }
 
     private void updateCurrentMedia(String mediaName) {

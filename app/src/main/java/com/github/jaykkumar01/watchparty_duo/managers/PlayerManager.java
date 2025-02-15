@@ -18,10 +18,8 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.RemotePlaybackHandler;
 import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerManager {
@@ -46,7 +44,7 @@ public class PlayerManager {
         this.muteButton = activity.findViewById(R.id.exo_mute_unmute);
         this.captionButton = activity.findViewById(R.id.exo_caption);
         this.fullscreen = activity.findViewById(R.id.exo_screen);
-        remotePlaybackHandler = new RemotePlaybackHandler(activity,this,playPauseButton);
+        remotePlaybackHandler = new RemotePlaybackHandler(activity,this);
 
         setupControls();
     }
@@ -68,10 +66,12 @@ public class PlayerManager {
             player.pause();
             playPauseButton.setImageResource(R.drawable.exo_play);
             remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,false);
+            PlayerActivity.getInstance().addLog("Sent PLAY_PAUSE: "+false);
         } else {
             player.play();
             playPauseButton.setImageResource(R.drawable.exo_pause);
             remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,true);
+            PlayerActivity.getInstance().addLog("Sent PLAY_PAUSE: "+true);
         }
 
     }
@@ -117,7 +117,9 @@ public class PlayerManager {
                 if (isRemoteSeek.getAndSet(false)) {
                     return; // Ignore if triggered by remote seek
                 }
-
+                if (oldPosition.positionMs == newPosition.positionMs){
+                    return;
+                }
                 // Send seek position to another user
                 sendSeekPositionToRemote(newPosition.positionMs);
             }
@@ -125,7 +127,10 @@ public class PlayerManager {
         player.addListener(seekListener);
     }
 
-    public void seekToRemote(long position) {
+    public void seekFromRemote(long position) {
+        if (player == null || player.getDuration() < position){
+            return;
+        }
         if (isRemoteSeek.getAndSet(true)) {
             return; // Ignore if already processing a remote seek
         }
@@ -134,6 +139,7 @@ public class PlayerManager {
 
     private void sendSeekPositionToRemote(long position) {
         remotePlaybackHandler.playbackToRemote(PlaybackActions.SEEK, position);
+        PlayerActivity.getInstance().addLog(System.currentTimeMillis()+" -> "+"Sent SEEK: "+position);
     }
 
     public Player.Listener getSeekListener() {
@@ -142,6 +148,38 @@ public class PlayerManager {
 
     public void onPlaybackUpdate(String jsonData) {
         remotePlaybackHandler.onPlaybackUpdate(jsonData);
+    }
 
+    public void requestPlaybackState() {
+        remotePlaybackHandler.playbackToRemote(PlaybackActions.REQUEST_PLAYBACK_STATE,null);
+        PlayerActivity.getInstance().addLog("Sent REQUEST_PLAYBACK_STATE: "+null);
+    }
+
+    public void updatePlayPauseUI(boolean shouldPlay) {
+        if (player == null){
+            return;
+        }
+        if (shouldPlay) {
+            player.play();
+            playPauseButton.setImageResource(R.drawable.exo_pause);
+        } else {
+            player.pause();
+            playPauseButton.setImageResource(R.drawable.exo_play);
+        }
+    }
+
+    public PlaybackState getCurrentPlaybackState() {
+        if (player == null){
+            return null;
+        }
+        return new PlaybackState(player.isPlaying(),player.getCurrentPosition());
+    }
+
+    public void playbackToRemote(PlaybackState playbackState) {
+        if (playbackState == null){
+            playbackState = getCurrentPlaybackState();
+        }
+        remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAYBACK_STATE, playbackState);
+        PlayerActivity.getInstance().addLog("Sent PLAYBACK_STATE: "+playbackState);
     }
 }

@@ -107,15 +107,6 @@ public class FeedManager implements FeedListener,WebFeedListener{
         processFeed.setTextureView(textureView);
     }
 
-
-    public void startFeeds() {
-        webFeed.start();
-        audioFeed.start();
-        if (imageFeed != null) {
-            imageFeed.initializeCamera();
-        }
-    }
-
     public void stopFeeds() {
         if (imageFeed != null) {
             imageFeed.releaseResources();
@@ -324,7 +315,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
 
-    public void playbackToRemote(int action, Object value) {
-        webFeed.playbackToRemote(action,value);
+    public void playbackToRemote(int action, Object object) {
+        webFeed.playbackToRemote(action,object);
     }
 }
