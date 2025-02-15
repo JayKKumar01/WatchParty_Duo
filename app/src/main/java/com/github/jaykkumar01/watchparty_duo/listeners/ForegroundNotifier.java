@@ -13,5 +13,7 @@ public interface ForegroundNotifier {
     void onRestartConnection();
 
     void onPeerRetryLimitReached();
+
+    void onPlaybackUpdate(String jsonData);
 }
 

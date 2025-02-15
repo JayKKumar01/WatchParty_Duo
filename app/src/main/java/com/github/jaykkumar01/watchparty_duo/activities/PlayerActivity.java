@@ -27,9 +27,11 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.dialogs.BackPressHandler;
 import com.github.jaykkumar01.watchparty_duo.dialogs.ConnectionDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.dialogs.ExitDialogHandler;
+import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
+import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.MediaHandler;
 import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.PlayerOrientationHandler;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.AspectRatio;
@@ -42,6 +44,7 @@ public class PlayerActivity extends AppCompatActivity {
     // Static reference to the activity
     private static WeakReference<PlayerActivity> instanceRef;
     private ExitDialogHandler exitDialogHandler;
+    private ExoPlayerHandler exoPlayerHandler;
 
     public static PlayerActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
@@ -55,7 +58,6 @@ public class PlayerActivity extends AppCompatActivity {
 
     // Other components
     private LogUpdater logUpdater;
-    private ActivityResultLauncher<String> pickVideoLauncher;
 
     // State variables
     private boolean isMute = true;
@@ -87,7 +89,6 @@ public class PlayerActivity extends AppCompatActivity {
 
         setupUI();
         setupListeners();
-        setupPickVideoLauncher();
 
         // Retrieve peer info
         Intent intent = getIntent();
@@ -104,6 +105,8 @@ public class PlayerActivity extends AppCompatActivity {
 
         playerOrientationHandler = new PlayerOrientationHandler(this,remoteFeedTextureView,peerFeedTextureView);
         playerOrientationHandler.handleOrientationChange(getResources().getConfiguration().orientation);
+        exoPlayerHandler = new ExoPlayerHandler(this);
+        new MediaHandler(this,exoPlayerHandler);
     }
 
 
@@ -129,20 +132,6 @@ public class PlayerActivity extends AppCompatActivity {
         });
     }
 
-    private void setupPickVideoLauncher() {
-        pickVideoLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                this::initializePlayer
-        );
-    }
-
-    private void initializePlayer(Uri uri) {
-        // TODO: Implement video player initialization
-    }
-
-    public void selectVideo(View view) {
-        pickVideoLauncher.launch("video/*");
-    }
 
     public void video(View view) {
         isVideo = !isVideo;
@@ -226,6 +215,7 @@ public class PlayerActivity extends AppCompatActivity {
         }
         RefHelper.reset(instanceRef);
         exitDialogHandler.dismissExitDialog();
+        exoPlayerHandler.releasePlayer();
         super.onDestroy();
         Log.d("PlayerActivity", "onDestroy called! Is finishing: " + isFinishing());
     }
@@ -233,12 +223,14 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         notifyImageFeedService(true);
+        exoPlayerHandler.onRestart();
         super.onRestart();
     }
 
     @Override
     protected void onStop() {
         notifyImageFeedService(false);
+        exoPlayerHandler.onStop();
         super.onStop();
     }
 
@@ -275,5 +267,10 @@ public class PlayerActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         playerOrientationHandler.handleOrientationChange(newConfig.orientation);
+    }
+
+
+    public void onPlaybackUpdate(String jsonData) {
+        exoPlayerHandler.onPlaybackUpdate(jsonData);
     }
 }

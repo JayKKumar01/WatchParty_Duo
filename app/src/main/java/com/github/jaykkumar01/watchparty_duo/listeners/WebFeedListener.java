@@ -18,4 +18,6 @@ public interface WebFeedListener {
     void onRestartConnection();
 
     void onPeerRetryLimitReached();
+
+    void onPlaybackUpdate(String jsonData);
 }

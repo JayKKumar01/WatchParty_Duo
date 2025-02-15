@@ -3,10 +3,14 @@ package com.github.jaykkumar01.watchparty_duo.playeractivityhelpers;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageSwitcher;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -24,17 +28,27 @@ public class PlayerOrientationHandler {
     private final View LAYOUT1;
 
     private final TextureView remoteFeedTextureView,smallRemoteFeedTextureView,peerFeedTextureView;
+    private final ConstraintLayout.LayoutParams playerLayoutLayoutParams;
+    private final int marginInPx, paddingInPx;
+    private ImageView fullScreen;
 
     public PlayerOrientationHandler(Activity activity, TextureView remoteFeedTextureView,TextureView peerFeedTextureView) {
         this.activity = activity;
+        this.marginInPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 10, activity.getResources().getDisplayMetrics());
+        this.paddingInPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 2, activity.getResources().getDisplayMetrics());
         this.remoteFeedTextureView = remoteFeedTextureView;
         this.peerFeedTextureView = peerFeedTextureView;
         this.playerLayout = activity.findViewById(R.id.playerLayout);
+        playerLayoutLayoutParams = (ConstraintLayout.LayoutParams) playerLayout.getLayoutParams();
         this.optionLayout = activity.findViewById(R.id.optionLayout);
         this.imageFeedLayout = activity.findViewById(R.id.imageFeedLayout);
         this.smallRemoteFeedLayout = activity.findViewById(R.id.smallRemoteFeedLayout);
         this.LAYOUT1 = activity.findViewById(R.id.LAYOUT1);
         this.smallRemoteFeedTextureView = activity.findViewById(R.id.smallRemoteFeed);
+
+        this.fullScreen = activity.findViewById(R.id.exo_screen);
     }
 
     private String getFullRatio(){
@@ -52,12 +66,14 @@ public class PlayerOrientationHandler {
             }
             enableFullscreen();
             showPlayerOnly();
+            fullScreen.setImageResource(R.drawable.fullscreen_exit);
         } else {
             if (feedService != null) {
                 feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
             }
             disableFullscreen();
             restoreDefaultLayout();
+            fullScreen.setImageResource(R.drawable.fullscreen);
         }
     }
 
@@ -90,19 +106,16 @@ public class PlayerOrientationHandler {
     }
 
     private void setLayoutParams(boolean isLandscape) {
-        ConstraintLayout.LayoutParams playerLayoutLayoutParams = (ConstraintLayout.LayoutParams) playerLayout.getLayoutParams();
 
         if (isLandscape) {
-            Toast.makeText(activity, getFullRatio(), Toast.LENGTH_SHORT).show();
             playerLayoutLayoutParams.dimensionRatio = getFullRatio();
             playerLayoutLayoutParams.setMargins(0, 0, 0, 0);
+            playerLayout.setPadding(0, 0, 0, 0);
             playerLayout.setBackgroundColor(ContextCompat.getColor(activity,R.color.theme_related));
         } else {
             playerLayoutLayoutParams.dimensionRatio = "16:9"; // Maintain aspect ratio
-
-            int marginInDp = 10;
-            int marginInPx = (int) (marginInDp * activity.getResources().getDisplayMetrics().density);
             playerLayoutLayoutParams.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
+            playerLayout.setPadding(paddingInPx, paddingInPx, paddingInPx, paddingInPx);
             playerLayout.setBackgroundResource(R.drawable.video_player_feed_background);
         }
 

@@ -23,4 +23,9 @@
     <string name="it_will_reset_option_layout">it will reset option layout</string>
     <string name="archive">Archive</string>
     <string name="celestial">Celestial</string>
+    <string name="media_index_mp4">Media: index.mp4</string>
+    <string name="play_video">Play Video</string>
+    <string name="no_media_selected">No media selected</string>
+    <string name="_00_00">00:00</string>
+    <string name="slash">/</string>
 </resources>

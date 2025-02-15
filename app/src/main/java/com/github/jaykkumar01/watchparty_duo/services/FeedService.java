@@ -132,6 +132,14 @@ public class FeedService extends Service implements ForegroundNotifier {
         playerActivity().onPeerRetryLimitReached();
     }
 
+    @Override
+    public void onPlaybackUpdate(String jsonData) {
+        PlayerActivity playerActivity = PlayerActivity.getInstance();
+        if (playerActivity != null){
+            playerActivity.onPlaybackUpdate(jsonData);
+        }
+    }
+
     private PlayerActivity playerActivity() {
         return PlayerActivity.getInstance();
     }
@@ -152,5 +160,9 @@ public class FeedService extends Service implements ForegroundNotifier {
 
     public void onActivityStateChanged(boolean isRestarting, boolean isVideo) {
         feedManager.onActivityStateChanged(isRestarting,isVideo);
+    }
+
+    public void playbackToRemote(int action, Object value) {
+        feedManager.playbackToRemote(action,value);
     }
 }

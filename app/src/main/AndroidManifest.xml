@@ -53,6 +53,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+
         </activity>
         <activity
             android:name=".peerjswebview.WebViewPeerActivity"
@@ -64,6 +65,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
             android:hardwareAccelerated="true">
+
 
         </activity>
     </application>

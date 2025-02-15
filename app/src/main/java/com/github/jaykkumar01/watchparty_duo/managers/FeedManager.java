@@ -225,6 +225,11 @@ public class FeedManager implements FeedListener,WebFeedListener{
         foregroundNotifier.onPeerRetryLimitReached();
     }
 
+    @Override
+    public void onPlaybackUpdate(String jsonData) {
+        foregroundNotifier.onPlaybackUpdate(jsonData);
+    }
+
 
     @Override
     public void onPeerOpen(String peerId) {
@@ -340,4 +345,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
 
+    public void playbackToRemote(int action, Object value) {
+        webFeed.playbackToRemote(action,value);
+    }
 }

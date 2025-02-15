@@ -65,4 +65,9 @@ public class WebBridge {
     public void onPeerRetryLimitReached(){
         webFeedListener.onPeerRetryLimitReached();
     }
+
+    @JavascriptInterface
+    public void onPlaybackUpdate(String jsonData){
+        webFeedListener.onPlaybackUpdate(jsonData);
+    }
 }

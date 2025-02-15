@@ -44,4 +44,8 @@ public class WebFeed{
     public WebView getWebView() {
         return helper.getWebView();
     }
+
+    public void playbackToRemote(int action, Object value) {
+        helper.playbackToRemote(action,value);
+    }
 }

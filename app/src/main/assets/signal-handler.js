@@ -27,6 +27,8 @@ const SignalHandler = (() => {
                 console.warn("🛑 Destroy signal received. Closing connection...");
                 Android.onConnectionClosed();
                 closePeerAndConnections(); // ✅ Destroy peer on signal
+            } else if (data.type === "playback"){
+                Android.onPlaybackUpdate(data.data);
             }
         });
 
@@ -60,6 +62,20 @@ const SignalHandler = (() => {
         }
     }
 
+    function receivePlaybackUpdate(data){
+        const playbackData = {
+            type: "playback",
+            data: JSON.stringify(data)
+        };
+        if (signalConn && signalConn.open) {
+            
+            signalConn.send(playbackData);
+            console.log("📤 Playback update sent:", payload);
+        } else {
+            console.warn("⚠️ Signal connection is not open. Cannot send playback update.");
+        }
+    }
+
     // Handle incoming messages
     function handleMessage(data) {
         console.log("📥 Received message:", data.content);
@@ -80,3 +96,6 @@ const SignalHandler = (() => {
 
     return { initSignalConnection, setupSignalConnection, isConnectionOpen, sendMessage, sendDestroySignal, stop };
 })();
+
+// **🔹 Expose to Android**
+window.receivePlaybackUpdate = SignalHandler.receivePlaybackUpdate;

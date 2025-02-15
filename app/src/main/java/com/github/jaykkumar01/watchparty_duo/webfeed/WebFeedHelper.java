@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Pair;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -20,6 +21,7 @@ import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressLint("StaticFieldLeak")
 public class WebFeedHelper {
@@ -139,5 +141,18 @@ public class WebFeedHelper {
 
     public WebView getWebView() {
         return webView;
+    }
+
+    public void playbackToRemote(int action, Object value) {
+        if (webView == null || isWebViewDestroyed) return;
+
+        Pair<Integer,Object> pair = new Pair<>(action,value);
+        // Convert to JSON string
+        String jsonString = new Gson().toJson(pair);
+
+        // Send the JSON to the WebView via JavaScript function
+        mainHandler.post(() -> {
+            webView.loadUrl("javascript:receivePlaybackUpdate(" + jsonString + ")");
+        });
     }
 }
