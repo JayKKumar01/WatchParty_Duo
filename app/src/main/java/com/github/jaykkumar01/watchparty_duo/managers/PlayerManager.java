@@ -66,12 +66,10 @@ public class PlayerManager {
             player.pause();
             playPauseButton.setImageResource(R.drawable.exo_play);
             remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,false);
-            PlayerActivity.getInstance().addLog("Sent PLAY_PAUSE: "+false);
         } else {
             player.play();
             playPauseButton.setImageResource(R.drawable.exo_pause);
             remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,true);
-            PlayerActivity.getInstance().addLog("Sent PLAY_PAUSE: "+true);
         }
 
     }
@@ -117,7 +115,7 @@ public class PlayerManager {
                 if (isRemoteSeek.getAndSet(false)) {
                     return; // Ignore if triggered by remote seek
                 }
-                if (oldPosition.positionMs == newPosition.positionMs){
+                if (oldPosition.positionMs == newPosition.positionMs || player.getPlaybackState() != Player.STATE_READY){
                     return;
                 }
                 // Send seek position to another user
@@ -139,7 +137,6 @@ public class PlayerManager {
 
     private void sendSeekPositionToRemote(long position) {
         remotePlaybackHandler.playbackToRemote(PlaybackActions.SEEK, position);
-        PlayerActivity.getInstance().addLog(System.currentTimeMillis()+" -> "+"Sent SEEK: "+position);
     }
 
     public Player.Listener getSeekListener() {
@@ -152,7 +149,6 @@ public class PlayerManager {
 
     public void requestPlaybackState() {
         remotePlaybackHandler.playbackToRemote(PlaybackActions.REQUEST_PLAYBACK_STATE,null);
-        PlayerActivity.getInstance().addLog("Sent REQUEST_PLAYBACK_STATE: "+null);
     }
 
     public void updatePlayPauseUI(boolean shouldPlay) {
@@ -180,6 +176,5 @@ public class PlayerManager {
             playbackState = getCurrentPlaybackState();
         }
         remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAYBACK_STATE, playbackState);
-        PlayerActivity.getInstance().addLog("Sent PLAYBACK_STATE: "+playbackState);
     }
 }

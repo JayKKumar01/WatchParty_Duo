@@ -46,38 +46,27 @@ public class RemotePlaybackHandler {
             Log.e("RemotePlayback", "Player instance is null!");
             return;
         }
-        PlayerActivity playerActivity = PlayerActivity.getInstance();
-        if (playerActivity == null){
-            return;
-        }
 
         switch (action) {
             case PlaybackActions.PLAY_PAUSE:
                 playerManager.updatePlayPauseUI((Boolean) object);
-                playerActivity.addLog("Received PLAY_PAUSE: "+object);
                 break;
 
             case PlaybackActions.SEEK:
                 playerManager.seekFromRemote(((Double) object).longValue());
-                playerActivity.addLog("Received SEEK: "+object);
                 break;
 
             case PlaybackActions.REQUEST_PLAYBACK_STATE:
                 playerManager.playbackToRemote(null);
-                playerActivity.addLog("Received REQUEST_PLAYBACK_STATE: "+object);
                 break;
 
             case PlaybackActions.PLAYBACK_STATE:
                 if (object == null){
                     return;
                 }
-
                 PlaybackState model = gson.fromJson(gson.toJson(object), PlaybackState.class);
                 playerManager.updatePlayPauseUI(model.isPlaying());
                 playerManager.seekFromRemote(model.getPosition());
-
-                playerActivity.addLog("Received PLAYBACK_STATE: "+model);
-
 
             default:
                 Log.w("RemotePlayback", "Unknown action received: " + action);
