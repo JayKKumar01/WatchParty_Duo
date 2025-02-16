@@ -108,7 +108,7 @@ public class ExoPlayerHandler {
             isClosed = false;
             readyEvent.requestPlaybackState();
         }else {
-            readyEvent.playbackToRemote(!isPaused,lastPosition);
+            readyEvent.playbackToRemote(!isPaused);
         }
     }
 
@@ -121,7 +121,7 @@ public class ExoPlayerHandler {
             if (playerManager.getSeekListener() != null) {
                 player.removeListener(playerManager.getSeekListener());
             }
-            playerManager.playbackToRemote(new PlaybackState(false,lastPosition));
+            playerManager.playbackToRemote(false);
             player.release();
             player = null;
         }

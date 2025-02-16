@@ -15,8 +15,9 @@ import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
+import com.github.jaykkumar01.watchparty_duo.exoplayer.ReadyEvent;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.RemotePlaybackHandler;
+import com.github.jaykkumar01.watchparty_duo.gestures.ControlHandler;
 import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
 import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
 
@@ -115,28 +116,29 @@ public class PlayerManager {
                 if (isRemoteSeek.getAndSet(false)) {
                     return; // Ignore if triggered by remote seek
                 }
-                if (oldPosition.positionMs == newPosition.positionMs || player.getPlaybackState() != Player.STATE_READY){
+                if (oldPosition.positionMs == newPosition.positionMs){
                     return;
                 }
                 // Send seek position to another user
-                sendSeekPositionToRemote(newPosition.positionMs);
+                new ReadyEvent(PlayerManager.this,player).sendSeekPositionToRemote(newPosition.positionMs);
             }
         };
         player.addListener(seekListener);
     }
 
     public void seekFromRemote(long position) {
-        if (player == null || player.getDuration() < position){
-            return;
-        }
-        if (isRemoteSeek.getAndSet(true)) {
-            return; // Ignore if already processing a remote seek
-        }
+        if (player == null || player.getDuration() < position || isRemoteSeek.getAndSet(true)) return;
         player.seekTo(position);
     }
 
-    private void sendSeekPositionToRemote(long position) {
-        remotePlaybackHandler.playbackToRemote(PlaybackActions.SEEK, position);
+
+    public void sendSeekPositionToRemote(long position) {
+        remotePlaybackHandler.playbackToRemote(PlaybackActions.SEEK, getShiftedPosition(position));
+    }
+
+    private long getShiftedPosition(long position){
+        long shift = player.isPlaying() ? 500 : 0;
+        return Math.max(0, Math.min(position + shift, player.getDuration()));
     }
 
     public Player.Listener getSeekListener() {
@@ -151,7 +153,7 @@ public class PlayerManager {
         remotePlaybackHandler.playbackToRemote(PlaybackActions.REQUEST_PLAYBACK_STATE,null);
     }
 
-    public void updatePlayPauseUI(boolean shouldPlay) {
+    public void remoteUpdatePlayPauseUI(boolean shouldPlay) {
         if (player == null){
             return;
         }
@@ -161,20 +163,16 @@ public class PlayerManager {
         } else {
             player.pause();
             playPauseButton.setImageResource(R.drawable.exo_play);
+            new ControlHandler(playerView).showControls();
         }
+
     }
 
-    public PlaybackState getCurrentPlaybackState() {
-        if (player == null){
-            return null;
+    public void playbackToRemote(Boolean isPlaying) {
+        if (isPlaying == null){
+            isPlaying = player.isPlaying();
         }
-        return new PlaybackState(player.isPlaying(),player.getCurrentPosition());
-    }
-
-    public void playbackToRemote(PlaybackState playbackState) {
-        if (playbackState == null){
-            playbackState = getCurrentPlaybackState();
-        }
+        PlaybackState playbackState = new PlaybackState(isPlaying,getShiftedPosition(player.getCurrentPosition()));
         remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAYBACK_STATE, playbackState);
     }
 }

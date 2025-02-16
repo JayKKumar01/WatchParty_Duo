@@ -17,7 +17,7 @@ public class ControlHandler {
 
     public ControlHandler(PlayerView playerView){
         this.playerView = playerView;
-        ConstraintLayout ctrlLayout = playerView.findViewById(R.id.ctrlLayout);
+//        ConstraintLayout ctrlLayout = playerView.findViewById(R.id.ctrlLayout);
 //        ctrlLayout.setOnClickListener(v -> touchActive = System.currentTimeMillis());
     }
 

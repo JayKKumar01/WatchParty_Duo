@@ -18,8 +18,12 @@ public class ReadyEvent implements Player.Listener {
         addListener(playerManager::requestPlaybackState);
     }
 
-    public void playbackToRemote(boolean isPlaying, long currentPosition) {
-        addListener(() -> playerManager.playbackToRemote(new PlaybackState(isPlaying, currentPosition)));
+    public void playbackToRemote(boolean isPlaying) {
+        addListener(() -> playerManager.playbackToRemote(isPlaying));
+    }
+
+    public void sendSeekPositionToRemote(long currentPosition) {
+        addListener(() -> playerManager.sendSeekPositionToRemote(currentPosition));
     }
 
     private void addListener(Runnable action) {

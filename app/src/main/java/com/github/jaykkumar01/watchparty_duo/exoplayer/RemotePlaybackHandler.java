@@ -3,11 +3,9 @@ package com.github.jaykkumar01.watchparty_duo.exoplayer;
 import android.app.Activity;
 import android.util.Log;
 import android.util.Pair;
-import android.widget.Toast;
 
 import androidx.media3.exoplayer.ExoPlayer;
 
-import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
 import com.github.jaykkumar01.watchparty_duo.managers.PlayerManager;
 import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
@@ -49,7 +47,7 @@ public class RemotePlaybackHandler {
 
         switch (action) {
             case PlaybackActions.PLAY_PAUSE:
-                playerManager.updatePlayPauseUI((Boolean) object);
+                playerManager.remoteUpdatePlayPauseUI((Boolean) object);
                 break;
 
             case PlaybackActions.SEEK:
@@ -65,7 +63,7 @@ public class RemotePlaybackHandler {
                     return;
                 }
                 PlaybackState model = gson.fromJson(gson.toJson(object), PlaybackState.class);
-                playerManager.updatePlayPauseUI(model.isPlaying());
+                playerManager.remoteUpdatePlayPauseUI(model.isPlaying());
                 playerManager.seekFromRemote(model.getPosition());
 
             default:
