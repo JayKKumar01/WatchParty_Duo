@@ -2,6 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.webfeed;
 
 import android.content.Context;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
 
@@ -12,9 +13,11 @@ public class WebFeed{
     private boolean isPeerOpen;
     private boolean isConnectionOpen;
     private boolean isConnectionAlive = true;
+    private final Context context;
 
 
     public WebFeed(Context context, WebFeedListener webFeedListener) {
+        this.context = context;
         helper = new WebFeedHelper(context);
         this.webFeedListener = webFeedListener;
     }

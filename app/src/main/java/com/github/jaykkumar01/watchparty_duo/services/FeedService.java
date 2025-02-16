@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
@@ -146,6 +147,7 @@ public class FeedService extends Service implements ForegroundNotifier {
         if (playerActivity != null){
             playerActivity.onPlaybackUpdate(jsonData);
         }
+
     }
 
 

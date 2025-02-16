@@ -67,12 +67,10 @@ public class PlayerManager {
             player.pause();
             playPauseButton.setImageResource(R.drawable.exo_play);
             playbackToRemote(false);
-//            remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,false);
         } else {
             player.play();
             playPauseButton.setImageResource(R.drawable.exo_pause);
             playbackToRemote(true);
-//            remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,true);
         }
 
     }

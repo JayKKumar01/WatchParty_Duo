@@ -25,7 +25,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.dialogs.BackPressHandler;
-import com.github.jaykkumar01.watchparty_duo.dialogs.ConnectionDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.dialogs.ExitDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
@@ -64,8 +63,6 @@ public class PlayerActivity extends AppCompatActivity {
     private boolean isDeafen = false;
     private boolean isVideo = true;
 
-    private ConnectionDialogHandler connectionDialogHandler;
-
     private PlayerOrientationHandler playerOrientationHandler;
 
     @Override
@@ -98,9 +95,6 @@ public class PlayerActivity extends AppCompatActivity {
                 friendName.setText(peerModel.getName());
             }
         }
-
-
-        connectionDialogHandler = new ConnectionDialogHandler(this);
         exitDialogHandler = new ExitDialogHandler(this);
 
         playerOrientationHandler = new PlayerOrientationHandler(this,remoteFeedTextureView,peerFeedTextureView);

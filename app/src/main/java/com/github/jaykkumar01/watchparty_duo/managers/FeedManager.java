@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.managers;
 import android.content.Context;
 import android.util.Log;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
@@ -315,9 +316,8 @@ public class FeedManager implements FeedListener,WebFeedListener{
         processFeed.stop();
     }
 
-
     public void playbackToRemote(int action, Object object) {
-        if (!isConnectionAlive) {
+        if (isConnectionAlive) {
             webFeed.playbackToRemote(action, object);
         }
     }

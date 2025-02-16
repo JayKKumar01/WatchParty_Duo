@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.exoplayer;
 import android.app.Activity;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
 import androidx.media3.exoplayer.ExoPlayer;
 
