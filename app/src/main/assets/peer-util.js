@@ -41,32 +41,6 @@ function handlePeerEvents(peer) {
         Android.onUpdate("📥 Marked as receiver.");
         confirmConnection(incomingConn);
     });
-
-    peer.on('disconnected', () => {
-        Android.onUpdate("⚠️ Peer disconnected.");
-        Android.onPeerDisconnected(peerId);
-
-        // // ✅ Destroy existing peer safely
-        // if (peer) {
-            // try {
-            //     Android.onUpdate("🛑 Destroying old peer instance...");
-            //     peer.destroy();
-            //     peer = null;
-            //     Android.onUpdate("✅ Old peer instance destroyed.");
-            // } catch (error) {
-            //     Android.onUpdate(`❌ Error destroying peer: ${error.message}`);
-            // }
-        // }
-    });
-
-    peer.on('close', () => {
-        Android.onUpdate("⚠️ Peer distroyed.");
-        // peer = null;
-    });
-
-    peer.on('error', (err) => {
-        Android.onUpdate(`❌ Peer error: ${err.message}`);
-    });
 }
 
 // ✅ Confirm & Assign Connection
@@ -146,17 +120,14 @@ function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
         SignalHandler.initSignalConnection(peer, targetPeerId);
 
         Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
-
-        Android.onUpdate("Step 1");
         
 
         const connection = peer.connect(peerBranch + targetPeerId, {
             reliable: true,
             metadata: { type: "main", metadata: JSON.stringify(metadataJson) }
         });
-        Android.onUpdate("Step 2");
+
         confirmConnection(connection);
-        Android.onUpdate("Step 3");
 
         if(isReconnect){
             return;

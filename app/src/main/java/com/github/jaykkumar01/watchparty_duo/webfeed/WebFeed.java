@@ -11,7 +11,7 @@ public class WebFeed{
 
     private boolean isPeerOpen;
     private boolean isConnectionOpen;
-
+    private boolean isConnectionAlive = true;
 
 
     public WebFeed(Context context, WebFeedListener webFeedListener) {
@@ -30,7 +30,7 @@ public class WebFeed{
     public void stop() {
         isPeerOpen = false;
         isConnectionOpen = false;
-        helper.destroy();
+        helper.destroy(isConnectionAlive);
     }
 
     public void onPeerOpen(String peerId) {
@@ -47,5 +47,9 @@ public class WebFeed{
 
     public void playbackToRemote(int action, Object object) {
         helper.playbackToRemote(action,object);
+    }
+
+    public void onConnectionAlive(boolean isConnectionAlive) {
+        this.isConnectionAlive = isConnectionAlive;
     }
 }

@@ -243,7 +243,6 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void onConnectionStatus(boolean isConnectionAlive) {
-        //exoPlayerHandler.onConnectionStatus(isConnectionAlive);
 
         if (isConnectionAlive){
             //connectionDialogHandler.dismissConnectingDialog();
@@ -262,7 +261,6 @@ public class PlayerActivity extends AppCompatActivity {
 
     public void onRestartConnection() {
         //connectionDialogHandler.updateConnectingDialog(2);
-        //exoPlayerHandler.onConnectionStatus(true);
     }
 
     public void onPeerRetryLimitReached() {

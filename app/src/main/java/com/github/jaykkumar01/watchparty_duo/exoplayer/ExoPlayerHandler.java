@@ -27,8 +27,6 @@ public class ExoPlayerHandler {
     private boolean isPaused = false;
     private boolean isClosed = true;
     private final ControlHandler controlHandler;
-    private final Handler handler = new Handler();
-    private boolean isConnectionAlive = true;
 
 
     public ExoPlayerHandler(Activity activity) {
@@ -104,13 +102,9 @@ public class ExoPlayerHandler {
         ReadyEvent readyEvent = new ReadyEvent(playerManager,player);
         if (isClosed){
             isClosed = false;
-            if (isConnectionAlive) {
-                readyEvent.requestPlaybackState();
-            }
+            readyEvent.requestPlaybackState();
         }else {
-            if (isConnectionAlive) {
-                readyEvent.playbackToRemote(!isPaused);
-            }
+            readyEvent.playbackToRemote(!isPaused);
         }
     }
 
@@ -123,9 +117,7 @@ public class ExoPlayerHandler {
             if (playerManager.getSeekListener() != null) {
                 player.removeListener(playerManager.getSeekListener());
             }
-            if (isConnectionAlive) {
-                playerManager.playbackToRemote(false);
-            }
+            playerManager.playbackToRemote(false);
             player.release();
             player = null;
         }
@@ -142,7 +134,7 @@ public class ExoPlayerHandler {
     }
 
     public void onRestart() {
-        if (lastMediaUri != null && !isClosed && isConnectionAlive) {
+        if (lastMediaUri != null && !isClosed) {
             playMedia(lastMediaUri); // Resume previous media
         }
     }
@@ -153,20 +145,5 @@ public class ExoPlayerHandler {
 
     public void onPlaybackUpdate(String jsonData) {
         playerManager.onPlaybackUpdate(jsonData);
-    }
-
-    public void onConnectionStatus(boolean isConnectionAlive) {
-        if (this.isConnectionAlive == isConnectionAlive){
-            return;
-        }
-        this.isConnectionAlive = isConnectionAlive;
-        activity.runOnUiThread(() -> {
-            if (isConnectionAlive){
-                onRestart();
-            }else {
-                onStop();
-            }
-        });
-
     }
 }

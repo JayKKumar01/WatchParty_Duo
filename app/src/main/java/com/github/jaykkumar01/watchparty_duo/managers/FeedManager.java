@@ -171,6 +171,7 @@ public class FeedManager implements FeedListener,WebFeedListener{
         this.isConnectionAlive = isConnectionAlive;
         foregroundNotifier.onUpdateLogs("Connection Status, isAlive: "+isConnectionAlive);
         foregroundNotifier.onConnectionStatus(isConnectionAlive);
+        webFeed.onConnectionAlive(isConnectionAlive);
     }
 
     @Override

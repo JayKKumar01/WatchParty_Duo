@@ -121,8 +121,12 @@ public class WebFeedHelper {
     }
 
 
-    public void destroy() {
-        callJavaScript("closeConnectionAndDestroyPeer");
+    public void destroy(boolean isConnectionAlive) {
+        long delay = 0;
+        if (isConnectionAlive) {
+            callJavaScript("closeConnectionAndDestroyPeer");
+            delay = 1000;
+        }
         mainHandler.postDelayed(() -> {
             if (webView != null) {
                 isWebViewDestroyed = true;
@@ -133,7 +137,7 @@ public class WebFeedHelper {
                 webView.destroy();
                 webView = null; // Ensure no further interaction
             }
-        }, 1000);
+        }, delay);
     }
 
 

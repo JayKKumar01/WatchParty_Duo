@@ -21,35 +21,20 @@ const SignalHandler = (() => {
         console.log("✅ Signal connection established.");
 
         signalConn.on('data', (data) => {
-            if (data.type === "message") {
-                handleMessage(data);
-            } else if (data.type === "destroyPeer") {
+            if (data.type === "destroyPeer") {
+                close();
                 console.warn("🛑 Destroy signal received. Closing connection...");
                 Android.onConnectionClosed();
-                closePeerAndConnections(); // ✅ Destroy peer on signal
+                cleanupPeer();
             } else if (data.type === "playback") {
                 Android.onPlaybackUpdate(data.data);
             }
         });
-
-        signalConn.on('close', () => {
-            console.warn("⚠️ Signal connection closed.");
-            stop();
-        });
-
-        signalConn.on('error', (err) => {
-            console.error("❌ Signal connection error:", err);
-        });
     }
 
-    // Send a message
-    function sendMessage(content) {
-        if (signalConn && signalConn.open) {
-            signalConn.send({ type: "message", content });
-            console.log("📤 Message sent:", content);
-        } else {
-            console.warn("⚠️ Signal connection is not open. Cannot send message.");
-        }
+    function close() {
+        signalConn.close();
+        signalConn = null;
     }
 
     // Send a destroy signal
@@ -75,25 +60,11 @@ const SignalHandler = (() => {
         }
     }
 
-    // Handle incoming messages
-    function handleMessage(data) {
-        console.log("📥 Received message:", data.content);
-        Android.onMessageReceived(data.content);
-    }
-
-    // Stop signal connection
-    function stop() {
-        if (signalConn) {
-            signalConn.close();
-            signalConn = null;
-        }
-    }
-
     function isConnectionOpen() {
         return signalConn && signalConn.open;
     }
 
-    return { initSignalConnection, setupSignalConnection, isConnectionOpen, sendMessage, sendDestroySignal, stop, receivePlaybackUpdate };
+    return { initSignalConnection, setupSignalConnection, isConnectionOpen, sendDestroySignal, receivePlaybackUpdate };
 })();
 
 // **🔹 Expose to Android**

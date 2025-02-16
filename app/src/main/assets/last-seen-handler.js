@@ -26,6 +26,7 @@ const LastSeenHandler = (() => {
         console.log("✅ LastSeen connection established.");
         start();
 
+
         lastSeenConn.on('data', (data) => {
             if (data.type === "lastSeen") {
                 update();
@@ -35,10 +36,6 @@ const LastSeenHandler = (() => {
         lastSeenConn.on('close', () => {
             console.warn("⚠️ LastSeen connection closed.");
             stop();
-        });
-
-        lastSeenConn.on('error', (err) => {
-            console.error("LastSeen connection error:", err);
         });
     }
 
@@ -53,7 +50,7 @@ const LastSeenHandler = (() => {
             sendLastSeen(); // ✅ Send via separate channel
 
             const timeSinceLastSeen = Date.now() - lastSeen;
-            const isAlive = timeSinceLastSeen <= 3000; // ✅ Faster detection
+            const isAlive = timeSinceLastSeen <= 4500; // ✅ Faster detection
 
             // ✅ Only notify Android if status changed
             if (lastIsAliveStatus !== isAlive) {
@@ -63,10 +60,11 @@ const LastSeenHandler = (() => {
 
             // ✅ If connection is lost, restart peer
             if (!isAlive) {
-                Android.onUpdate("⛔ Main connection lost, restarting peer...");
+                Android.onUpdate("⛔ Main connection lost, exiting...");
                 stop();
-                ReconnectHandler.restartPeer();
-            
+                Android.onConnectionClosed();
+                cleanupPeer();
+                // ReconnectHandler.restartPeer(); // will try later someday
             }
 
 
@@ -86,11 +84,6 @@ const LastSeenHandler = (() => {
         }
     }
 
-    function close() {
-        lastSeenConn.close();
-        lastSeenConn = null;
-    }
-
     function isConnectionOpen() {
         return lastSeenConn && lastSeenConn.open;
     }
@@ -102,5 +95,5 @@ const LastSeenHandler = (() => {
         }
     }
 
-    return { initLastSeenConnection, setupLastSeenConnection, isConnectionOpen, close };
+    return { initLastSeenConnection, setupLastSeenConnection, isConnectionOpen };
 })();
