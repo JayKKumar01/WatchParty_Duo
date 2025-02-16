@@ -66,11 +66,13 @@ public class PlayerManager {
         if (player.isPlaying()) {
             player.pause();
             playPauseButton.setImageResource(R.drawable.exo_play);
-            remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,false);
+            playbackToRemote(false);
+//            remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,false);
         } else {
             player.play();
             playPauseButton.setImageResource(R.drawable.exo_pause);
-            remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,true);
+            playbackToRemote(true);
+//            remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAY_PAUSE,true);
         }
 
     }
@@ -163,7 +165,12 @@ public class PlayerManager {
         } else {
             player.pause();
             playPauseButton.setImageResource(R.drawable.exo_play);
-            new ControlHandler(playerView).showControls();
+            try {
+                new ControlHandler(playerView).showControls();
+            }catch (Exception e){
+
+            }
+
         }
 
     }

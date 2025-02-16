@@ -53,7 +53,7 @@ const LastSeenHandler = (() => {
             sendLastSeen(); // ✅ Send via separate channel
 
             const timeSinceLastSeen = Date.now() - lastSeen;
-            const isAlive = timeSinceLastSeen <= 1500; // ✅ Faster detection
+            const isAlive = timeSinceLastSeen <= 3000; // ✅ Faster detection
 
             // ✅ Only notify Android if status changed
             if (lastIsAliveStatus !== isAlive) {
@@ -64,12 +64,13 @@ const LastSeenHandler = (() => {
             // ✅ If connection is lost, restart peer
             if (!isAlive) {
                 Android.onUpdate("⛔ Main connection lost, restarting peer...");
-                ReconnectHandler.restartPeer();
                 stop();
+                ReconnectHandler.restartPeer();
+            
             }
 
 
-        }, 1000); // ✅ Check every second
+        }, 2000); // ✅ Check every second
     }
 
     // Update last-seen timestamp

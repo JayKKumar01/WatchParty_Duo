@@ -1,7 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.exoplayer;
 
 import android.app.Activity;
-import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.view.View;
@@ -17,11 +16,9 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.gestures.ControlHandler;
 import com.github.jaykkumar01.watchparty_duo.gestures.GestureHandler;
 import com.github.jaykkumar01.watchparty_duo.managers.PlayerManager;
-import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
-import com.github.jaykkumar01.watchparty_duo.utils.Base;
 
 public class ExoPlayerHandler {
-    private final Context context;
+    private final Activity activity;
     private final PlayerManager playerManager;
     private ExoPlayer player;
     private final PlayerView playerView;
@@ -31,10 +28,11 @@ public class ExoPlayerHandler {
     private boolean isClosed = true;
     private final ControlHandler controlHandler;
     private final Handler handler = new Handler();
+    private boolean isConnectionAlive = true;
 
 
     public ExoPlayerHandler(Activity activity) {
-        this.context = activity;
+        this.activity = activity;
         this.playerView = activity.findViewById(R.id.player_view);
         controlHandler = new ControlHandler(playerView);
         playerManager = new PlayerManager(activity,playerView);
@@ -79,7 +77,7 @@ public class ExoPlayerHandler {
 
         // declare here
         if (player == null) {
-            player = new ExoPlayer.Builder(context).build();
+            player = new ExoPlayer.Builder(activity).build();
             player.setRepeatMode(ExoPlayer.REPEAT_MODE_ONE);
             MediaItem mediaItem = MediaItem.fromUri(mediaUri);
             player.setMediaItem(mediaItem);
@@ -106,9 +104,13 @@ public class ExoPlayerHandler {
         ReadyEvent readyEvent = new ReadyEvent(playerManager,player);
         if (isClosed){
             isClosed = false;
-            readyEvent.requestPlaybackState();
+            if (isConnectionAlive) {
+                readyEvent.requestPlaybackState();
+            }
         }else {
-            readyEvent.playbackToRemote(!isPaused);
+            if (isConnectionAlive) {
+                readyEvent.playbackToRemote(!isPaused);
+            }
         }
     }
 
@@ -121,7 +123,9 @@ public class ExoPlayerHandler {
             if (playerManager.getSeekListener() != null) {
                 player.removeListener(playerManager.getSeekListener());
             }
-            playerManager.playbackToRemote(false);
+            if (isConnectionAlive) {
+                playerManager.playbackToRemote(false);
+            }
             player.release();
             player = null;
         }
@@ -149,5 +153,17 @@ public class ExoPlayerHandler {
 
     public void onPlaybackUpdate(String jsonData) {
         playerManager.onPlaybackUpdate(jsonData);
+    }
+
+    public void onConnectionStatus(boolean isConnectionAlive) {
+        this.isConnectionAlive = isConnectionAlive;
+        activity.runOnUiThread(() -> {
+            if (isConnectionAlive){
+                onRestart();
+            }else {
+                onStop();
+            }
+        });
+
     }
 }

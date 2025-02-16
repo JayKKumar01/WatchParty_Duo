@@ -34,7 +34,7 @@ public class WebBridge {
 
     @JavascriptInterface
     public void onUpdate(String message){
-        new Handler().postDelayed(() -> webFeedListener.onUpdate("From Javascript bridge: "+message),0);
+        webFeedListener.onUpdate("From Javascript bridge: "+message);
     }
 
     @JavascriptInterface

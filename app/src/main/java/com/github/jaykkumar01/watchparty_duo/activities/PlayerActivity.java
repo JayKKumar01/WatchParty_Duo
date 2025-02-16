@@ -243,11 +243,14 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     public void onConnectionStatus(boolean isConnectionAlive) {
+        //exoPlayerHandler.onConnectionStatus(isConnectionAlive);
+
         if (isConnectionAlive){
             connectionDialogHandler.dismissConnectingDialog();
         }else {
             connectionDialogHandler.showConnectingDialog();
         }
+
     }
 
     public void onRestartPeer() {
