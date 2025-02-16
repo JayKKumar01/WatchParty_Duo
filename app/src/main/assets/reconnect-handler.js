@@ -1,7 +1,7 @@
 const ReconnectHandler = (() => {
     let restartCount = 0;
     const retryIntervalMs = 2000; // Wait 2 sec before retrying
-    const maxRetryAttempts = 30;  // Retry for 1 minute max
+    const maxRetryAttempts = 1000;  // Retry for 1 minute max
     let hasRestarted = false; // ✅ Flag to track first peer open event
 
     function resetAllConnections() {
@@ -89,8 +89,8 @@ const ReconnectHandler = (() => {
 
                 // ✅ Call Android.onRestartPeer() only once when peer opens for the first time
                 if (!hasRestarted) {
-                    Android.onRestartPeer();
                     hasRestarted = true; // ✅ Prevent multiple calls
+                    Android.onRestartPeer();
                 }
 
                 if (!isReceiver && newRemoteId) {

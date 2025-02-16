@@ -246,23 +246,24 @@ public class PlayerActivity extends AppCompatActivity {
         //exoPlayerHandler.onConnectionStatus(isConnectionAlive);
 
         if (isConnectionAlive){
-            connectionDialogHandler.dismissConnectingDialog();
+            //connectionDialogHandler.dismissConnectingDialog();
         }else {
-            connectionDialogHandler.showConnectingDialog();
+           // connectionDialogHandler.showConnectingDialog();
         }
 
     }
 
     public void onRestartPeer() {
-        connectionDialogHandler.updateConnectingDialog(1);
+        //connectionDialogHandler.updateConnectingDialog(1);
     }
 
     public void onRestartConnection() {
-        connectionDialogHandler.updateConnectingDialog(2);
+        //connectionDialogHandler.updateConnectingDialog(2);
+        //exoPlayerHandler.onConnectionStatus(true);
     }
 
     public void onPeerRetryLimitReached() {
-        connectionDialogHandler.dismissConnectingDialog();
+        //connectionDialogHandler.dismissConnectingDialog();
         goToHomepage(null);
     }
 

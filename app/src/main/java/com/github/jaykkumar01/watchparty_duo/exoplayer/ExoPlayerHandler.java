@@ -142,7 +142,7 @@ public class ExoPlayerHandler {
     }
 
     public void onRestart() {
-        if (lastMediaUri != null && !isClosed) {
+        if (lastMediaUri != null && !isClosed && isConnectionAlive) {
             playMedia(lastMediaUri); // Resume previous media
         }
     }
@@ -156,6 +156,9 @@ public class ExoPlayerHandler {
     }
 
     public void onConnectionStatus(boolean isConnectionAlive) {
+        if (this.isConnectionAlive == isConnectionAlive){
+            return;
+        }
         this.isConnectionAlive = isConnectionAlive;
         activity.runOnUiThread(() -> {
             if (isConnectionAlive){

@@ -81,9 +81,6 @@ function confirmConnection(incomingConn) {
             Android.onUpdate("⚠️ Waiting for all connections to be active.");
         }
     });
-
-    incomingConn.on('close', () => Android.onUpdate("❌ Connection closed."));
-    incomingConn.on('error', (err) => Android.onUpdate(`⚠️ Connection error: ${err.message}`));
 }
 
 // ✅ Setup Main Connection
@@ -133,9 +130,14 @@ function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
 
         Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
 
+        let myMetadata = null;
+        if(!isReconnect){
+            myMetadata = JSON.stringify(metadataJson);
+        }
+
         const connection = peer.connect(peerBranch + targetPeerId, {
             reliable: true,
-            metadata: { type: "main", metadata: JSON.stringify(metadataJson) }
+            metadata: { type: "main", metadata: myMetadata }
         });
 
         confirmConnection(connection);

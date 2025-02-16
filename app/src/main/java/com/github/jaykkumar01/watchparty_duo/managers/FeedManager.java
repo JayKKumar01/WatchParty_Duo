@@ -316,6 +316,8 @@ public class FeedManager implements FeedListener,WebFeedListener{
 
 
     public void playbackToRemote(int action, Object object) {
-        webFeed.playbackToRemote(action,object);
+        if (!isConnectionAlive) {
+            webFeed.playbackToRemote(action, object);
+        }
     }
 }

@@ -84,7 +84,6 @@ const LastSeenHandler = (() => {
             clearInterval(connectionCheckInterval);
             connectionCheckInterval = null;
         }
-        close();
     }
 
     function close() {
