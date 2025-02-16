@@ -45,6 +45,23 @@ function handlePeerEvents(peer) {
     peer.on('disconnected', () => {
         Android.onUpdate("⚠️ Peer disconnected.");
         Android.onPeerDisconnected(peerId);
+
+        // // ✅ Destroy existing peer safely
+        // if (peer) {
+            // try {
+            //     Android.onUpdate("🛑 Destroying old peer instance...");
+            //     peer.destroy();
+            //     peer = null;
+            //     Android.onUpdate("✅ Old peer instance destroyed.");
+            // } catch (error) {
+            //     Android.onUpdate(`❌ Error destroying peer: ${error.message}`);
+            // }
+        // }
+    });
+
+    peer.on('close', () => {
+        Android.onUpdate("⚠️ Peer distroyed.");
+        // peer = null;
     });
 
     peer.on('error', (err) => {
@@ -130,7 +147,8 @@ function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
 
         Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
 
-        let myMetadata = null;
+        Android.onUpdate("Step 1");
+        let myMetadata = "";
         if(!isReconnect){
             myMetadata = JSON.stringify(metadataJson);
         }

@@ -1,19 +1,13 @@
 package com.github.jaykkumar01.watchparty_duo.managers;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.TextureView;
-import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.audiofeed.AudioFeed;
-import com.github.jaykkumar01.watchparty_duo.constants.Feed;
 import com.github.jaykkumar01.watchparty_duo.constants.FeedType;
-import com.github.jaykkumar01.watchparty_duo.constants.Metadata;
 import com.github.jaykkumar01.watchparty_duo.constants.Packets;
-import com.github.jaykkumar01.watchparty_duo.dialogs.ConnectionDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.MetadataHelper;
 import com.github.jaykkumar01.watchparty_duo.helpers.ProcessFeed;
 import com.github.jaykkumar01.watchparty_duo.imagefeed.ImageFeed;
@@ -29,7 +23,6 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -181,11 +174,16 @@ public class FeedManager implements FeedListener,WebFeedListener{
     }
 
     @Override
-    public void onRestartPeer() {
+    public void onPeerRestart() {
         foregroundNotifier.onUpdateLogs("Peer Restarted");
-        foregroundNotifier.onRestartPeer();
+        foregroundNotifier.onPeerRestart();
     }
 
+    @Override
+    public void onPeerError() {
+        foregroundNotifier.onUpdateLogs("Peer Error");
+        foregroundNotifier.onPeerError();
+    }
     @Override
     public void onRestartConnection() {
         foregroundNotifier.onUpdateLogs("Connections Restarted");
@@ -201,6 +199,8 @@ public class FeedManager implements FeedListener,WebFeedListener{
     public void onPlaybackUpdate(String jsonData) {
         foregroundNotifier.onPlaybackUpdate(jsonData);
     }
+
+
 
 
     @Override

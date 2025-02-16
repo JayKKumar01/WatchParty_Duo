@@ -1,6 +1,5 @@
 package com.github.jaykkumar01.watchparty_duo.webfeed;
 
-import android.os.Handler;
 import android.webkit.JavascriptInterface;
 
 import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
@@ -52,10 +51,14 @@ public class WebBridge {
 
     }
     @JavascriptInterface
-    public void onRestartPeer(){
-        webFeedListener.onRestartPeer();
+    public void onPeerRestart(){
+        webFeedListener.onPeerRestart();
     }
 
+    @JavascriptInterface
+    public void onPeerError(){
+        webFeedListener.onPeerError();
+    }
     @JavascriptInterface
     public void onRestartConnection(){
         webFeedListener.onRestartConnection();
@@ -70,4 +73,6 @@ public class WebBridge {
     public void onPlaybackUpdate(String jsonData){
         webFeedListener.onPlaybackUpdate(jsonData);
     }
+
+
 }

@@ -8,12 +8,14 @@ public interface ForegroundNotifier {
 
     void onConnectionStatus(boolean isConnectionAlive);
 
-    void onRestartPeer();
+    void onPeerRestart();
 
     void onRestartConnection();
 
     void onPeerRetryLimitReached();
 
     void onPlaybackUpdate(String jsonData);
+
+    void onPeerError();
 }
 

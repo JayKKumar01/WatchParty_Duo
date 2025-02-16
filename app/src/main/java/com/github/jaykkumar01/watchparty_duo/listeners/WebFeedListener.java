@@ -13,11 +13,13 @@ public interface WebFeedListener {
 
     void onConnectionAlive(boolean isAlive);
 
-    void onRestartPeer();
+    void onPeerRestart();
 
     void onRestartConnection();
 
     void onPeerRetryLimitReached();
 
     void onPlaybackUpdate(String jsonData);
+
+    void onPeerError();
 }

@@ -66,12 +66,33 @@ const ReconnectHandler = (() => {
         hasRestarted = false; // ✅ Reset flag before retry loop starts
 
         let retryCount = 0;
+        let loopCount = 0;
+
+        let newPeer = null;
         const retryInterval = setInterval(() => {
-            if (!isPeerOpen) {
+            Android.onUpdate("Entered loop: "+ ++loopCount);
+            if (!newPeer) {
+
                 Android.onUpdate(`🔄 Retrying Peer Initialization (${retryCount + 1}/${maxRetryAttempts})...`);
+
+                if (hasRestarted) {
+                    hasRestarted = false; // ✅ Prevent multiple calls
+                    Android.onPeerError();
+                }
                 try {
-                    peer = new Peer(`${peerBranch}${newPeerId}`);
-                    handlePeerEvents(peer);
+                    newPeer = new Peer(`${peerBranch}${newPeerId}`);
+
+                    newPeer.on('disconnected', () => {
+                        try {
+                            Android.onUpdate("🛑 Destroying old peer instance...");
+                            newPeer.destroy();
+                            newPeer = null;
+                            Android.onUpdate("✅ Old peer instance destroyed.");
+                        } catch (error) {
+                            Android.onUpdate(`❌ Error destroying peer: ${error.message}`);
+                        }
+                    });
+                    // handlePeerEvents(peer);
                 } catch (error) {
                     Android.onUpdate(`❌ Error initializing peer: ${error.message}`);
                 }
@@ -84,7 +105,7 @@ const ReconnectHandler = (() => {
                 }
             }
 
-            if (isPeerOpen && !isAllConnectionsOpen) {
+            if ((newPeer && newPeer.open) && !isAllConnectionsOpen) {
                 Android.onUpdate("✅ Peer successfully opened, waiting for connections...");
 
                 // ✅ Call Android.onRestartPeer() only once when peer opens for the first time
@@ -108,7 +129,9 @@ const ReconnectHandler = (() => {
                 }
             }
 
-            if (isPeerOpen && isAllConnectionsOpen) {
+            if (newPeer && newPeer.open && isAllConnectionsOpen) {
+                peer = newPeer;
+                handlePeerEvents(peer);
                 Android.onUpdate("✅ All connections successfully restored.");
                 clearInterval(retryInterval);
                 Android.onRestartConnection();

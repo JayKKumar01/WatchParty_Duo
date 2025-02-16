@@ -109,11 +109,19 @@ public class FeedService extends Service implements ForegroundNotifier {
     }
 
     @Override
-    public void onRestartPeer() {
+    public void onPeerRestart() {
         if (playerActivity() == null){
             return;
         }
         playerActivity().onRestartPeer();
+    }
+
+    @Override
+    public void onPeerError() {
+        if (playerActivity() == null){
+            return;
+        }
+        playerActivity().onPeerError();
     }
 
     @Override
@@ -139,6 +147,8 @@ public class FeedService extends Service implements ForegroundNotifier {
             playerActivity.onPlaybackUpdate(jsonData);
         }
     }
+
+
 
     private PlayerActivity playerActivity() {
         return PlayerActivity.getInstance();

@@ -256,6 +256,9 @@ public class PlayerActivity extends AppCompatActivity {
     public void onRestartPeer() {
         //connectionDialogHandler.updateConnectingDialog(1);
     }
+    public void onPeerError() {
+        //connectionDialogHandler.updateConnectingDialog(0);
+    }
 
     public void onRestartConnection() {
         //connectionDialogHandler.updateConnectingDialog(2);
@@ -277,4 +280,6 @@ public class PlayerActivity extends AppCompatActivity {
     public void onPlaybackUpdate(String jsonData) {
         exoPlayerHandler.onPlaybackUpdate(jsonData);
     }
+
+
 }
