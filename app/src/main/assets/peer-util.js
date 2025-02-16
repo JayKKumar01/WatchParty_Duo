@@ -148,17 +148,15 @@ function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
         Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
 
         Android.onUpdate("Step 1");
-        let myMetadata = "";
-        if(!isReconnect){
-            myMetadata = JSON.stringify(metadataJson);
-        }
+        
 
         const connection = peer.connect(peerBranch + targetPeerId, {
             reliable: true,
-            metadata: { type: "main", metadata: myMetadata }
+            metadata: { type: "main", metadata: JSON.stringify(metadataJson) }
         });
-
+        Android.onUpdate("Step 2");
         confirmConnection(connection);
+        Android.onUpdate("Step 3");
 
         if(isReconnect){
             return;

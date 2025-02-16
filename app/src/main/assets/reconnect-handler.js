@@ -92,7 +92,7 @@ const ReconnectHandler = (() => {
                             Android.onUpdate(`❌ Error destroying peer: ${error.message}`);
                         }
                     });
-                    // handlePeerEvents(peer);
+                    // handlePeerEvents(newPeer);
                 } catch (error) {
                     Android.onUpdate(`❌ Error initializing peer: ${error.message}`);
                 }
@@ -106,6 +106,8 @@ const ReconnectHandler = (() => {
             }
 
             if ((newPeer && newPeer.open) && !isAllConnectionsOpen) {
+                peer = newPeer;
+                handlePeerEvents(peer);
                 Android.onUpdate("✅ Peer successfully opened, waiting for connections...");
 
                 // ✅ Call Android.onRestartPeer() only once when peer opens for the first time
@@ -129,8 +131,7 @@ const ReconnectHandler = (() => {
                 }
             }
 
-            if (newPeer && newPeer.open && isAllConnectionsOpen) {
-                peer = newPeer;
+            if (peer && peer.open && isAllConnectionsOpen) {
                 handlePeerEvents(peer);
                 Android.onUpdate("✅ All connections successfully restored.");
                 clearInterval(retryInterval);
