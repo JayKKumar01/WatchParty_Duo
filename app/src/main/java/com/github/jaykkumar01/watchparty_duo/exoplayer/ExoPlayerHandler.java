@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.net.Uri;
 import android.os.Handler;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.MediaItem;
@@ -72,7 +73,6 @@ public class ExoPlayerHandler {
     @OptIn(markerClass = UnstableApi.class)
     public void playMedia(Uri mediaUri) {
 
-
         // declare here
         if (player == null) {
             player = new ExoPlayer.Builder(activity).build();
@@ -86,6 +86,7 @@ public class ExoPlayerHandler {
         if (!mediaUri.equals(lastMediaUri)) {
             lastMediaUri = mediaUri;
             lastPosition = 0;  // Reset position if new media
+            isPaused = false;
         }
 
         player.prepare();
@@ -106,6 +107,7 @@ public class ExoPlayerHandler {
         }else {
             readyEvent.playbackToRemote(!isPaused);
         }
+
     }
 
 
@@ -120,6 +122,7 @@ public class ExoPlayerHandler {
             playerManager.playbackToRemote(false);
             player.release();
             player = null;
+            playerManager.setPlayer(null);
         }
         if (playerView != null) {
             playerView.setPlayer(null);
@@ -131,6 +134,7 @@ public class ExoPlayerHandler {
         releasePlayer();
         isClosed = true;
         isPaused = false;
+        lastPosition = 0;
     }
 
     public void onRestart() {
