@@ -30,7 +30,7 @@ function initPeer() {
 function handlePeerEvents(peer) {
     peer.on('open', () => {
         isPeerOpen = true;
-        peerId = peer.id.replace(peerBranch, "").split("-")[0]; 
+        peerId = peer.id.replace(peerBranch, "").split("-")[0];
         Android.onPeerOpen(peerId);
         Android.onUpdate(`✅ Peer opened with ID: ${peerId}`);
     });
@@ -52,22 +52,27 @@ function confirmConnection(incomingConn) {
         if (connType === "main") {
             mainConnection = incomingConn;
             Android.onUpdate("🔗 Assigned as main connection.");
+            setupConnection(mainConnection);
         } else if (connType === "lastSeen") {
             lastSeenConn = incomingConn;
             Android.onUpdate("👀 Assigned as lastSeen connection.");
+            LastSeenHandler.setupLastSeenConnection(lastSeenConn);
         } else if (connType === "signal") {
             signalConn = incomingConn;
             Android.onUpdate("📡 Assigned as signal connection.");
+            SignalHandler.setupSignalConnection(signalConn);
         }
 
         // ✅ Ensure all connections are active before setup
         if (mainConnection?.open && lastSeenConn?.open && signalConn?.open) {
             isAllConnectionsOpen = true;
-            Android.onUpdate("🔄 All connections active. Setting up...");
-            setupConnection(mainConnection);
-            LastSeenHandler.setupLastSeenConnection(lastSeenConn);
-            SignalHandler.setupSignalConnection(signalConn);
+            
             Android.onUpdate("✅ Connections setup complete.");
+
+            remoteId = mainConnection.peer.replace(peerBranch, "").split("-")[0];
+            Android.onUpdate(`🔗 Connected with: ${remoteId}`);
+
+            Android.onConnectionOpen(peerId, remoteId, count);
         } else {
             Android.onUpdate("⚠️ Waiting for all connections to be active.");
         }
@@ -78,6 +83,7 @@ function confirmConnection(incomingConn) {
 function setupConnection(connection) {
     Android.onUpdate("🔧 Initializing connection setup...");
     mainConnection = connection;
+    count++
 
     if (isReceiver) {
         Android.onUpdate("📥 Device in receiver mode.");
@@ -88,11 +94,6 @@ function setupConnection(connection) {
             Android.onUpdate("🔄 Metadata reception skipped due to restart.");
         }
     }
-
-    remoteId = mainConnection.peer.replace(peerBranch, "").split("-")[0]; 
-    Android.onUpdate(`🔗 Connected with: ${remoteId}`);
-
-    Android.onConnectionOpen(peerId, remoteId, count++);
 
     mainConnection.on('data', handleData);
     mainConnection.on('error', (err) => Android.onUpdate(`❌ Connection error: ${err.message}`));
@@ -112,7 +113,7 @@ function handleData(data) {
 
 // ✅ Connect to Remote Peer
 function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
-    const targetPeerId = isReconnect ? otherPeerId: byteArrayToString(otherPeerId);
+    const targetPeerId = isReconnect ? otherPeerId : byteArrayToString(otherPeerId);
     if (!targetPeerId) return Android.onUpdate("⚠️ Invalid target peer ID.");
 
     try {
@@ -120,7 +121,7 @@ function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
         SignalHandler.initSignalConnection(peer, targetPeerId);
 
         Android.onUpdate(`🔄 Connecting to remote peer: ${targetPeerId}`);
-        
+
 
         const connection = peer.connect(peerBranch + targetPeerId, {
             reliable: true,
@@ -129,7 +130,7 @@ function connectRemotePeer(otherPeerId, metadataJson, isReconnect = false) {
 
         confirmConnection(connection);
 
-        if(isReconnect){
+        if (isReconnect) {
             return;
         }
         // ✅ Ensure connection opens within 4 seconds

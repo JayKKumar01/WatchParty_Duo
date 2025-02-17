@@ -8,7 +8,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -32,6 +32,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".testing.YouTubeActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.PermissionActivity"
             android:exported="true">
             <intent-filter>
@@ -52,8 +55,7 @@
             android:name=".activities.FeedActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
-            android:hardwareAccelerated="true">
-        </activity>
+            android:hardwareAccelerated="true"></activity>
         <activity
             android:name=".peerjswebview.WebViewPeerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
@@ -63,7 +65,7 @@
             android:name=".activities.PlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
-            android:hardwareAccelerated="true"/>
+            android:hardwareAccelerated="true" />
     </application>
 
 </manifest>
