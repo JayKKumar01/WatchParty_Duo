@@ -13,9 +13,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
-import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
+import com.github.jaykkumar01.watchparty_duo.interfaces.FeedServiceConstants;
 
-public class FeedNotificationHelper {
+public class FeedNotificationHelper implements FeedServiceConstants {
 
     private final Context context;
     private final NotificationManagerCompat notificationManager;
@@ -28,22 +28,22 @@ public class FeedNotificationHelper {
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    FeedServiceInfo.CHANNEL_ID,
-                    FeedServiceInfo.CHANNEL_NAME,
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            channel.setDescription(FeedServiceInfo.CHANNEL_DESCRIPTION);
+            channel.setDescription(CHANNEL_DESCRIPTION);
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
     }
     public Notification createNotification(boolean isConnectionOpen) {
-        return new NotificationCompat.Builder(context, FeedServiceInfo.CHANNEL_ID)
+        return new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.mic_on)
                 .setContentTitle("WatchParty")
                 .setContentText(isConnectionOpen
-                        ? FeedServiceInfo.NOTIFICATION_DESCRIPTION_CONNECTED
-                        : FeedServiceInfo.NOTIFICATION_DESCRIPTION_NOT_CONNECTED)
+                        ? NOTIFICATION_DESCRIPTION_CONNECTED
+                        : NOTIFICATION_DESCRIPTION_NOT_CONNECTED)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setOngoing(true)
                 .build();
@@ -53,10 +53,10 @@ public class FeedNotificationHelper {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        notificationManager.notify(FeedServiceInfo.NOTIFICATION_ID, createNotification(isConnectionOpen));
+        notificationManager.notify(NOTIFICATION_ID, createNotification(isConnectionOpen));
     }
 
     public void cancelNotification() {
-        notificationManager.cancel(FeedServiceInfo.NOTIFICATION_ID);
+        notificationManager.cancel(NOTIFICATION_ID);
     }
 }

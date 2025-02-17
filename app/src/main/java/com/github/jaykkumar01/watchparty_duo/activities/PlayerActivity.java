@@ -13,8 +13,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -44,6 +42,7 @@ public class PlayerActivity extends AppCompatActivity {
     private static WeakReference<PlayerActivity> instanceRef;
     private ExitDialogHandler exitDialogHandler;
     private ExoPlayerHandler exoPlayerHandler;
+    private MediaHandler mediaHandler;
 
     public static PlayerActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
@@ -100,7 +99,7 @@ public class PlayerActivity extends AppCompatActivity {
         playerOrientationHandler = new PlayerOrientationHandler(this,remoteFeedTextureView,peerFeedTextureView);
         playerOrientationHandler.handleOrientationChange(getResources().getConfiguration().orientation);
         exoPlayerHandler = new ExoPlayerHandler(this);
-        new MediaHandler(this,exoPlayerHandler);
+        mediaHandler = new MediaHandler(this,exoPlayerHandler);
     }
 
 
@@ -200,6 +199,9 @@ public class PlayerActivity extends AppCompatActivity {
             logUpdater.addLogMessage(message);
         }
     }
+
+
+
 
     @Override
     protected void onDestroy() {

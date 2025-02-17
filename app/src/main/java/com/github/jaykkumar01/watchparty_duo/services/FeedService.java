@@ -4,20 +4,19 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.view.TextureView;
-import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.activities.FeedActivity;
 import com.github.jaykkumar01.watchparty_duo.activities.PlayerActivity;
 import com.github.jaykkumar01.watchparty_duo.helpers.FeedNotificationHelper;
-import com.github.jaykkumar01.watchparty_duo.constants.FeedServiceInfo;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
+import com.github.jaykkumar01.watchparty_duo.interfaces.FeedServiceConstants;
 import com.github.jaykkumar01.watchparty_duo.listeners.FeedListener;
 import com.github.jaykkumar01.watchparty_duo.listeners.ForegroundNotifier;
 import com.github.jaykkumar01.watchparty_duo.managers.FeedManager;
 
 import java.lang.ref.WeakReference;
 
-public class FeedService extends Service implements ForegroundNotifier {
+public class FeedService extends Service implements ForegroundNotifier, FeedServiceConstants {
 
     private static WeakReference<FeedService> instanceRef;
     private FeedManager feedManager;
@@ -37,7 +36,7 @@ public class FeedService extends Service implements ForegroundNotifier {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startForeground(FeedServiceInfo.NOTIFICATION_ID, notificationHelper.createNotification(false));
+        startForeground(NOTIFICATION_ID, notificationHelper.createNotification(false));
         feedManager.startWebFeed();
         return START_NOT_STICKY;
     }

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,12 +18,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.interfaces.PermissionCodes;
 
-public class PermissionActivity extends AppCompatActivity {
-
-    private static final int CAMERA_PERMISSION_CODE = 101;
-    private static final int MIC_PERMISSION_CODE = 102;
-    private static final int NOTIFICATION_PERMISSION_CODE = 103;
+public class PermissionActivity extends AppCompatActivity implements PermissionCodes{
 
     private TextView tvCameraPermission, tvMicPermission, tvNotificationPermission;
     private ImageView imgCameraStatus, imgMicStatus, imgNotificationStatus;

@@ -12,16 +12,12 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
-import com.github.jaykkumar01.watchparty_duo.constants.Metadata;
 import com.github.jaykkumar01.watchparty_duo.listeners.WebFeedListener;
+import com.github.jaykkumar01.watchparty_duo.models.Metadata;
 import com.github.jaykkumar01.watchparty_duo.utils.ObjectUtil;
 import com.google.gson.Gson;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @SuppressLint("StaticFieldLeak")
 public class WebFeedHelper {
@@ -77,14 +73,9 @@ public class WebFeedHelper {
 
     public void connect(String remoteId) {
 
-        // Create a map for metadata
-        Map<String, Integer> metadata = new HashMap<>();
-        metadata.put(Metadata.LATENCY, Feed.LATENCY);
-        metadata.put(Metadata.RESOLUTION, Feed.RESOLUTION);
-        metadata.put(Metadata.FPS, Feed.FPS);
-
+        Metadata model = new Metadata(Feed.LATENCY,Feed.RESOLUTION,Feed.FPS);
         // Convert metadata to JSON string
-        String jsonString = new Gson().toJson(metadata);
+        String jsonString = new Gson().toJson(model);
 
         mainHandler.post(() -> {
             if (webView != null && !isWebViewDestroyed) {

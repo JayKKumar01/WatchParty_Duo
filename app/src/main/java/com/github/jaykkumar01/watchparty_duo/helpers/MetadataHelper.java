@@ -1,11 +1,9 @@
 package com.github.jaykkumar01.watchparty_duo.helpers;
 
 import com.github.jaykkumar01.watchparty_duo.constants.Feed;
-import com.github.jaykkumar01.watchparty_duo.constants.Metadata;
+import com.github.jaykkumar01.watchparty_duo.models.Metadata;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import java.util.Map;
 
 public class MetadataHelper {
 
@@ -17,25 +15,12 @@ public class MetadataHelper {
         }
 
         // Convert JSON string to a Map
-        Map<String, Integer> map = gson.fromJson(
+        Metadata model = gson.fromJson(
                 jsonData,
-                new TypeToken<Map<String, Integer>>() {}.getType()
+                new TypeToken<Metadata>() {}.getType()
         );
-
-        // Extract values safely
-        Integer latency = map.get(Metadata.LATENCY);
-        Integer resolution = map.get(Metadata.RESOLUTION);
-        Integer fps = map.get(Metadata.FPS);
-
-        // Assign values to Feed class
-        if (latency != null) {
-            Feed.LATENCY = latency;
-        }
-        if (resolution != null) {
-            Feed.RESOLUTION = resolution;
-        }
-        if (fps != null) {
-            Feed.FPS = fps;
-        }
+        Feed.LATENCY = model.getLatency();
+        Feed.RESOLUTION = model.getResolution();
+        Feed.FPS = model.getFps();
     }
 }
