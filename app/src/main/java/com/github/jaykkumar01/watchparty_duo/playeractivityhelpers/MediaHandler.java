@@ -92,6 +92,7 @@ public class MediaHandler {
 
     private void handleArchiveCelestialClick(TextView activeTextView, TextView inactiveTextView,
                                              ConstraintLayout activeLayout, ConstraintLayout inactiveLayout) {
+        handleRefreshClick();
         setActiveTextViewStyle(activeTextView);
         resetInactiveTextViewStyle(inactiveTextView);
         toggleLayoutVisibility(activeLayout, inactiveLayout);
@@ -137,18 +138,24 @@ public class MediaHandler {
         exoPlayerHandler.playMedia(currentVideoUri);
     }
     private void handleRefreshClick(){
-        exoPlayerHandler.resetPlayer(true);
+        resetCurrentMedia();
+        exoPlayerHandler.resetPlayer();
+
     }
 
     private void updateCurrentMedia(String mediaName) {
-        if (mediaName != null && !mediaName.isEmpty()) {
-            currentMediaTxt.setText(mediaName);
-            currentMediaTxt.setVisibility(View.VISIBLE);
-            playOfflineVideo.setVisibility(View.VISIBLE);
-        } else {
-            currentMediaTxt.setVisibility(View.GONE);
-            playOfflineVideo.setVisibility(View.GONE);
+        if (mediaName == null || mediaName.isEmpty()) {
+            return;
         }
+        currentMediaTxt.setText(mediaName);
+        currentMediaTxt.setVisibility(View.VISIBLE);
+        playOfflineVideo.setVisibility(View.VISIBLE);
+    }
+
+    private void resetCurrentMedia(){
+        currentVideoUri = null;
+        currentMediaTxt.setVisibility(View.GONE);
+        playOfflineVideo.setVisibility(View.GONE);
     }
 
     @Nullable

@@ -2,9 +2,7 @@ package com.github.jaykkumar01.watchparty_duo.exoplayer;
 
 import android.app.Activity;
 import android.net.Uri;
-import android.os.Handler;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.MediaItem;
@@ -129,12 +127,13 @@ public class ExoPlayerHandler {
         }
     }
 
-    public void resetPlayer(boolean hidePlayer) {
-        playerView.setVisibility(hidePlayer ? View.GONE : View.VISIBLE);
+    public void resetPlayer() {
+        playerView.setVisibility(View.GONE);
         releasePlayer();
         isClosed = true;
         isPaused = false;
         lastPosition = 0;
+        lastMediaUri = null;
     }
 
     public void onRestart() {

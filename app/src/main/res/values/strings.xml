@@ -28,4 +28,5 @@
     <string name="no_media_selected">No media selected</string>
     <string name="_00_00">00:00</string>
     <string name="slash">/</string>
+    <string name="youtube_video_link">YouTube Video Link</string>
 </resources>
