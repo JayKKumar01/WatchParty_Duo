@@ -33,6 +33,7 @@ import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.PlayerOrienta
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.AspectRatio;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
+import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
 
 import java.lang.ref.WeakReference;
 
@@ -43,6 +44,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ExitDialogHandler exitDialogHandler;
     private ExoPlayerHandler exoPlayerHandler;
     private MediaHandler mediaHandler;
+    private YouTubePlayerHandler youtubePlayerHandler;
 
     public static PlayerActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
@@ -99,7 +101,8 @@ public class PlayerActivity extends AppCompatActivity {
         playerOrientationHandler = new PlayerOrientationHandler(this,remoteFeedTextureView,peerFeedTextureView);
         playerOrientationHandler.handleOrientationChange(getResources().getConfiguration().orientation);
         exoPlayerHandler = new ExoPlayerHandler(this);
-        mediaHandler = new MediaHandler(this,exoPlayerHandler);
+        youtubePlayerHandler = new YouTubePlayerHandler(this);
+        mediaHandler = new MediaHandler(this,exoPlayerHandler, youtubePlayerHandler);
     }
 
 

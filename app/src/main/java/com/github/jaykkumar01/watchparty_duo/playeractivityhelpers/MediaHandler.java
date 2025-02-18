@@ -15,15 +15,22 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
+import com.github.jaykkumar01.watchparty_duo.helpers.YouTubeIDExtractor;
+import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
+import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.Objects;
 
 public class MediaHandler {
     private final AppCompatActivity activity;
     private final ExoPlayerHandler exoPlayerHandler;
+    private final YouTubePlayerHandler youtubePlayerHandler;
     private final ActivityResultLauncher<Intent> videoPickerLauncher;
 
     private TextView currentMediaTxt;
@@ -35,9 +42,10 @@ public class MediaHandler {
     private Drawable clickedBackground;
     private int clickedTextColor;
 
-    public MediaHandler(AppCompatActivity activity, ExoPlayerHandler exoPlayerHandler){
+    public MediaHandler(AppCompatActivity activity, ExoPlayerHandler exoPlayerHandler, YouTubePlayerHandler youtubePlayerHandler){
         this.activity = activity;
         this.exoPlayerHandler = exoPlayerHandler;
+        this.youtubePlayerHandler = youtubePlayerHandler;
 
         initializeUIComponents();
 
@@ -70,6 +78,9 @@ public class MediaHandler {
         playOfflineVideo = activity.findViewById(R.id.playOfflineVideo);
         currentMediaTxt = activity.findViewById(R.id.currentMediaTxt);
         ImageView btnRefresh = activity.findViewById(R.id.btnRefresh);
+        // ✅ Add new YouTube components
+        TextInputEditText etYouTubeLink = activity.findViewById(R.id.etYouTubeLink);
+        AppCompatButton playYouTube = activity.findViewById(R.id.playYouTube);
 
         // Initialize layout components
         ConstraintLayout expPlayerLayout = activity.findViewById(R.id.exoplayerLayout);
@@ -80,6 +91,11 @@ public class MediaHandler {
         playOfflineVideo.setOnClickListener(view -> startSyncPlay());
         btnRefresh.setOnClickListener(view -> handleRefreshClick());
         initializeArchiveCelestialButtons(expPlayerLayout, youtubePlayerLayout);
+
+
+
+        // Pass etYouTubeLink directly to handlePlayYouTubeClick
+        playYouTube.setOnClickListener(view -> handlePlayYouTubeClick(etYouTubeLink));
     }
 
     private void initializeArchiveCelestialButtons(ConstraintLayout expPlayerLayout, ConstraintLayout youtubePlayerLayout) {
@@ -130,6 +146,24 @@ public class MediaHandler {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         videoPickerLauncher.launch(intent);
     }
+
+
+    private void handlePlayYouTubeClick(TextInputEditText etYouTubeLink) {
+        String link = Objects.requireNonNull(etYouTubeLink.getText()).toString().trim();
+
+        if (link.isEmpty()) {
+            Toast.makeText(activity, "Please enter a YouTube link", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String videoId = YouTubeIDExtractor.extractYouTubeVideoId(link);
+        if (videoId != null) {
+            youtubePlayerHandler.playVideo(videoId);
+        } else {
+            Toast.makeText(activity, "Invalid YouTube link", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
 
 

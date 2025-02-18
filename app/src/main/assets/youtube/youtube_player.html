@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Player with Event Logging</title>
+    <!-- Load YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Link to the external JavaScript file -->
+    <script src="youtube_script.js" defer></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            margin: 0;
+        }
+        #playerContainer {
+            position: relative;
+            width: 800px;
+            height: 450px;
+            background-color: black;
+        }
+        #player {
+            width: 100%;
+            height: 100%;
+        }
+        #overlayImage {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div id="playerContainer">
+        <img id="overlayImage" src="download.jpg" alt="Logo">
+        <div id="player"></div>
+    </div>
+</body>
+</html>

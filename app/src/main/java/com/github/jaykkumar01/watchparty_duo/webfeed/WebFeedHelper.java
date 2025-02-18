@@ -68,7 +68,7 @@ public class WebFeedHelper {
         webView.setWebChromeClient(new WebChromeClient());
         webView.addJavascriptInterface(new WebBridge(webFeedListener), "Android");
 
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl("file:///android_asset/feedservice/index.html");
     }
 
     public void connect(String remoteId) {
