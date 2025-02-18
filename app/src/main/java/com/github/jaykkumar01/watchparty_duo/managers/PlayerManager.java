@@ -5,7 +5,6 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
@@ -16,9 +15,9 @@ import androidx.media3.ui.PlayerView;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ReadyEvent;
-import com.github.jaykkumar01.watchparty_duo.exoplayer.RemotePlaybackHandler;
+import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoRemoteActionHandler;
 import com.github.jaykkumar01.watchparty_duo.gestures.ControlHandler;
-import com.github.jaykkumar01.watchparty_duo.interfaces.PlaybackActions;
+import com.github.jaykkumar01.watchparty_duo.interfaces.RemoteActions;
 import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class PlayerManager {
     private ExoPlayer player;
     private final Activity activity;
-    private final RemotePlaybackHandler remotePlaybackHandler;
+    private final ExoRemoteActionHandler exoRemoteActionHandler;
     private final PlayerView playerView;
     private final AtomicBoolean isRemoteSeek = new AtomicBoolean(false);
 
@@ -45,14 +44,14 @@ public class PlayerManager {
         this.muteButton = activity.findViewById(R.id.exo_mute_unmute);
         this.captionButton = activity.findViewById(R.id.exo_caption);
         this.fullscreen = activity.findViewById(R.id.exo_screen);
-        remotePlaybackHandler = new RemotePlaybackHandler(activity,this);
+        exoRemoteActionHandler = new ExoRemoteActionHandler(activity,this);
 
         setupControls();
     }
 
     public void setPlayer(ExoPlayer player) {
         this.player = player;
-        remotePlaybackHandler.setPlayer(player);
+        exoRemoteActionHandler.setPlayer(player);
     }
 
     private void setupControls() {
@@ -133,7 +132,7 @@ public class PlayerManager {
 
 
     public void sendSeekPositionToRemote(long position) {
-        remotePlaybackHandler.playbackToRemote(PlaybackActions.SEEK, getShiftedPosition(position));
+        exoRemoteActionHandler.actionToRemote(RemoteActions.EXO_SEEK, getShiftedPosition(position));
     }
 
     private long getShiftedPosition(long position){
@@ -146,11 +145,11 @@ public class PlayerManager {
     }
 
     public void onPlaybackUpdate(String jsonData) {
-        remotePlaybackHandler.onPlaybackUpdate(jsonData);
+        exoRemoteActionHandler.onActionUpdate(jsonData);
     }
 
     public void requestPlaybackState() {
-        remotePlaybackHandler.playbackToRemote(PlaybackActions.REQUEST_PLAYBACK_STATE,null);
+        exoRemoteActionHandler.actionToRemote(RemoteActions.EXO_REQUEST_PLAYBACK_STATE,null);
     }
 
     public void remoteUpdatePlayPauseUI(boolean shouldPlay) {
@@ -178,6 +177,6 @@ public class PlayerManager {
             isPlaying = player.isPlaying();
         }
         PlaybackState playbackState = new PlaybackState(isPlaying,getShiftedPosition(player.getCurrentPosition()));
-        remotePlaybackHandler.playbackToRemote(PlaybackActions.PLAYBACK_STATE, playbackState);
+        exoRemoteActionHandler.actionToRemote(RemoteActions.EXO_PLAYBACK_STATE, playbackState);
     }
 }

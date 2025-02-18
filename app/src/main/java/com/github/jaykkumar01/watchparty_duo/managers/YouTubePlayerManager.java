@@ -1,0 +1,93 @@
+package com.github.jaykkumar01.watchparty_duo.managers;
+
+import android.app.Activity;
+import android.util.Log;
+
+import com.github.jaykkumar01.watchparty_duo.interfaces.RemoteActions;
+import com.github.jaykkumar01.watchparty_duo.interfaces.YouTubePlayerEvents;
+import com.github.jaykkumar01.watchparty_duo.models.YouTubePlaybackState;
+import com.github.jaykkumar01.watchparty_duo.models.YouTubePlayerData;
+import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayer;
+import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
+import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubeRemoteActionHandler;
+
+public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions {
+    private final YouTubePlayerHandler handler;
+    private final YouTubeRemoteActionHandler actionHandler;
+    private YouTubePlayer player;
+    private int lastEvent = -1;
+    private boolean isFirstPlay;
+
+    public YouTubePlayerManager(Activity activity, YouTubePlayerHandler handler) {
+        this.handler = handler;
+        this.actionHandler = new YouTubeRemoteActionHandler(activity,this);
+    }
+
+    public void setPlayer(YouTubePlayer player){
+        this.player = player;
+    }
+
+    public void onPlay(long timeMs) {
+        if (!isFirstPlay){
+            isFirstPlay = true;
+            handler.onPlayerReady();
+        }
+        lastEvent = PLAYING;
+        Log.d("YouTubePlayerManager", "Playing at " + timeMs + " ms.");
+    }
+
+    public void onPause(long timeMs) {
+        lastEvent = PAUSED;
+        Log.d("YouTubePlayerManager", "Paused at " + timeMs + " ms.");
+    }
+
+    public void onSeek(long timeMs) {
+        lastEvent = SEEK;
+        Log.d("YouTubePlayerManager", "Seeked to " + timeMs + " ms.");
+    }
+
+    public boolean isPlaying() {
+        return lastEvent == PLAYING;
+    }
+
+    public void onRemoteUpdate(String jsonData) {
+        actionHandler.onActionUpdate(jsonData);
+    }
+
+    public void onPlayerCreated(YouTubePlayerData data) {
+        actionHandler.actionToRemote(YOUTUBE_CURRENT_VIDEO,data);
+    }
+
+    public void updateCurrentVideo(String lastVideoId,String videoTitle) {
+        handler.updateCurrentVideo(lastVideoId,videoTitle);
+    }
+
+    public void requestPlaybackState() {
+        actionHandler.actionToRemote(YOUTUBE_REQUEST_PLAYBACK_STATE,null);
+    }
+
+    public void requestPlaybackFromPlayerForRemote() {
+        if (player == null){
+            return;
+        }
+        player.requestPlayback();
+    }
+
+    public void playbackToRemote(boolean isPlaying, int currentPosition) {
+        actionHandler.actionToRemote(YOUTUBE_PLAYBACK_STATE,new YouTubePlaybackState(isPlaying,currentPosition));
+    }
+
+    public void playbackFromRemote(boolean isPlaying, int currentPosition) {
+        if (player == null){
+            return;
+        }
+        player.updatePlayback(isPlaying,currentPosition);
+    }
+
+    public void resetPlayer() {
+        player = null;
+        lastEvent = -1;
+        isFirstPlay = false;
+    }
+}
+

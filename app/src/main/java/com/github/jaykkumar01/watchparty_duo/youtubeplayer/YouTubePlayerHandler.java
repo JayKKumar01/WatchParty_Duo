@@ -1,7 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.youtubeplayer;
 
 import android.app.Activity;
-import android.os.Handler;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.TextView;
@@ -12,6 +11,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.helpers.YouTubeIDExtractor;
+import com.github.jaykkumar01.watchparty_duo.managers.YouTubePlayerManager;
+import com.github.jaykkumar01.watchparty_duo.models.YouTubePlayerData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.gson.Gson;
@@ -24,11 +25,11 @@ public class YouTubePlayerHandler {
     private final YouTubePlayerManager playerManager; // ✅ New instance
     private TextView currentYouTubeTxt;
     private AppCompatButton createYouTubePlayer,playYouTubePlayer;
-    TextView recreateYouTubePlayer;
+    TextView recreateYouTubePlayer,replayYouTubePlayer;
     private final WebView webView;
 
     private String lastVideoId;
-    private long lastPosition = 0;
+    private int lastPosition = 0;
     private boolean isPaused = false;
     private boolean isClosed = true;
     private boolean isYouTubeIFrameAPIReady = false;
@@ -37,7 +38,7 @@ public class YouTubePlayerHandler {
     public YouTubePlayerHandler(Activity activity) {
         this.activity = activity;
         this.webView = activity.findViewById(R.id.webViewYouTube);
-        this.playerManager = new YouTubePlayerManager(this); // ✅ Initialize the manager
+        this.playerManager = new YouTubePlayerManager(activity,this); // ✅ Initialize the manager
         this.player = new YouTubePlayer(this, activity, playerManager,webView); // ✅ Pass it to YouTubePlayer
 
         initializeUI();
@@ -52,10 +53,12 @@ public class YouTubePlayerHandler {
         layoutCreateYouTubePlayer = activity.findViewById(R.id.layoutCreateYouTubePlayer);
         layoutPlayYouTubePlayer = activity.findViewById(R.id.layoutPlayYouTubePlayer);
         recreateYouTubePlayer = activity.findViewById(R.id.recreateYouTubePlayer);
+        replayYouTubePlayer = activity.findViewById(R.id.rePlayYouTubePlayer);
 
         // Pass etYouTubeLink directly to handle YouTubeClick
         createYouTubePlayer.setOnClickListener(view -> handleCreateYouTubePlayerClick(etYouTubeLink));
         recreateYouTubePlayer.setOnClickListener(this::handleRecreateYouTubePlayerClick);
+        replayYouTubePlayer.setOnClickListener(this::handleReplayYouTubePlayerClick);
         playYouTubePlayer.setOnClickListener(view -> playVideo());
     }
 
@@ -87,32 +90,44 @@ public class YouTubePlayerHandler {
     public void onIFrameAPIReady() {
         isYouTubeIFrameAPIReady = true;
     }
-
-    Handler handler = new Handler();
     public void onPlayerCreated(String jsonVideoTitle){
-        // Convert JSON string back to a normal String
         String videoTitle = new Gson().fromJson(jsonVideoTitle, String.class);
-
-        activity.runOnUiThread(() -> {
-            currentYouTubeTxt.setText(videoTitle); // send this data to remote also
+        if (!videoTitle.isEmpty()){
+            playerManager.onPlayerCreated(new YouTubePlayerData(lastVideoId,videoTitle));
+            currentYouTubeTxt.setText(videoTitle);
             toggleYouTubePlayerLayout(layoutPlayYouTubePlayer,layoutCreateYouTubePlayer);
-            createYouTubePlayer.setEnabled(true);
-            createYouTubePlayer.setText(activity.getString(R.string.create_youtube_player));
-        });
+        }else {
+            Toast.makeText(activity, "Video Not supported!", Toast.LENGTH_SHORT).show();
+        }
+        createYouTubePlayer.setEnabled(true);
+        createYouTubePlayer.setText(activity.getString(R.string.create_youtube_player));
+    }
+
+    public void updateCurrentVideo(String lastVideoId,String videoTitle) {
+        this.lastVideoId = lastVideoId;
+        currentYouTubeTxt.setText(videoTitle);
+        toggleYouTubePlayerLayout(layoutPlayYouTubePlayer,layoutCreateYouTubePlayer);
+        createYouTubePlayer.setEnabled(true);
+        createYouTubePlayer.setText(activity.getString(R.string.create_youtube_player));
     }
 
     public void onPlayerReady() {
         activity.runOnUiThread(() -> {
             playYouTubePlayer.setText(activity.getString(R.string.play_youtube_player));
             webView.setVisibility(View.VISIBLE);
+            if (isClosed){
+                isClosed = false;
+                playerManager.requestPlaybackState();
+            }
         });
 
 
     }
     private void handleRecreateYouTubePlayerClick(View view) {
         toggleYouTubePlayerLayout(layoutCreateYouTubePlayer,layoutPlayYouTubePlayer);
-
-
+    }
+    private void handleReplayYouTubePlayerClick(View view) {
+        toggleYouTubePlayerLayout(layoutPlayYouTubePlayer,layoutCreateYouTubePlayer);
     }
 
     private void toggleYouTubePlayerLayout(ConstraintLayout layoutToBeVisible, ConstraintLayout layoutToBeHidden) {
@@ -123,18 +138,21 @@ public class YouTubePlayerHandler {
     public void playVideo() {
         if (!isYouTubeIFrameAPIReady) return;
         playYouTubePlayer.setText("Playing...");
-        isClosed = false;
-        player.loadVideo(lastVideoId, isPaused ? 0: 1);
+        player.loadVideo(lastVideoId, isPaused ? 0: 1,lastPosition);
     }
 
+    public void onLastPosition(int lastPosition) {
+        this.lastPosition = lastPosition;
+    }
 
 
     public void resetPlayer() {
         player.stop();
         webView.setVisibility(View.GONE);
         toggleYouTubePlayerLayout(layoutCreateYouTubePlayer,layoutPlayYouTubePlayer);
-        currentYouTubeTxt.setText("");
-        lastVideoId = null;
+//        currentYouTubeTxt.setText("");
+//        lastVideoId = null;
+        lastPosition = 0;
         isPaused = false;
         isClosed = true;
     }
@@ -154,4 +172,10 @@ public class YouTubePlayerHandler {
         isClosed = true;
         lastVideoId = null;
     }
+
+    public void onRemoteUpdate(String jsonData) {
+        playerManager.onRemoteUpdate(jsonData);
+    }
+
+
 }

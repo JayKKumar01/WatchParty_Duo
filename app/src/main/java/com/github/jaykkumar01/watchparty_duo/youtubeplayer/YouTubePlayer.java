@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.github.jaykkumar01.watchparty_duo.managers.YouTubePlayerManager;
+
 public class YouTubePlayer {
     private final Activity activity;
     private final WebView webView;
@@ -48,10 +50,22 @@ public class YouTubePlayer {
     public void loadVideo(String videoId, int autoplay) {
         webView.loadUrl("javascript:loadVideo('" + videoId + "', " + autoplay + ")");
     }
+    public void loadVideo(String videoId, int autoplay, int startTime) {
+        webView.loadUrl("javascript:loadVideo('" + videoId + "', " + autoplay + ", " + startTime + ")");
+    }
+
 
 
     public void stop() {
         webView.loadUrl("javascript:stopVideo()");
+    }
+
+    public void requestPlayback() {
+        webView.loadUrl("javascript:requestPlayback()");
+    }
+
+    public void updatePlayback(boolean isPlaying, int currentPosition) {
+        webView.loadUrl("javascript:updatePlayback(" + isPlaying + ", " + currentPosition + ")");
     }
 
 
@@ -63,12 +77,14 @@ public class YouTubePlayer {
 
         @JavascriptInterface
         public void onPlayerCreated(String jsonVideoTitle) {
-            handler.onPlayerCreated(jsonVideoTitle);
+            activity.runOnUiThread(() -> handler.onPlayerCreated(jsonVideoTitle));
+
         }
 
         @JavascriptInterface
         public void onPlayerReady(){
-            handler.onPlayerReady();
+//            handler.onPlayerReady();
+            manager.setPlayer(YouTubePlayer.this);
         }
 
 
@@ -87,6 +103,18 @@ public class YouTubePlayer {
         public void onSeek(long timeMs) {
             manager.onSeek(timeMs);
         }
+
+        // ✅ New JavaScript callback to receive updates before destroying the player
+        @JavascriptInterface
+        public void onDestroy(int lastPosition) {
+            handler.onLastPosition(lastPosition);
+            manager.resetPlayer();
+        }
+        @JavascriptInterface
+        public void onRequestPlayback(boolean isPlaying, int lastPosition) {
+            manager.playbackToRemote(isPlaying, lastPosition);
+        }
+
     }
 
     private class MyChrome extends WebChromeClient {

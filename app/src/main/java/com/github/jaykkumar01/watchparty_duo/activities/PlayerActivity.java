@@ -2,7 +2,6 @@ package com.github.jaykkumar01.watchparty_duo.activities;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -277,8 +276,9 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
 
-    public void onPlaybackUpdate(String jsonData) {
+    public void onRemoteUpdate(String jsonData) {
         exoPlayerHandler.onPlaybackUpdate(jsonData);
+        youtubePlayerHandler.onRemoteUpdate(jsonData);
     }
 
 

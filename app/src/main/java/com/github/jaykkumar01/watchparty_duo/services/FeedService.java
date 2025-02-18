@@ -144,7 +144,7 @@ public class FeedService extends Service implements ForegroundNotifier, FeedServ
     public void onPlaybackUpdate(String jsonData) {
         PlayerActivity playerActivity = PlayerActivity.getInstance();
         if (playerActivity != null){
-            playerActivity.onPlaybackUpdate(jsonData);
+            playerActivity.onRemoteUpdate(jsonData);
         }
 
     }

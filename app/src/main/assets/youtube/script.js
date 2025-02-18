@@ -1,4 +1,5 @@
 let player;
+let lastPosition = 0;
 
 function onYouTubeIframeAPIReady() {
     Android.onIFrameAPIReady(); // Notify Android that the API is ready
@@ -10,12 +11,11 @@ function fetchVideoTitle(videoId) {
         videoId: videoId,
         events: {
             'onReady': function (event) {
-                var videoData = event.target.getVideoData();
-                var videoTitle = videoData.title;
+                let videoData = event.target.getVideoData();
+                let videoTitle = videoData.title;
 
-                // Convert to JSON string (just the title, not an object)
-                var jsonString = JSON.stringify(videoTitle);
-
+                // Convert title to JSON and send to Android
+                let jsonString = JSON.stringify(videoTitle);
                 console.log("Sending JSON: " + jsonString);
                 Android.onPlayerCreated(jsonString);
 
@@ -26,49 +26,80 @@ function fetchVideoTitle(videoId) {
 }
 
 // Function to destroy existing player (if any) and create a new one
-function loadVideo(videoId, autoplay) {
+function loadVideo(videoId, autoplay, startTime) {
     if (player) {
-        player.destroy(); // Destroy existing player
-        player = null;
+        stopVideo(); // Ensure the previous player is properly stopped before creating a new one
     }
 
     player = new YT.Player('player', {
-        height: document.body.clientWidth,
-        width: document.body.clientHeight,
+        height: document.body.clientHeight,
+        width: document.body.clientWidth,
         videoId: videoId,
         playerVars: {
+            'enablejsapi':1,
             'autoplay': autoplay,
             'controls': 1,
             'modestbranding': 1,
             'rel': 0,
             'iv_load_policy': 3,
-            'fs': 0
+            'fs': 0,
+            'start': startTime // Start at the exact position where it was last stopped
         },
         events: {
             'onStateChange': onPlayerStateChange,
-            'onReady': Android.onPlayerReady()
+            'onReady': onPlayerReady
         }
     });
-
 }
 
+// Called when the player is ready
+function onPlayerReady(event) {
+    Android.onPlayerReady();
+}
 
 // Handle player state changes and notify Android
 function onPlayerStateChange(event) {
-    const currentTimeMs = Math.round(player.getCurrentTime() * 1000);
+    lastPosition = player.getCurrentTime(); // Keep track of last known time
 
     if (event.data === YT.PlayerState.PLAYING) {
-        Android.onPlay(currentTimeMs);
+        Android.onPlay(lastPosition);
     } else if (event.data === YT.PlayerState.PAUSED) {
-        Android.onPause(currentTimeMs);
+        Android.onPause(lastPosition);
     } else if (event.data === YT.PlayerState.BUFFERING) {
-        Android.onSeek(currentTimeMs);
+        Android.onSeek(lastPosition);
     }
 }
 
-// Stop and destroy the player explicitly
+function requestPlayback() {
+    if (player) {
+        let currentTime = player.getCurrentTime();
+        let isPlaying = (player.getPlayerState() === YT.PlayerState.PLAYING);
+        Android.onRequestPlayback(isPlaying,currentTime);
+    }
+}
+
+function updatePlayback(isPlaying, currentTime) {
+    if (player) {
+        player.seekTo(currentTime, true); // Seek to the provided time
+
+        if (isPlaying) {
+            player.playVideo(); // Resume playback if it was playing
+        } else {
+            player.pauseVideo(); // Pause playback if it was paused
+        }
+    }
+}
+
+
+
+// Stop and destroy the player explicitly, ensuring Android gets the exact last known time
 function stopVideo() {
     if (player) {
+        lastPosition = player.getCurrentTime();
+
+        // Notify Android before destroying the player
+        Android.onDestroy(lastPosition);
+
         player.destroy();
         player = null;
     }
