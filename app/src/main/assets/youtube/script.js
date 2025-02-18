@@ -1,7 +1,7 @@
 let player;
 
 function onYouTubeIframeAPIReady() {
-    Android.onReady(); // Notify Android that the API is ready
+    Android.onIFrameAPIReady(); // Notify Android that the API is ready
 }
 
 // Function to create a temporary player just to get the title
@@ -17,7 +17,7 @@ function fetchVideoTitle(videoId) {
                 var jsonString = JSON.stringify(videoTitle);
 
                 console.log("Sending JSON: " + jsonString);
-                Android.onPlayerReady(jsonString);
+                Android.onPlayerCreated(jsonString);
 
                 tempPlayer.destroy(); // Cleanup temporary player
             }
@@ -45,7 +45,8 @@ function loadVideo(videoId, autoplay) {
             'fs': 0
         },
         events: {
-            'onStateChange': onPlayerStateChange
+            'onStateChange': onPlayerStateChange,
+            'onReady': Android.onPlayerReady()
         }
     });
 

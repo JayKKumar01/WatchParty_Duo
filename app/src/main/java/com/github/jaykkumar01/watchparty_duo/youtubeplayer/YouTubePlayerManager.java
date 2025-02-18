@@ -35,5 +35,9 @@ public class YouTubePlayerManager {
     public void onFullscreenExited() {
         Log.d("YouTubePlayerManager", "Fullscreen exited.");
     }
+
+    public boolean isPlaying() {
+        return lastEvent == 1;
+    }
 }
 

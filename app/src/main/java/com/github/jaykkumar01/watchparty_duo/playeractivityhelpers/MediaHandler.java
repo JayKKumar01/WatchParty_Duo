@@ -159,6 +159,7 @@ public class MediaHandler {
     private void handleRefreshClick(){
         resetCurrentMedia();
         exoPlayerHandler.resetPlayer();
+        youtubePlayerHandler.resetPlayer();
 
     }
 

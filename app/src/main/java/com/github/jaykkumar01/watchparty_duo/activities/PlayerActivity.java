@@ -215,6 +215,7 @@ public class PlayerActivity extends AppCompatActivity {
         RefHelper.reset(instanceRef);
         exitDialogHandler.dismissExitDialog();
         exoPlayerHandler.releasePlayer();
+        youtubePlayerHandler.resetPlayer();
         super.onDestroy();
         Log.d("PlayerActivity", "onDestroy called! Is finishing: " + isFinishing());
     }
@@ -223,6 +224,7 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onRestart() {
         notifyImageFeedService(true);
         exoPlayerHandler.onRestart();
+        youtubePlayerHandler.onRestart();
         super.onRestart();
     }
 
@@ -230,6 +232,7 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onStop() {
         notifyImageFeedService(false);
         exoPlayerHandler.onStop();
+        youtubePlayerHandler.onStop();
         super.onStop();
     }
 

@@ -72,7 +72,6 @@ public class YouTubePlayerHandler {
             Toast.makeText(activity, "Invalid YouTube link", Toast.LENGTH_SHORT).show();
             return;
         }
-        etYouTubeLink.setText("");
         Base.hideKeyboard(activity);
         createYouTubePlayer.setEnabled(false);
         createYouTubePlayer.setText("Creating...");
@@ -85,12 +84,12 @@ public class YouTubePlayerHandler {
         lastVideoId = videoId;
     }
 
-    public void onReady() {
+    public void onIFrameAPIReady() {
         isYouTubeIFrameAPIReady = true;
     }
 
     Handler handler = new Handler();
-    public void onPlayerReady(String jsonVideoTitle){
+    public void onPlayerCreated(String jsonVideoTitle){
         // Convert JSON string back to a normal String
         String videoTitle = new Gson().fromJson(jsonVideoTitle, String.class);
 
@@ -99,15 +98,17 @@ public class YouTubePlayerHandler {
             toggleYouTubePlayerLayout(layoutPlayYouTubePlayer,layoutCreateYouTubePlayer);
             createYouTubePlayer.setEnabled(true);
             createYouTubePlayer.setText(activity.getString(R.string.create_youtube_player));
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    //webView.setVisibility(View.VISIBLE);
-                }
-            },1000);
         });
     }
 
+    public void onPlayerReady() {
+        activity.runOnUiThread(() -> {
+            playYouTubePlayer.setText(activity.getString(R.string.play_youtube_player));
+            webView.setVisibility(View.VISIBLE);
+        });
+
+
+    }
     private void handleRecreateYouTubePlayerClick(View view) {
         toggleYouTubePlayerLayout(layoutCreateYouTubePlayer,layoutPlayYouTubePlayer);
 
@@ -121,10 +122,21 @@ public class YouTubePlayerHandler {
 
     public void playVideo() {
         if (!isYouTubeIFrameAPIReady) return;
+        playYouTubePlayer.setText("Playing...");
         isClosed = false;
-
         player.loadVideo(lastVideoId, isPaused ? 0: 1);
-        webView.setVisibility(View.VISIBLE);
+    }
+
+
+
+    public void resetPlayer() {
+        player.stop();
+        webView.setVisibility(View.GONE);
+        toggleYouTubePlayerLayout(layoutCreateYouTubePlayer,layoutPlayYouTubePlayer);
+        currentYouTubeTxt.setText("");
+        lastVideoId = null;
+        isPaused = false;
+        isClosed = true;
     }
 
     public void onRestart() {
@@ -134,6 +146,7 @@ public class YouTubePlayerHandler {
     }
 
     public void onStop() {
+        isPaused = !playerManager.isPlaying();
         player.stop();
     }
 

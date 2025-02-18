@@ -13,9 +13,6 @@ import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.github.jaykkumar01.watchparty_duo.R;
-import com.google.gson.Gson;
-
 public class YouTubePlayer {
     private final Activity activity;
     private final WebView webView;
@@ -58,16 +55,20 @@ public class YouTubePlayer {
     }
 
 
-
     private class JavaScriptBridge {
         @JavascriptInterface
-        public void onReady() {
-            handler.onReady();
+        public void onIFrameAPIReady() {
+            handler.onIFrameAPIReady();
         }
 
         @JavascriptInterface
-        public void onPlayerReady(String jsonVideoTitle) {
-            handler.onPlayerReady(jsonVideoTitle);
+        public void onPlayerCreated(String jsonVideoTitle) {
+            handler.onPlayerCreated(jsonVideoTitle);
+        }
+
+        @JavascriptInterface
+        public void onPlayerReady(){
+            handler.onPlayerReady();
         }
 
 
