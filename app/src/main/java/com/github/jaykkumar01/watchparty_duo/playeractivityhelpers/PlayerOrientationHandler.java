@@ -119,7 +119,8 @@ public class PlayerOrientationHandler {
     }
 
     private void setLayoutParams(boolean isLandscape) {
-        setScrollViewScrolling(scrollView,isLandscape);
+//        setScrollViewScrolling(scrollView,isLandscape);
+
 
         if (isLandscape) {
             playerLayoutLayoutParams.dimensionRatio = getFullRatio();

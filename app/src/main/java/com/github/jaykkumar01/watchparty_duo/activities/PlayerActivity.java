@@ -124,7 +124,7 @@ public class PlayerActivity extends AppCompatActivity {
         logUpdater.addLogMessage("Check logs here...");
 
         ConstraintLayout smallRemotePeerLayout = findViewById(R.id.smallRemoteFeedLayout);
-        smallRemotePeerLayout.setOnTouchListener(new DraggableTouchListener());
+        smallRemotePeerLayout.setOnTouchListener(new DraggableTouchListener(this));
     }
 
     private void setupListeners() {

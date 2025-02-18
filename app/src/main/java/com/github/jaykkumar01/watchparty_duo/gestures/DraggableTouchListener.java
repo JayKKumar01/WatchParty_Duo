@@ -1,11 +1,22 @@
 package com.github.jaykkumar01.watchparty_duo.gestures;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+
+import com.github.jaykkumar01.watchparty_duo.R;
 
 public class DraggableTouchListener implements View.OnTouchListener {
+    private final Activity activity;
+    private final ViewParent scrollViewParent;
+
+    public DraggableTouchListener(Activity activity){
+        this.activity = activity;
+        scrollViewParent = activity.findViewById(R.id.scrollView);
+    }
     private float dX, dY;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -13,6 +24,11 @@ public class DraggableTouchListener implements View.OnTouchListener {
     public boolean onTouch(View view, MotionEvent event) {
         ViewGroup parent = (ViewGroup) view.getParent();
         if (parent == null) return false;
+
+        // Request the ScrollView not to intercept touch events
+        if (scrollViewParent != null) {
+            scrollViewParent.requestDisallowInterceptTouchEvent(true);
+        }
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
@@ -36,6 +52,9 @@ public class DraggableTouchListener implements View.OnTouchListener {
                 return true;
 
             case MotionEvent.ACTION_UP:
+                if (scrollViewParent != null) {
+                    scrollViewParent.requestDisallowInterceptTouchEvent(false);
+                }
                 return true;
 
             default:
