@@ -42,7 +42,7 @@ public class MediaHandler {
     private int defaultTextColor;
     private Drawable clickedBackground;
     private int clickedTextColor;
-    private AppCompatButton playYouTube;
+
 
     public MediaHandler(AppCompatActivity activity, ExoPlayerHandler exoPlayerHandler, YouTubePlayerHandler youtubePlayerHandler){
         this.activity = activity;
@@ -80,9 +80,7 @@ public class MediaHandler {
         playOfflineVideo = activity.findViewById(R.id.playOfflineVideo);
         currentMediaTxt = activity.findViewById(R.id.currentMediaTxt);
         ImageView btnRefresh = activity.findViewById(R.id.btnRefresh);
-        // ✅ Add new YouTube components
-        TextInputEditText etYouTubeLink = activity.findViewById(R.id.etYouTubeLink);
-        playYouTube = activity.findViewById(R.id.playYouTube);
+
 
         // Initialize layout components
         ConstraintLayout expPlayerLayout = activity.findViewById(R.id.exoplayerLayout);
@@ -96,8 +94,7 @@ public class MediaHandler {
 
 
 
-        // Pass etYouTubeLink directly to handlePlayYouTubeClick
-        playYouTube.setOnClickListener(view -> handlePlayYouTubeClick(etYouTubeLink));
+
     }
 
     private void initializeArchiveCelestialButtons(ConstraintLayout expPlayerLayout, ConstraintLayout youtubePlayerLayout) {
@@ -150,24 +147,7 @@ public class MediaHandler {
     }
 
 
-    private void handlePlayYouTubeClick(TextInputEditText etYouTubeLink) {
-        String link = Objects.requireNonNull(etYouTubeLink.getText()).toString().trim();
 
-        if (link.isEmpty()) {
-            Toast.makeText(activity, "Please enter a YouTube link", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String videoId = YouTubeIDExtractor.extractYouTubeVideoId(link);
-        if (videoId == null) {
-            Toast.makeText(activity, "Invalid YouTube link", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Base.hideKeyboard(activity);
-//        playYouTube.setEnabled(false);
-//        playYouTube.setText("Creating...");
-        youtubePlayerHandler.playVideo(videoId);
-    }
 
 
 

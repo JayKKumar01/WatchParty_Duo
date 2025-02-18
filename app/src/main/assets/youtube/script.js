@@ -4,8 +4,29 @@ function onYouTubeIframeAPIReady() {
     Android.onReady(); // Notify Android that the API is ready
 }
 
+// Function to create a temporary player just to get the title
+function fetchVideoTitle(videoId) {
+    let tempPlayer = new YT.Player('player', {
+        videoId: videoId,
+        events: {
+            'onReady': function (event) {
+                var videoData = event.target.getVideoData();
+                var videoTitle = videoData.title;
+
+                // Convert to JSON string (just the title, not an object)
+                var jsonString = JSON.stringify(videoTitle);
+
+                console.log("Sending JSON: " + jsonString);
+                Android.onPlayerReady(jsonString);
+
+                tempPlayer.destroy(); // Cleanup temporary player
+            }
+        }
+    });
+}
+
 // Function to destroy existing player (if any) and create a new one
-function loadVideo(videoId) {
+function loadVideo(videoId, autoplay) {
     if (player) {
         player.destroy(); // Destroy existing player
         player = null;
@@ -16,7 +37,7 @@ function loadVideo(videoId) {
         width: document.body.clientHeight,
         videoId: videoId,
         playerVars: {
-            'autoplay': 0,
+            'autoplay': autoplay,
             'controls': 1,
             'modestbranding': 1,
             'rel': 0,
@@ -24,23 +45,10 @@ function loadVideo(videoId) {
             'fs': 0
         },
         events: {
-            'onStateChange': onPlayerStateChange,
-            'onReady': onPlayerReady
+            'onStateChange': onPlayerStateChange
         }
     });
 
-}
-
-// Called when player is ready
-function onPlayerReady(event) {
-    var videoData = event.target.getVideoData();
-    var videoTitle = videoData.title;
-
-    // Convert to JSON string (just the title, not an object)
-    var jsonString = JSON.stringify(videoTitle);
-
-    console.log("Sending JSON: " + jsonString);
-    Android.onPlayerReady(jsonString);
 }
 
 

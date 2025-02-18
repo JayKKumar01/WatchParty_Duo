@@ -45,13 +45,19 @@ public class YouTubePlayer {
         webView.loadUrl("file:///android_asset/youtube/index.html");
     }
 
-    public void loadVideo(String videoId) {
-        webView.loadUrl("javascript:loadVideo('" + videoId + "')");
+    public void fetchVideoTitle(String videoId) {
+        webView.loadUrl("javascript:fetchVideoTitle('" + videoId + "')");
     }
+    public void loadVideo(String videoId, int autoplay) {
+        webView.loadUrl("javascript:loadVideo('" + videoId + "', " + autoplay + ")");
+    }
+
 
     public void stop() {
         webView.loadUrl("javascript:stopVideo()");
     }
+
+
 
     private class JavaScriptBridge {
         @JavascriptInterface
