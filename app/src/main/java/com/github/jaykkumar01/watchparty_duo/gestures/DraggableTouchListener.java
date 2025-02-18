@@ -10,7 +10,6 @@ import android.view.ViewParent;
 import com.github.jaykkumar01.watchparty_duo.R;
 
 public class DraggableTouchListener implements View.OnTouchListener {
-    private final Activity activity;
     private final ViewParent scrollViewParent;
 
     private float dX, dY;
@@ -23,14 +22,15 @@ public class DraggableTouchListener implements View.OnTouchListener {
     private float originalFocalX, originalFocalY;
     private float originalX, originalY;
 
-    // New variables for original state tracking
+    private boolean isScaling = false;
+    private boolean isDragging = false;
+
     private boolean hasOriginalState = false;
     private float resetX, resetY, resetScale = 1f;
     private long lastClickTime = 0;
     private static final int DOUBLE_CLICK_THRESHOLD = 300;
 
     public DraggableTouchListener(Activity activity) {
-        this.activity = activity;
         scrollViewParent = activity.findViewById(R.id.scrollView);
     }
 
@@ -46,7 +46,6 @@ public class DraggableTouchListener implements View.OnTouchListener {
 
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                // Double click detection
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastClickTime < DOUBLE_CLICK_THRESHOLD) {
                     resetToOriginalState(view);
@@ -55,18 +54,18 @@ public class DraggableTouchListener implements View.OnTouchListener {
                 }
                 lastClickTime = currentTime;
 
-                // Store initial position on first interaction
                 if (!hasOriginalState) {
                     storeOriginalState(view);
                 }
 
                 dX = view.getX() - event.getRawX();
                 dY = view.getY() - event.getRawY();
+                isDragging = true;
+                isScaling = false;
                 return true;
 
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
-                    // Store initial position on first interaction
                     if (!hasOriginalState) {
                         storeOriginalState(view);
                     }
@@ -83,11 +82,14 @@ public class DraggableTouchListener implements View.OnTouchListener {
                     originalY = view.getY();
                     initialScaleFactor = scaleFactor;
                     initialDistance = (float) Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
+
+                    isScaling = true;
+                    isDragging = false;
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (event.getPointerCount() >= 2) {
+                if (isScaling && event.getPointerCount() >= 2) {
                     float x0 = event.getX(0);
                     float y0 = event.getY(0);
                     float x1 = event.getX(1);
@@ -109,7 +111,7 @@ public class DraggableTouchListener implements View.OnTouchListener {
 
                     initialDistance = currentDistance;
                     initialScaleFactor = scaleFactor;
-                } else {
+                } else if (isDragging && event.getPointerCount() == 1) {
                     float newX = event.getRawX() + dX;
                     float newY = event.getRawY() + dY;
                     adjustPositionWithScale(view, parent, newX, newY, scaleFactor);
@@ -120,6 +122,8 @@ public class DraggableTouchListener implements View.OnTouchListener {
             case MotionEvent.ACTION_POINTER_UP:
                 if (event.getPointerCount() == 1) {
                     initialDistance = 0;
+                    isScaling = false;
+                    isDragging = false;
                 }
                 if (scrollViewParent != null) {
                     scrollViewParent.requestDisallowInterceptTouchEvent(false);
