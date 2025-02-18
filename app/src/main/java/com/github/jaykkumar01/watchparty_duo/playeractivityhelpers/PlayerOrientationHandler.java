@@ -1,5 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.playeractivityhelpers;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
@@ -11,6 +12,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -31,6 +33,7 @@ public class PlayerOrientationHandler {
     private final ConstraintLayout.LayoutParams playerLayoutLayoutParams;
     private final int marginInPx, paddingInPx;
     private ImageView fullScreen;
+    private final ScrollView scrollView;
 
     public PlayerOrientationHandler(Activity activity, TextureView remoteFeedTextureView,TextureView peerFeedTextureView) {
         this.activity = activity;
@@ -49,12 +52,22 @@ public class PlayerOrientationHandler {
         this.smallRemoteFeedTextureView = activity.findViewById(R.id.smallRemoteFeed);
 
         this.fullScreen = activity.findViewById(R.id.exo_screen);
+        this.scrollView = activity.findViewById(R.id.scrollView);
     }
 
     private String getFullRatio(){
         DisplayMetrics displayMatrix = activity.getResources().getDisplayMetrics();
         return displayMatrix.widthPixels + ":" + displayMatrix.heightPixels;
     }
+    @SuppressLint("ClickableViewAccessibility")
+    public void setScrollViewScrolling(ScrollView scrollView, boolean disable) {
+        if (disable) {
+            scrollView.setOnTouchListener((v, event) -> true); // Disable scrolling
+        } else {
+            scrollView.setOnTouchListener(null); // Enable scrolling by removing listener
+        }
+    }
+
     public void handleOrientationChange(int newOrientation) {
         // Connect feed surfaces to FeedService
         FeedService feedService = FeedService.getInstance();
@@ -106,6 +119,7 @@ public class PlayerOrientationHandler {
     }
 
     private void setLayoutParams(boolean isLandscape) {
+        setScrollViewScrolling(scrollView,isLandscape);
 
         if (isLandscape) {
             playerLayoutLayoutParams.dimensionRatio = getFullRatio();

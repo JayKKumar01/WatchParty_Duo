@@ -1,5 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,6 +26,7 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.dialogs.BackPressHandler;
 import com.github.jaykkumar01.watchparty_duo.dialogs.ExitDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
+import com.github.jaykkumar01.watchparty_duo.gestures.DraggableTouchListener;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
@@ -106,6 +109,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupUI() {
         logScrollView = findViewById(R.id.logScrollView);
         logTextView = findViewById(R.id.logTextView);
@@ -118,6 +122,9 @@ public class PlayerActivity extends AppCompatActivity {
 
         logUpdater = new LogUpdater(logTextView, logScrollView);
         logUpdater.addLogMessage("Check logs here...");
+
+        ConstraintLayout smallRemotePeerLayout = findViewById(R.id.smallRemoteFeedLayout);
+        smallRemotePeerLayout.setOnTouchListener(new DraggableTouchListener());
     }
 
     private void setupListeners() {
