@@ -29,7 +29,8 @@
     <string name="_00_00">00:00</string>
     <string name="slash">/</string>
     <string name="youtube_video_link">YouTube Video Link</string>
-    <string name="create_youtube_player">Create YouTube Player</string>
+    <string name="create_youtube_player"><u>Create YouTube Player</u></string>
+
     <string name="join_youtube_player">Join YouTube Player</string>
     <string name="play_youtube_player">Play YouTube Player</string>
 </resources>

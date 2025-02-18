@@ -24,6 +24,7 @@ public class YouTubePlayerHandler {
     private final YouTubePlayerManager playerManager; // ✅ New instance
     private TextView currentYouTubeTxt;
     private AppCompatButton createYouTubePlayer,playYouTubePlayer;
+    TextView recreateYouTubePlayer;
     private final WebView webView;
 
     private String lastVideoId;
@@ -50,9 +51,12 @@ public class YouTubePlayerHandler {
         playYouTubePlayer = activity.findViewById(R.id.playYouTubePlayer);
         layoutCreateYouTubePlayer = activity.findViewById(R.id.layoutCreateYouTubePlayer);
         layoutPlayYouTubePlayer = activity.findViewById(R.id.layoutPlayYouTubePlayer);
+        recreateYouTubePlayer = activity.findViewById(R.id.recreateYouTubePlayer);
 
         // Pass etYouTubeLink directly to handle YouTubeClick
         createYouTubePlayer.setOnClickListener(view -> handleCreateYouTubePlayerClick(etYouTubeLink));
+        recreateYouTubePlayer.setOnClickListener(this::handleRecreateYouTubePlayerClick);
+        playYouTubePlayer.setOnClickListener(view -> playVideo());
     }
 
     private void handleCreateYouTubePlayerClick(TextInputEditText etYouTubeLink) {
@@ -78,6 +82,7 @@ public class YouTubePlayerHandler {
     private void fetchVideoTitle(String videoId) {
         if (!isYouTubeIFrameAPIReady) return;
         player.fetchVideoTitle(videoId);
+        lastVideoId = videoId;
     }
 
     public void onReady() {
@@ -91,8 +96,9 @@ public class YouTubePlayerHandler {
 
         activity.runOnUiThread(() -> {
             currentYouTubeTxt.setText(videoTitle); // send this data to remote also
-            layoutCreateYouTubePlayer.setVisibility(View.GONE);
-            layoutPlayYouTubePlayer.setVisibility(View.VISIBLE);
+            toggleYouTubePlayerLayout(layoutPlayYouTubePlayer,layoutCreateYouTubePlayer);
+            createYouTubePlayer.setEnabled(true);
+            createYouTubePlayer.setText(activity.getString(R.string.create_youtube_player));
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -102,18 +108,28 @@ public class YouTubePlayerHandler {
         });
     }
 
-    public void playVideo(String videoId) {
+    private void handleRecreateYouTubePlayerClick(View view) {
+        toggleYouTubePlayerLayout(layoutCreateYouTubePlayer,layoutPlayYouTubePlayer);
+
+
+    }
+
+    private void toggleYouTubePlayerLayout(ConstraintLayout layoutToBeVisible, ConstraintLayout layoutToBeHidden) {
+        layoutToBeVisible.setVisibility(View.VISIBLE);
+        layoutToBeHidden.setVisibility(View.GONE);
+    }
+
+    public void playVideo() {
         if (!isYouTubeIFrameAPIReady) return;
         isClosed = false;
 
-        lastVideoId = videoId;
-
-        player.loadVideo(videoId, isPaused ? 0: 1);
+        player.loadVideo(lastVideoId, isPaused ? 0: 1);
+        webView.setVisibility(View.VISIBLE);
     }
 
     public void onRestart() {
         if (lastVideoId != null && !isClosed) {
-            playVideo(lastVideoId);
+            playVideo();
         }
     }
 
