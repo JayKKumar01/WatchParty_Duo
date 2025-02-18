@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.google.gson.Gson;
 
 public class YouTubePlayer {
     private final Activity activity;
@@ -21,11 +22,11 @@ public class YouTubePlayer {
     private final YouTubePlayerHandler handler;
     private final YouTubePlayerManager manager; // ✅ Manager instance
 
-    public YouTubePlayer(YouTubePlayerHandler handler, Activity activity, YouTubePlayerManager manager) {
+    public YouTubePlayer(YouTubePlayerHandler handler, Activity activity, YouTubePlayerManager manager, WebView webView) {
         this.handler = handler;
         this.activity = activity;
         this.manager = manager;
-        this.webView = activity.findViewById(R.id.webViewYouTube);
+        this.webView = webView;
 
         setupWebView();
     }
@@ -38,19 +39,13 @@ public class YouTubePlayer {
         webSettings.setMediaPlaybackRequiresUserGesture(false);
 
         webView.setWebChromeClient(new WebChromeClient());
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                Toast.makeText(activity, "page loaded!", Toast.LENGTH_SHORT).show();
-            }
-        });
+        webView.setWebViewClient(new WebViewClient());
 
         webView.addJavascriptInterface(new JavaScriptBridge(), "Android");
         webView.loadUrl("file:///android_asset/youtube/index.html");
     }
 
     public void loadVideo(String videoId) {
-        webView.setVisibility(View.VISIBLE);
         webView.loadUrl("javascript:loadVideo('" + videoId + "')");
     }
 
@@ -61,13 +56,15 @@ public class YouTubePlayer {
     private class JavaScriptBridge {
         @JavascriptInterface
         public void onReady() {
-            handler.onPlayerReady();
+            handler.onReady();
         }
 
         @JavascriptInterface
-        public void onPlayerReady(){
-
+        public void onPlayerReady(String jsonVideoTitle) {
+            handler.onPlayerReady(jsonVideoTitle);
         }
+
+
 
         @JavascriptInterface
         public void onPlay(long timeMs) {

@@ -16,7 +16,7 @@ function loadVideo(videoId) {
         width: document.body.clientHeight,
         videoId: videoId,
         playerVars: {
-            'autoplay': 1,
+            'autoplay': 0,
             'controls': 1,
             'modestbranding': 1,
             'rel': 0,
@@ -33,13 +33,16 @@ function loadVideo(videoId) {
 
 // Called when player is ready
 function onPlayerReady(event) {
-    Android.onPlayerReady();
-    
-    // Explicitly try playing video
-    setTimeout(() => {
-        event.target.playVideo();
-    }, 500); // Small delay to ensure player is ready
+    var videoData = event.target.getVideoData();
+    var videoTitle = videoData.title;
+
+    // Convert to JSON string (just the title, not an object)
+    var jsonString = JSON.stringify(videoTitle);
+
+    console.log("Sending JSON: " + jsonString);
+    Android.onPlayerReady(jsonString);
 }
+
 
 // Handle player state changes and notify Android
 function onPlayerStateChange(event) {

@@ -27,6 +27,7 @@ import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.utils.PermissionHandler;
 import com.google.android.material.textfield.TextInputEditText;
@@ -217,7 +218,7 @@ public class FeedActivity extends AppCompatActivity {
 
     private void updateUI(String peerId) {
         addLog("Peer Opened: " + peerId);
-        hideKeyboard();
+        Base.hideKeyboard(this);
         tvName.setText(String.format("Welcome %s, Your ID: %s-%s", userName, peerId.substring(0, 3), peerId.substring(3, 6)));
         layoutConnect.setVisibility(View.GONE);
         layoutJoin.setVisibility(View.VISIBLE);
@@ -234,7 +235,7 @@ public class FeedActivity extends AppCompatActivity {
 
     private void updateConnectionUI(String peerId, String remoteId) {
         addLog(String.format("Peer: %s, Remote: %s", peerId, remoteId));
-        hideKeyboard();
+        Base.hideKeyboard(this);
         layoutJoin.setVisibility(View.GONE);
         resetJoinButton();
         launchPlayerActivity();
@@ -252,10 +253,7 @@ public class FeedActivity extends AppCompatActivity {
 
 
     // Method to hide keyboard
-    private void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-    }
+
 
 
     private void startFeedService() {

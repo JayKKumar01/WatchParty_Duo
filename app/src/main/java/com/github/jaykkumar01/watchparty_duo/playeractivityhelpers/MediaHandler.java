@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
 import com.github.jaykkumar01.watchparty_duo.helpers.YouTubeIDExtractor;
+import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -41,6 +42,7 @@ public class MediaHandler {
     private int defaultTextColor;
     private Drawable clickedBackground;
     private int clickedTextColor;
+    private AppCompatButton playYouTube;
 
     public MediaHandler(AppCompatActivity activity, ExoPlayerHandler exoPlayerHandler, YouTubePlayerHandler youtubePlayerHandler){
         this.activity = activity;
@@ -80,7 +82,7 @@ public class MediaHandler {
         ImageView btnRefresh = activity.findViewById(R.id.btnRefresh);
         // ✅ Add new YouTube components
         TextInputEditText etYouTubeLink = activity.findViewById(R.id.etYouTubeLink);
-        AppCompatButton playYouTube = activity.findViewById(R.id.playYouTube);
+        playYouTube = activity.findViewById(R.id.playYouTube);
 
         // Initialize layout components
         ConstraintLayout expPlayerLayout = activity.findViewById(R.id.exoplayerLayout);
@@ -157,11 +159,14 @@ public class MediaHandler {
         }
 
         String videoId = YouTubeIDExtractor.extractYouTubeVideoId(link);
-        if (videoId != null) {
-            youtubePlayerHandler.playVideo(videoId);
-        } else {
+        if (videoId == null) {
             Toast.makeText(activity, "Invalid YouTube link", Toast.LENGTH_SHORT).show();
+            return;
         }
+        Base.hideKeyboard(activity);
+//        playYouTube.setEnabled(false);
+//        playYouTube.setText("Creating...");
+        youtubePlayerHandler.playVideo(videoId);
     }
 
 
