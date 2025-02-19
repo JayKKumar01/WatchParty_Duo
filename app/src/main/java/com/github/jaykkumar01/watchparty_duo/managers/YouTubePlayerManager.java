@@ -11,12 +11,15 @@ import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayer;
 import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
 import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubeRemoteActionHandler;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions {
     private final YouTubePlayerHandler handler;
     private final YouTubeRemoteActionHandler actionHandler;
     private YouTubePlayer player;
     private int lastEvent = -1;
     private boolean isFirstPlay;
+    private final AtomicBoolean isRemoteAction = new AtomicBoolean(false);
 
     public YouTubePlayerManager(Activity activity, YouTubePlayerHandler handler) {
         this.handler = handler;

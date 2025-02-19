@@ -81,7 +81,8 @@ public class PermissionActivity extends AppCompatActivity implements PermissionC
         imgNotificationStatus.setImageResource(hasNotificationPermission ? R.drawable.ic_check_green : R.drawable.ic_cross_red);
 
         if (hasCameraPermission && hasMicPermission && hasNotificationPermission){
-            Intent intent = new Intent(this,FeedActivity.class);
+//            Intent intent = new Intent(this,FeedActivity.class);
+            Intent intent = new Intent(this,TestingActivity.class);
 //            Intent intent = new Intent(this,PlayerActivity.class);
             startActivity(intent);
             finish();

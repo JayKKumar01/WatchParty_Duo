@@ -15,12 +15,17 @@
           <targets>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="Default" identifier="serial=192.168.1.77:5555;connection=7954a023" />
+                <DeviceId pluginId="Default" identifier="serial=192.168.1.79:5555;connection=64a6727d" />
               </handle>
             </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="Default" identifier="serial=192.168.1.76:5555;connection=afc78a1c" />
+                <DeviceId pluginId="Default" identifier="serial=192.168.1.77:5555;connection=f36d8c24" />
+              </handle>
+            </Target>
+            <Target type="DEFAULT_BOOT">
+              <handle>
+                <DeviceId pluginId="Default" identifier="serial=192.168.1.76:5555;connection=ff632b40" />
               </handle>
             </Target>
           </targets>

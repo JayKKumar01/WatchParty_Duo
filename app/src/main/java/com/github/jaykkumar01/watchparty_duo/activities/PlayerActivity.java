@@ -34,6 +34,7 @@ import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.MediaHandler;
 import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.PlayerOrientationHandler;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 import com.github.jaykkumar01.watchparty_duo.utils.AspectRatio;
+import com.github.jaykkumar01.watchparty_duo.utils.AutoRotate;
 import com.github.jaykkumar01.watchparty_duo.utils.Constants;
 import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
 
@@ -75,6 +76,7 @@ public class PlayerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_player);
 
         AspectRatio.set(this);
+        AutoRotate.set(this);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.theme_related));
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

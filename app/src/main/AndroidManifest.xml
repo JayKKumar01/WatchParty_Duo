@@ -32,6 +32,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".activities.TestingActivity"
+            android:exported="false" />
+        <activity
             android:name=".testing.YouTubeActivity"
             android:exported="false" />
         <activity
@@ -42,7 +45,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
         <service
@@ -56,9 +58,7 @@
             android:name=".activities.FeedActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
-            android:hardwareAccelerated="true">
-
-        </activity>
+            android:hardwareAccelerated="true"></activity>
         <activity
             android:name=".peerjswebview.WebViewPeerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
@@ -68,9 +68,7 @@
             android:name=".activities.PlayerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
-            android:hardwareAccelerated="true">
-
-        </activity>
+            android:hardwareAccelerated="true"></activity>
     </application>
 
 </manifest>
