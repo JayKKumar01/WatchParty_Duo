@@ -90,17 +90,17 @@ public class YouTubePlayer {
 
 
         @JavascriptInterface
-        public void onPlay(long timeMs) {
+        public void onPlay(int timeMs) {
             manager.onPlay(timeMs);
         }
 
         @JavascriptInterface
-        public void onPause(long timeMs) {
+        public void onPause(int timeMs) {
             manager.onPause(timeMs);
         }
 
         @JavascriptInterface
-        public void onSeek(long timeMs) {
+        public void onSeek(int timeMs) {
             manager.onSeek(timeMs);
         }
 
@@ -108,7 +108,7 @@ public class YouTubePlayer {
         @JavascriptInterface
         public void onDestroy(int lastPosition) {
             handler.onLastPosition(lastPosition);
-            manager.resetPlayer();
+            manager.resetPlayer(lastPosition);
         }
         @JavascriptInterface
         public void onRequestPlayback(boolean isPlaying, int lastPosition) {

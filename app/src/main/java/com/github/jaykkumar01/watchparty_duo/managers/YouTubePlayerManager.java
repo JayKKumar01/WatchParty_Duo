@@ -19,7 +19,7 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
     private YouTubePlayer player;
     private int lastEvent = -1;
     private boolean isFirstPlay;
-    private final AtomicBoolean isRemoteAction = new AtomicBoolean(false);
+    private final AtomicBoolean isRemoteAction = new AtomicBoolean(true);
 
     public YouTubePlayerManager(Activity activity, YouTubePlayerHandler handler) {
         this.handler = handler;
@@ -30,21 +30,32 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
         this.player = player;
     }
 
-    public void onPlay(long timeMs) {
+    public void onPlay(int timeMs) {
         if (!isFirstPlay){
             isFirstPlay = true;
             handler.onPlayerReady();
         }
         lastEvent = PLAYING;
         Log.d("YouTubePlayerManager", "Playing at " + timeMs + " ms.");
+
+        if (isRemoteAction.getAndSet(false)) {
+            return; // Ignore if triggered by remote seek
+        }
+        playbackToRemote(true,timeMs);
+
     }
 
-    public void onPause(long timeMs) {
+    public void onPause(int timeMs) {
         lastEvent = PAUSED;
         Log.d("YouTubePlayerManager", "Paused at " + timeMs + " ms.");
+
+        if (isRemoteAction.getAndSet(false)) {
+            return; // Ignore if triggered by remote seek
+        }
+        playbackToRemote(false,timeMs);
     }
 
-    public void onSeek(long timeMs) {
+    public void onSeek(int timeMs) {
         lastEvent = SEEK;
         Log.d("YouTubePlayerManager", "Seeked to " + timeMs + " ms.");
     }
@@ -84,10 +95,13 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
         if (player == null){
             return;
         }
+        if (isRemoteAction.getAndSet(true)) return;
+
         player.updatePlayback(isPlaying,currentPosition);
     }
 
-    public void resetPlayer() {
+    public void resetPlayer(int lastPosition) {
+        onPause(lastPosition);
         player = null;
         lastEvent = -1;
         isFirstPlay = false;

@@ -3,6 +3,7 @@ package com.github.jaykkumar01.watchparty_duo.playeractivityhelpers;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.OpenableColumns;
@@ -15,18 +16,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
-import com.github.jaykkumar01.watchparty_duo.helpers.YouTubeIDExtractor;
-import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubePlayerHandler;
-import com.google.android.material.textfield.TextInputEditText;
-
-import java.util.Objects;
 
 public class MediaHandler {
     private final AppCompatActivity activity;
@@ -101,16 +96,21 @@ public class MediaHandler {
         TextView tvArchive = activity.findViewById(R.id.tvArchive);
         TextView tvCelestial = activity.findViewById(R.id.tvCelestial);
 
-        tvArchive.setOnClickListener(view -> handleArchiveCelestialClick(tvArchive, tvCelestial, expPlayerLayout, youtubePlayerLayout));
-        tvCelestial.setOnClickListener(view -> handleArchiveCelestialClick(tvCelestial, tvArchive, youtubePlayerLayout, expPlayerLayout));
+        tvArchive.setOnClickListener(view -> handleArchiveCelestialClick(tvArchive, tvCelestial, expPlayerLayout, youtubePlayerLayout,false));
+        tvCelestial.setOnClickListener(view -> handleArchiveCelestialClick(tvCelestial, tvArchive, youtubePlayerLayout, expPlayerLayout,true));
     }
 
     private void handleArchiveCelestialClick(TextView activeTextView, TextView inactiveTextView,
-                                             ConstraintLayout activeLayout, ConstraintLayout inactiveLayout) {
+                                             ConstraintLayout activeLayout, ConstraintLayout inactiveLayout, boolean isCelestial) {
         handleRefreshClick();
         setActiveTextViewStyle(activeTextView);
         resetInactiveTextViewStyle(inactiveTextView);
         toggleLayoutVisibility(activeLayout, inactiveLayout);
+        if (isCelestial) {
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        }else {
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+        }
     }
 
     private void setActiveTextViewStyle(TextView textView) {

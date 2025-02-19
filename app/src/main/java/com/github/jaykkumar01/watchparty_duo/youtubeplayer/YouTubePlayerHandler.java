@@ -118,6 +118,8 @@ public class YouTubePlayerHandler {
             if (isClosed){
                 isClosed = false;
                 playerManager.requestPlaybackState();
+            }else {
+                playerManager.playbackToRemote(isPaused,lastPosition);
             }
         });
 
@@ -138,6 +140,10 @@ public class YouTubePlayerHandler {
     public void playVideo() {
         if (!isYouTubeIFrameAPIReady) return;
         playYouTubePlayer.setText("Playing...");
+        if (isClosed){
+            lastPosition = 0;
+            isPaused = false;
+        }
         player.loadVideo(lastVideoId, isPaused ? 0: 1,lastPosition);
     }
 

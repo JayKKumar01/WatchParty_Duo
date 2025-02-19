@@ -1,5 +1,6 @@
 let player;
 let lastPosition = 0;
+let lastEvent = null; // Track the last event state
 
 function onYouTubeIframeAPIReady() {
     Android.onIFrameAPIReady(); // Notify Android that the API is ready
@@ -36,7 +37,7 @@ function loadVideo(videoId, autoplay, startTime) {
         width: document.body.clientWidth,
         videoId: videoId,
         playerVars: {
-            'enablejsapi':1,
+            'enablejsapi': 1,
             'autoplay': autoplay,
             'controls': 1,
             'modestbranding': 1,
@@ -57,24 +58,37 @@ function onPlayerReady(event) {
     Android.onPlayerReady();
 }
 
-// Handle player state changes and notify Android
+let stateChangeTimeout = null; // Store timeout reference
+
 function onPlayerStateChange(event) {
+    lastEvent = event.data; // Update last event state
     lastPosition = player.getCurrentTime(); // Keep track of last known time
 
-    if (event.data === YT.PlayerState.PLAYING) {
-        Android.onPlay(lastPosition);
-    } else if (event.data === YT.PlayerState.PAUSED) {
-        Android.onPause(lastPosition);
-    } else if (event.data === YT.PlayerState.BUFFERING) {
-        Android.onSeek(lastPosition);
+    // Clear any existing timeout before setting a new one
+    if (stateChangeTimeout) {
+        clearTimeout(stateChangeTimeout);
     }
+
+    // Run this block after 300 ms to verify the event is still the same
+    stateChangeTimeout = setTimeout(() => {
+        if (event.data !== lastEvent) {
+            return; // Exit if the event state has changed
+        }
+
+        if (event.data === YT.PlayerState.PLAYING) {
+            Android.onPlay(lastPosition);
+        } else if (event.data === YT.PlayerState.PAUSED) {
+            Android.onPause(lastPosition);
+        }
+    }, 300);
 }
+
 
 function requestPlayback() {
     if (player) {
         let currentTime = player.getCurrentTime();
         let isPlaying = (player.getPlayerState() === YT.PlayerState.PLAYING);
-        Android.onRequestPlayback(isPlaying,currentTime);
+        Android.onRequestPlayback(isPlaying, currentTime);
     }
 }
 
