@@ -17,7 +17,6 @@ import android.view.WindowManager;
 import android.view.WindowMetrics;
 import android.widget.ImageView;
 import android.widget.ScrollView;
-import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
@@ -25,6 +24,7 @@ import androidx.media3.common.VideoSize;
 import androidx.media3.exoplayer.ExoPlayer;
 
 import com.github.jaykkumar01.watchparty_duo.R;
+import com.github.jaykkumar01.watchparty_duo.gestures.MovementListener;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
 
 public class PlayerOrientationHandler {
@@ -38,12 +38,15 @@ public class PlayerOrientationHandler {
     private final TextureView remoteFeedTextureView,smallRemoteFeedTextureView,peerFeedTextureView;
     private final ConstraintLayout.LayoutParams playerLayoutLayoutParams;
     private final int marginInPx, paddingInPx;
+    private final MovementListener movementListener;
     private ImageView fullScreen;
     private final ScrollView scrollView;
     private ExoPlayer player;
 
-    public PlayerOrientationHandler(Activity activity, TextureView remoteFeedTextureView,TextureView peerFeedTextureView) {
+    @SuppressLint("ClickableViewAccessibility")
+    public PlayerOrientationHandler(Activity activity, TextureView remoteFeedTextureView, TextureView peerFeedTextureView) {
         this.activity = activity;
+
         this.marginInPx = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 10, activity.getResources().getDisplayMetrics());
         this.paddingInPx = (int) TypedValue.applyDimension(
@@ -62,6 +65,9 @@ public class PlayerOrientationHandler {
         this.scrollView = activity.findViewById(R.id.scrollView);
 
         fullScreen.setOnClickListener(this::fullScreen);
+
+        movementListener = new MovementListener(smallRemoteFeedLayout);
+        smallRemoteFeedLayout.setOnTouchListener(movementListener);
     }
 
     public void setPlayer(ExoPlayer player) {
@@ -100,9 +106,14 @@ public class PlayerOrientationHandler {
 
             return;
         }
+        if (isNotLandscape){
+
+        }
+
+
         activity.setRequestedOrientation(
                 isNotLandscape
-                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         );
     }
 
@@ -154,6 +165,7 @@ public class PlayerOrientationHandler {
             fullScreen.setImageResource(R.drawable.fullscreen);
             fullScreen.setTag(R.drawable.fullscreen);
         }
+
     }
 
     private void enableFullscreen() {
@@ -174,6 +186,7 @@ public class PlayerOrientationHandler {
         LAYOUT1.setVisibility(View.GONE);
         smallRemoteFeedLayout.setVisibility(View.VISIBLE);
         setLayoutParams(true);
+        movementListener.resetBoundaries();
     }
 
     private void restoreDefaultLayout() {

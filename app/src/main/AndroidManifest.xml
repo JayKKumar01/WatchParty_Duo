@@ -33,6 +33,7 @@
         tools:targetApi="31">
         <activity
             android:name=".activities.TestingActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false" />
         <activity
             android:name=".testing.YouTubeActivity"
@@ -58,7 +59,9 @@
             android:name=".activities.FeedActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"
             android:exported="false"
-            android:hardwareAccelerated="true"></activity>
+            android:hardwareAccelerated="true">
+
+        </activity>
         <activity
             android:name=".peerjswebview.WebViewPeerActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|screenLayout|smallestScreenSize"

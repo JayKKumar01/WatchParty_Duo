@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.media.VolumeShaper;
 import android.view.OrientationEventListener;
 
 public class AutoRotate {

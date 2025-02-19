@@ -16,7 +16,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -26,7 +25,6 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.dialogs.BackPressHandler;
 import com.github.jaykkumar01.watchparty_duo.dialogs.ExitDialogHandler;
 import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoPlayerHandler;
-import com.github.jaykkumar01.watchparty_duo.gestures.DraggableTouchListener;
 import com.github.jaykkumar01.watchparty_duo.helpers.LogUpdater;
 import com.github.jaykkumar01.watchparty_duo.helpers.RefHelper;
 import com.github.jaykkumar01.watchparty_duo.models.PeerModel;
@@ -77,6 +75,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         AspectRatio.set(this);
         AutoRotate.set(this);
+
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.theme_related));
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -124,9 +123,6 @@ public class PlayerActivity extends AppCompatActivity {
 
         logUpdater = new LogUpdater(logTextView, logScrollView);
         logUpdater.addLogMessage("Check logs here...");
-
-        ConstraintLayout smallRemotePeerLayout = findViewById(R.id.smallRemoteFeedLayout);
-        smallRemotePeerLayout.setOnTouchListener(new DraggableTouchListener(this));
     }
 
     private void setupListeners() {
