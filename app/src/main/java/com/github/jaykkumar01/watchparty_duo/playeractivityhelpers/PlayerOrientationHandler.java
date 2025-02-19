@@ -1,14 +1,20 @@
 package com.github.jaykkumar01.watchparty_duo.playeractivityhelpers;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.TextureView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Toast;
@@ -94,8 +100,6 @@ public class PlayerOrientationHandler {
 
             return;
         }
-
-
         activity.setRequestedOrientation(
                 isNotLandscape
                         ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -105,6 +109,27 @@ public class PlayerOrientationHandler {
     private String getFullRatio(){
         DisplayMetrics displayMatrix = activity.getResources().getDisplayMetrics();
         return displayMatrix.widthPixels + ":" + displayMatrix.heightPixels;
+    }
+    private String getWindowAspectRatio() {
+        WindowManager windowManager = activity.getWindowManager();
+        int width;
+        int height;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = windowManager.getCurrentWindowMetrics();
+            Rect bounds = windowMetrics.getBounds();
+            width = bounds.width();
+            height = bounds.height();
+        } else {
+            // For API levels below 30
+            Display display = windowManager.getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            width = size.x;
+            height = size.y;
+        }
+
+        return width + ":" + height;
     }
 
     public void handleOrientationChange(int newOrientation) {
@@ -164,7 +189,7 @@ public class PlayerOrientationHandler {
 
 
         if (isLandscape) {
-            playerLayoutLayoutParams.dimensionRatio = getFullRatio();
+            playerLayoutLayoutParams.dimensionRatio = getWindowAspectRatio();
             playerLayoutLayoutParams.setMargins(0, 0, 0, 0);
             playerLayout.setPadding(0, 0, 0, 0);
             playerLayout.setBackgroundColor(ContextCompat.getColor(activity,R.color.theme_related));
