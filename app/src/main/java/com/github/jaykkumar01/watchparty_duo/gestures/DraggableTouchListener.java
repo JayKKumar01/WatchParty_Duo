@@ -14,8 +14,8 @@ public class DraggableTouchListener implements View.OnTouchListener {
 
     private float dX, dY;
     private float scaleFactor = 1f;
-    private final float minScale = 0.2f;
-    private final float maxScale = 3f;
+    private static final float MIN_SCALE = 0.5f;
+    private static final float MAX_SCALE = 2f;
 
     private float initialDistance;
     private float initialScaleFactor = 1f;
@@ -99,7 +99,7 @@ public class DraggableTouchListener implements View.OnTouchListener {
 
                     if (initialDistance > 0) {
                         scaleFactor = initialScaleFactor * (currentDistance / initialDistance);
-                        scaleFactor = Math.max(minScale, Math.min(scaleFactor, maxScale));
+                        scaleFactor = Math.max(MIN_SCALE, Math.min(scaleFactor, MAX_SCALE));
                     }
 
                     float newX = originalFocalX - (originalFocalX - originalX) * (scaleFactor / initialScaleFactor);

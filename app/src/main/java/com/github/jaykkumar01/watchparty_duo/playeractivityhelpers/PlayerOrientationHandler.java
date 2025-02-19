@@ -1,22 +1,22 @@
 package com.github.jaykkumar01.watchparty_duo.playeractivityhelpers;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.media3.common.VideoSize;
+import androidx.media3.exoplayer.ExoPlayer;
 
 import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.services.FeedService;
@@ -34,6 +34,7 @@ public class PlayerOrientationHandler {
     private final int marginInPx, paddingInPx;
     private ImageView fullScreen;
     private final ScrollView scrollView;
+    private ExoPlayer player;
 
     public PlayerOrientationHandler(Activity activity, TextureView remoteFeedTextureView,TextureView peerFeedTextureView) {
         this.activity = activity;
@@ -53,19 +54,57 @@ public class PlayerOrientationHandler {
 
         this.fullScreen = activity.findViewById(R.id.exo_screen);
         this.scrollView = activity.findViewById(R.id.scrollView);
+
+        fullScreen.setOnClickListener(this::fullScreen);
+    }
+
+    public void setPlayer(ExoPlayer player) {
+        this.player = player;
+    }
+    public void fullScreen(View view) {
+        if (player == null){
+            return;
+        }
+
+        VideoSize videoSize = player.getVideoSize();
+        boolean isNotLandscape = activity.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE;
+        boolean isPortraitVideo = videoSize.height > videoSize.width;
+        if ( isPortraitVideo && isNotLandscape){
+            FeedService feedService = FeedService.getInstance();
+            Integer currentDrawableId = (Integer) view.getTag();
+            if (currentDrawableId != null && currentDrawableId == R.drawable.fullscreen) {
+                fullScreen.setImageResource(R.drawable.fullscreen_exit);
+                fullScreen.setTag(R.drawable.fullscreen_exit);
+                if (feedService != null) {
+                    feedService.setRemoteSurface(smallRemoteFeedTextureView);
+                    feedService.setPeerSurface(null);
+                }
+                enableFullscreen();
+                showPlayerOnly();
+
+            }else {
+                fullScreen.setImageResource(R.drawable.fullscreen);
+                fullScreen.setTag(R.drawable.fullscreen);
+                if (feedService != null) {
+                    feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
+                }
+                disableFullscreen();
+                restoreDefaultLayout();
+            }
+
+            return;
+        }
+
+
+        activity.setRequestedOrientation(
+                isNotLandscape
+                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        );
     }
 
     private String getFullRatio(){
         DisplayMetrics displayMatrix = activity.getResources().getDisplayMetrics();
         return displayMatrix.widthPixels + ":" + displayMatrix.heightPixels;
-    }
-    @SuppressLint("ClickableViewAccessibility")
-    public void setScrollViewScrolling(ScrollView scrollView, boolean disable) {
-        if (disable) {
-            scrollView.setOnTouchListener((v, event) -> true); // Disable scrolling
-        } else {
-            scrollView.setOnTouchListener(null); // Enable scrolling by removing listener
-        }
     }
 
     public void handleOrientationChange(int newOrientation) {
@@ -80,6 +119,7 @@ public class PlayerOrientationHandler {
             enableFullscreen();
             showPlayerOnly();
             fullScreen.setImageResource(R.drawable.fullscreen_exit);
+            fullScreen.setTag(R.drawable.fullscreen_exit);
         } else {
             if (feedService != null) {
                 feedService.setFeedSurfaces(peerFeedTextureView,remoteFeedTextureView);
@@ -87,6 +127,7 @@ public class PlayerOrientationHandler {
             disableFullscreen();
             restoreDefaultLayout();
             fullScreen.setImageResource(R.drawable.fullscreen);
+            fullScreen.setTag(R.drawable.fullscreen);
         }
     }
 

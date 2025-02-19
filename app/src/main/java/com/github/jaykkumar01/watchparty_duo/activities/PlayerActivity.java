@@ -102,7 +102,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         playerOrientationHandler = new PlayerOrientationHandler(this,remoteFeedTextureView,peerFeedTextureView);
         playerOrientationHandler.handleOrientationChange(getResources().getConfiguration().orientation);
-        exoPlayerHandler = new ExoPlayerHandler(this);
+        exoPlayerHandler = new ExoPlayerHandler(this,playerOrientationHandler);
         youtubePlayerHandler = new YouTubePlayerHandler(this);
         mediaHandler = new MediaHandler(this,exoPlayerHandler, youtubePlayerHandler);
     }

@@ -15,6 +15,7 @@ import com.github.jaykkumar01.watchparty_duo.R;
 import com.github.jaykkumar01.watchparty_duo.gestures.ControlHandler;
 import com.github.jaykkumar01.watchparty_duo.gestures.GestureHandler;
 import com.github.jaykkumar01.watchparty_duo.managers.PlayerManager;
+import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.PlayerOrientationHandler;
 
 public class ExoPlayerHandler {
     private final Activity activity;
@@ -28,11 +29,11 @@ public class ExoPlayerHandler {
     private final ControlHandler controlHandler;
 
 
-    public ExoPlayerHandler(Activity activity) {
+    public ExoPlayerHandler(Activity activity, PlayerOrientationHandler playerOrientationHandler) {
         this.activity = activity;
         this.playerView = activity.findViewById(R.id.player_view);
         controlHandler = new ControlHandler(playerView);
-        playerManager = new PlayerManager(activity,playerView);
+        playerManager = new PlayerManager(activity,playerView,playerOrientationHandler);
         playerView.setOnTouchListener(new GestureHandler(activity, new GestureHandler.OnGestureCallback() {
             @Override
             public void onSingleTap() {

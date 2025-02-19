@@ -1,8 +1,6 @@
 package com.github.jaykkumar01.watchparty_duo.managers;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -19,10 +17,12 @@ import com.github.jaykkumar01.watchparty_duo.exoplayer.ExoRemoteActionHandler;
 import com.github.jaykkumar01.watchparty_duo.gestures.ControlHandler;
 import com.github.jaykkumar01.watchparty_duo.interfaces.RemoteActions;
 import com.github.jaykkumar01.watchparty_duo.models.PlaybackState;
+import com.github.jaykkumar01.watchparty_duo.playeractivityhelpers.PlayerOrientationHandler;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerManager {
+    private final PlayerOrientationHandler playerOrientationHandler;
     private ExoPlayer player;
     private final Activity activity;
     private final ExoRemoteActionHandler exoRemoteActionHandler;
@@ -32,18 +32,17 @@ public class PlayerManager {
     private final ImageView playPauseButton;
     private final ImageView muteButton;
     private final ImageView captionButton;
-    private final ImageView fullscreen;
     private Player.Listener seekListener;
 
 
     @OptIn(markerClass = UnstableApi.class)
-    public PlayerManager(Activity activity, PlayerView playerView) {
+    public PlayerManager(Activity activity, PlayerView playerView, PlayerOrientationHandler playerOrientationHandler) {
         this.activity = activity;
         this.playerView = playerView;
+        this.playerOrientationHandler = playerOrientationHandler;
         this.playPauseButton = activity.findViewById(R.id.play_pause);
         this.muteButton = activity.findViewById(R.id.exo_mute_unmute);
         this.captionButton = activity.findViewById(R.id.exo_caption);
-        this.fullscreen = activity.findViewById(R.id.exo_screen);
         exoRemoteActionHandler = new ExoRemoteActionHandler(activity,this);
 
         setupControls();
@@ -51,6 +50,7 @@ public class PlayerManager {
 
     public void setPlayer(ExoPlayer player) {
         this.player = player;
+        playerOrientationHandler.setPlayer(player);
         exoRemoteActionHandler.setPlayer(player);
     }
 
@@ -58,7 +58,6 @@ public class PlayerManager {
         playPauseButton.setOnClickListener(v -> togglePlayPause());
         muteButton.setOnClickListener(v -> toggleMute());
         captionButton.setOnClickListener(v -> toggleCaptions());
-        fullscreen.setOnClickListener(v -> fullScreen());
     }
 
     public void togglePlayPause() {
@@ -100,12 +99,7 @@ public class PlayerManager {
         }
     }
 
-    public void fullScreen() {
-        activity.setRequestedOrientation(
-                activity.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE
-                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        );
-    }
+
 
     public void setSeekListener() {
         this.seekListener = new Player.Listener() {
