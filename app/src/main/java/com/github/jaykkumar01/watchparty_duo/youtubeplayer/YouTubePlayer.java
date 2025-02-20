@@ -2,6 +2,9 @@ package com.github.jaykkumar01.watchparty_duo.youtubeplayer;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
@@ -15,9 +18,12 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.github.jaykkumar01.watchparty_duo.managers.YouTubePlayerManager;
 
+import org.json.JSONObject;
+
 public class YouTubePlayer {
     private final Activity activity;
     private final WebView webView;
+    private final ConstraintLayout playerLayout;
     private final YouTubePlayerHandler handler;
     private final YouTubePlayerManager manager; // ✅ Manager instance
 
@@ -26,6 +32,7 @@ public class YouTubePlayer {
         this.activity = activity;
         this.manager = manager;
         this.webView = webView;
+        this.playerLayout = (ConstraintLayout) webView.getParent();
 
         setupWebView();
     }
@@ -37,7 +44,7 @@ public class YouTubePlayer {
         webSettings.setDomStorageEnabled(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
 
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new MyChrome());
         webView.setWebViewClient(new WebViewClient());
 
         webView.addJavascriptInterface(new JavaScriptBridge(), "Android");
@@ -76,8 +83,22 @@ public class YouTubePlayer {
         }
 
         @JavascriptInterface
-        public void onPlayerCreated(String jsonVideoTitle) {
-            activity.runOnUiThread(() -> handler.onPlayerCreated(jsonVideoTitle));
+        public void onPlayerCreated(String jsonData) {
+            try {
+                JSONObject jsonObject = new JSONObject(jsonData);
+                String title = jsonObject.getString("title");
+                int duration = jsonObject.getInt("duration");
+
+                activity.runOnUiThread(() -> handler.onPlayerCreated(title,duration));
+
+                Log.d("YouTube", "Video Title: " + title + ", Duration: " + duration);
+
+                // Send the extracted data to the callback
+//                callback.onVideoInfoReceived(title, duration);
+            } catch (Exception e) {
+                Log.e("YouTube", "Error parsing video info JSON", e);
+            }
+
 
         }
 
@@ -131,7 +152,10 @@ public class YouTubePlayer {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(activity, "FullScreen Entered", Toast.LENGTH_SHORT).show();
+                    screen = view;
+                    playerLayout.removeView(webView);
+                    addView(screen);
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 }
             });
         }
@@ -139,9 +163,13 @@ public class YouTubePlayer {
         @Override
         public void onHideCustomView() {
             activity.runOnUiThread(new Runnable() {
+                @SuppressLint("SourceLockedOrientationActivity")
                 @Override
                 public void run() {
-                    Toast.makeText(activity, "Fullscreen Exited!", Toast.LENGTH_SHORT).show();
+                    playerLayout.removeView(screen);
+                    screen = null;
+                    addView(webView);
+                    activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 }
             });
 
@@ -149,7 +177,7 @@ public class YouTubePlayer {
 
     }
 
-    public void addView(View screen, ConstraintLayout playerLayout) {
+    public void addView(View screen) {
         ConstraintLayout.LayoutParams layoutParams = new ConstraintLayout.LayoutParams(
                 ConstraintLayout.LayoutParams.MATCH_PARENT,
                 ConstraintLayout.LayoutParams.MATCH_PARENT

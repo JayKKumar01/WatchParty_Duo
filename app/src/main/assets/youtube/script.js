@@ -6,7 +6,7 @@ function onYouTubeIframeAPIReady() {
     Android.onIFrameAPIReady(); // Notify Android that the API is ready
 }
 
-// Function to create a temporary player just to get the title
+// Function to create a temporary player just to get the title and duration
 function fetchVideoTitle(videoId) {
     let tempPlayer = new YT.Player('player', {
         videoId: videoId,
@@ -14,9 +14,16 @@ function fetchVideoTitle(videoId) {
             'onReady': function (event) {
                 let videoData = event.target.getVideoData();
                 let videoTitle = videoData.title;
+                let duration = tempPlayer.getDuration(); // Get video duration
 
-                // Convert title to JSON and send to Android
-                let jsonString = JSON.stringify(videoTitle);
+                // Create an object with both title and duration
+                let videoInfo = {
+                    title: videoTitle,
+                    duration: duration
+                };
+
+                // Convert object to JSON and send to Android
+                let jsonString = JSON.stringify(videoInfo);
                 console.log("Sending JSON: " + jsonString);
                 Android.onPlayerCreated(jsonString);
 
@@ -25,6 +32,7 @@ function fetchVideoTitle(videoId) {
         }
     });
 }
+
 
 // Function to destroy existing player (if any) and create a new one
 function loadVideo(videoId, autoplay, startTime) {
@@ -43,7 +51,7 @@ function loadVideo(videoId, autoplay, startTime) {
             'modestbranding': 1,
             'rel': 0,
             'iv_load_policy': 3,
-            'fs': 0,
+            'fs': 1,
             'start': startTime // Start at the exact position where it was last stopped
         },
         events: {

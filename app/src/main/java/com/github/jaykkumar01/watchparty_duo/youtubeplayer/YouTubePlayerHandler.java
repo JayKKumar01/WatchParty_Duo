@@ -15,7 +15,6 @@ import com.github.jaykkumar01.watchparty_duo.managers.YouTubePlayerManager;
 import com.github.jaykkumar01.watchparty_duo.models.YouTubePlayerData;
 import com.github.jaykkumar01.watchparty_duo.utils.Base;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.gson.Gson;
 
 import java.util.Objects;
 
@@ -90,10 +89,9 @@ public class YouTubePlayerHandler {
     public void onIFrameAPIReady() {
         isYouTubeIFrameAPIReady = true;
     }
-    public void onPlayerCreated(String jsonVideoTitle){
-        String videoTitle = new Gson().fromJson(jsonVideoTitle, String.class);
+    public void onPlayerCreated(String videoTitle, int duration){
         if (!videoTitle.isEmpty()){
-            playerManager.onPlayerCreated(new YouTubePlayerData(lastVideoId,videoTitle));
+            playerManager.onPlayerCreated(new YouTubePlayerData(lastVideoId,videoTitle,duration));
             currentYouTubeTxt.setText(videoTitle);
             toggleYouTubePlayerLayout(layoutPlayYouTubePlayer,layoutCreateYouTubePlayer);
         }else {

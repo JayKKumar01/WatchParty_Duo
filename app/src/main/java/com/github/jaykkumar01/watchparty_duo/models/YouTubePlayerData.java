@@ -5,10 +5,12 @@ import java.io.Serializable;
 public class YouTubePlayerData implements Serializable {
     private final String lastVideoId;
     private final String videoTitle;
+    private final int duration;
 
-    public YouTubePlayerData(String lastVideoId, String videoTitle) {
+    public YouTubePlayerData(String lastVideoId, String videoTitle, int duration) {
         this.lastVideoId = lastVideoId;
         this.videoTitle = videoTitle;
+        this.duration = duration;
     }
 
     public String getLastVideoId() {
@@ -17,5 +19,9 @@ public class YouTubePlayerData implements Serializable {
 
     public String getVideoTitle() {
         return videoTitle;
+    }
+
+    public int getDuration() {
+        return duration;
     }
 }

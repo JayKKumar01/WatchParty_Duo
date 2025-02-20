@@ -21,6 +21,8 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
     private boolean isFirstPlay;
     private final AtomicBoolean isRemoteAction = new AtomicBoolean(true);
 
+    private int duration;
+
     public YouTubePlayerManager(Activity activity, YouTubePlayerHandler handler) {
         this.handler = handler;
         this.actionHandler = new YouTubeRemoteActionHandler(activity,this);
@@ -41,7 +43,11 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
         if (isRemoteAction.getAndSet(false)) {
             return; // Ignore if triggered by remote seek
         }
-        playbackToRemote(true,timeMs);
+        int modifiedTimeSecond = timeMs + 2;
+        if (modifiedTimeSecond > duration){
+            modifiedTimeSecond = timeMs;
+        }
+        playbackToRemote(true,modifiedTimeSecond);
 
     }
 
@@ -52,6 +58,7 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
         if (isRemoteAction.getAndSet(false)) {
             return; // Ignore if triggered by remote seek
         }
+
         playbackToRemote(false,timeMs);
     }
 
@@ -69,6 +76,7 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
     }
 
     public void onPlayerCreated(YouTubePlayerData data) {
+        duration = data.getDuration();
         actionHandler.actionToRemote(YOUTUBE_CURRENT_VIDEO,data);
     }
 
