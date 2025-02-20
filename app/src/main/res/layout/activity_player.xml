@@ -375,9 +375,10 @@
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:textSize="11sp"
-                                            android:text="https://youtu.be/4X0-E_KHoSI?si=flJUEF3QPFla-zVU"
                                             android:inputType="text"
                                             android:textColor="@color/white" />
+<!--                                            android:text="https://youtu.be/4X0-E_KHoSI?si=flJUEF3QPFla-zVU"/>-->
+
                                     </com.google.android.material.textfield.TextInputLayout>
 
 
