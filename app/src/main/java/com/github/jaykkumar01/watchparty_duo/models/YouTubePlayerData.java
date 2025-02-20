@@ -24,4 +24,5 @@ public class YouTubePlayerData implements Serializable {
     public int getDuration() {
         return duration;
     }
+
 }

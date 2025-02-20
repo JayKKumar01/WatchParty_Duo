@@ -14,6 +14,7 @@ import com.github.jaykkumar01.watchparty_duo.youtubeplayer.YouTubeRemoteActionHa
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions {
+    private static final int INTERNET_DELAY_OFFSET = 2;
     private final YouTubePlayerHandler handler;
     private final YouTubeRemoteActionHandler actionHandler;
     private YouTubePlayer player;
@@ -43,11 +44,8 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
         if (isRemoteAction.getAndSet(false)) {
             return; // Ignore if triggered by remote seek
         }
-        int modifiedTimeSecond = timeMs + 2;
-        if (modifiedTimeSecond > duration){
-            modifiedTimeSecond = timeMs;
-        }
-        playbackToRemote(true,modifiedTimeSecond);
+
+        playbackToRemote(true,timeMs);
 
     }
 
@@ -96,7 +94,11 @@ public class YouTubePlayerManager implements YouTubePlayerEvents, RemoteActions 
     }
 
     public void playbackToRemote(boolean isPlaying, int currentPosition) {
-        actionHandler.actionToRemote(YOUTUBE_PLAYBACK_STATE,new YouTubePlaybackState(isPlaying,currentPosition));
+        int modifiedTimeSecond = currentPosition + INTERNET_DELAY_OFFSET;
+        if (modifiedTimeSecond > duration || !isPlaying){
+            modifiedTimeSecond = currentPosition;
+        }
+        actionHandler.actionToRemote(YOUTUBE_PLAYBACK_STATE,new YouTubePlaybackState(isPlaying,modifiedTimeSecond));
     }
 
     public void playbackFromRemote(boolean isPlaying, int currentPosition) {
